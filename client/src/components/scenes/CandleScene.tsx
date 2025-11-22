@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { useSceneStore } from '../../lib/stores/useSceneStore';
 import { audioManager } from '../../lib/audioManager';
 import { Button } from '../ui/button';
-import { ParticleSystem } from '../ParticleSystem';
+import { AdaptiveParticleSystem } from '../AdaptiveParticleSystem';
 import gsap from 'gsap';
 
 export function CandleScene() {
@@ -109,7 +109,7 @@ export function CandleScene() {
 
   return (
     <div className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-950 via-purple-950 to-pink-950">
-      {isLit && <ParticleSystem count={100} color="#fbbf24" speed={0.5} size={2} />}
+      {isLit && <AdaptiveParticleSystem count={100} color="#fbbf24" speed={0.5} size={2} />}
 
       <h1 className="text-5xl font-bold text-white mb-12 drop-shadow-2xl">
         Make a Wish! 🌟

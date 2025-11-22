@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useSceneStore } from '../../lib/stores/useSceneStore';
-import { ParticleSystem } from '../ParticleSystem';
+import { AdaptiveParticleSystem } from '../AdaptiveParticleSystem';
 import { Button } from '../ui/button';
 import gsap from 'gsap';
 import { audioManager } from '../../lib/audioManager';
@@ -56,7 +56,7 @@ export function IntroScene() {
 
   return (
     <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
-      <ParticleSystem count={150} color="#ffffff" speed={0.3} size={3} />
+      <AdaptiveParticleSystem count={150} color="#ffffff" speed={0.3} size={3} />
       
       <div className="relative z-10 text-center px-4 max-w-4xl">
         <div

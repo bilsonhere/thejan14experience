@@ -14,6 +14,8 @@ import {
 import { Dialog, DialogContent } from './ui/dialog';
 import { KeyboardShortcutsModal } from './KeyboardShortcutsModal';
 import { WallpaperUpload } from './WallpaperUpload';
+import { ShareButton } from './ShareButton';
+import { AchievementSystem } from './AchievementSystem';
 
 export function FloatingUI() {
   const { navigateTo, currentScene, settings, toggleSound, toggleReducedMotion, toggleHighContrast } = useSceneStore();
@@ -78,6 +80,10 @@ export function FloatingUI() {
       >
         <Music className={`h-4 w-4 ${!settings.soundEnabled ? 'opacity-50' : ''}`} />
       </Button>
+
+      <ShareButton />
+
+      <AchievementSystem />
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

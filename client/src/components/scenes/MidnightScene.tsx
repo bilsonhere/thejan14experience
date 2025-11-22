@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSceneStore } from '../../lib/stores/useSceneStore';
-import { ParticleSystem } from '../ParticleSystem';
+import { AdaptiveParticleSystem } from '../AdaptiveParticleSystem';
 import gsap from 'gsap';
 import { audioManager } from '../../lib/audioManager';
 import Confetti from 'react-confetti';
@@ -76,7 +76,7 @@ export function MidnightScene() {
 
   return (
     <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <ParticleSystem count={200} color={countdown ? '#fbbf24' : '#ffffff'} speed={countdown ? 0.8 : 0.3} size={4} />
+      <AdaptiveParticleSystem count={600} color={countdown ? '#fbbf24' : '#ffffff'} speed={countdown ? 0.8 : 0.3} size={4} />
 
       {showFinale && <Confetti recycle={false} numberOfPieces={500} />}
 
