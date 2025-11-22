@@ -10,6 +10,7 @@ interface SceneState {
     soundEnabled: boolean;
     reducedMotion: boolean;
     highContrast: boolean;
+    customWallpaper: string | null;
   };
   
   navigateTo: (scene: SceneType) => void;
@@ -18,6 +19,7 @@ interface SceneState {
   toggleSound: () => void;
   toggleReducedMotion: () => void;
   toggleHighContrast: () => void;
+  setCustomWallpaper: (url: string | null) => void;
 }
 
 export const useSceneStore = create<SceneState>((set) => ({
@@ -35,6 +37,7 @@ export const useSceneStore = create<SceneState>((set) => ({
     soundEnabled: true,
     reducedMotion: false,
     highContrast: false,
+    customWallpaper: null,
   },
   
   navigateTo: (scene) => set((state) => ({
@@ -58,5 +61,9 @@ export const useSceneStore = create<SceneState>((set) => ({
   
   toggleHighContrast: () => set((state) => ({
     settings: { ...state.settings, highContrast: !state.settings.highContrast }
+  })),
+  
+  setCustomWallpaper: (url) => set((state) => ({
+    settings: { ...state.settings, customWallpaper: url }
   })),
 }));

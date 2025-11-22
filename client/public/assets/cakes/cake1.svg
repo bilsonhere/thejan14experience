@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="cakeGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b9d;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#c44569;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="frostingGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffeaa7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#fdcb6e;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect x="30" y="80" width="140" height="90" rx="5" fill="url(#cakeGrad1)" stroke="#962d4a" stroke-width="2"/>
+  
+  <ellipse cx="100" cy="80" rx="70" ry="12" fill="url(#frostingGrad1)" stroke="#d97f3e" stroke-width="2"/>
+  
+  <path d="M 60 80 Q 60 95 70 95 Q 80 95 80 80" fill="#ffeaa7" opacity="0.6"/>
+  <path d="M 90 80 Q 90 95 100 95 Q 110 95 110 80" fill="#ffeaa7" opacity="0.6"/>
+  <path d="M 120 80 Q 120 95 130 95 Q 140 95 140 80" fill="#ffeaa7" opacity="0.6"/>
+  
+  <circle cx="70" cy="110" r="6" fill="#ff6348"/>
+  <circle cx="130" cy="110" r="6" fill="#ff6348"/>
+  <circle cx="100" cy="140" r="6" fill="#ff6348"/>
+  
+  <rect x="95" y="40" width="10" height="40" fill="#ffd700"/>
+  <ellipse cx="100" cy="40" rx="8" ry="4" fill="#ffa500"/>
+  <path d="M 100 30 Q 95 25 100 20 Q 105 25 100 30" fill="#ff4757"/>
+</svg>

@@ -5,6 +5,7 @@ import { Cake, Gift, Layers } from 'lucide-react';
 
 export function RoomScene() {
   const { navigateTo, settings } = useSceneStore();
+  const wallpaperUrl = settings.customWallpaper || '/assets/wallpaper/cosmic1.jpg';
   const wallpaperRef = useRef<HTMLDivElement>(null);
   const cakeRef = useRef<HTMLButtonElement>(null);
   const ladderRef = useRef<HTMLButtonElement>(null);
@@ -49,6 +50,13 @@ export function RoomScene() {
     <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-indigo-950 via-purple-950 to-pink-950">
       <div
         ref={wallpaperRef}
+        className="absolute inset-0 opacity-30 bg-cover bg-center"
+        style={{
+          backgroundImage: `url(${wallpaperUrl})`,
+        }}
+      />
+      
+      <div
         className="absolute inset-0 opacity-20"
         style={{
           backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(236, 72, 153, 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.3) 0%, transparent 50%)',

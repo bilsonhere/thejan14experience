@@ -3,10 +3,12 @@ import { useSceneStore } from "./lib/stores/useSceneStore";
 import { SceneRouter } from "./components/SceneRouter";
 import { FloatingUI } from "./components/FloatingUI";
 import { audioManager } from "./lib/audioManager";
+import { useGlobalKeyboard } from "./hooks/useGlobalKeyboard";
 import "@fontsource/inter";
 
 function App() {
   const { settings } = useSceneStore();
+  useGlobalKeyboard();
 
   useEffect(() => {
     audioManager.init();

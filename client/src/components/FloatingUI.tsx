@@ -1,4 +1,5 @@
-import { Home, Music, Settings, Cake, Gift, Layers } from 'lucide-react';
+import { useState } from 'react';
+import { Home, Music, Settings, Cake, Gift, Layers, Keyboard, Image } from 'lucide-react';
 import { useSceneStore } from '../lib/stores/useSceneStore';
 import { audioManager } from '../lib/audioManager';
 import { Button } from './ui/button';
@@ -10,9 +11,14 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuSeparator,
 } from './ui/dropdown-menu';
+import { Dialog, DialogContent } from './ui/dialog';
+import { KeyboardShortcutsModal } from './KeyboardShortcutsModal';
+import { WallpaperUpload } from './WallpaperUpload';
 
 export function FloatingUI() {
   const { navigateTo, currentScene, settings, toggleSound, toggleReducedMotion, toggleHighContrast } = useSceneStore();
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  const [showWallpaperUpload, setShowWallpaperUpload] = useState(false);
 
   const handleSoundToggle = () => {
     toggleSound();
@@ -104,11 +110,31 @@ export function FloatingUI() {
             High Contrast
           </DropdownMenuCheckboxItem>
           <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => setShowWallpaperUpload(true)}>
+            <Image className="h-4 w-4 mr-2" />
+            Customize Wallpaper
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setShowKeyboardShortcuts(true)}>
+            <Keyboard className="h-4 w-4 mr-2" />
+            Keyboard Shortcuts
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => navigateTo('intro')}>
             Return to Start
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <KeyboardShortcutsModal 
+        open={showKeyboardShortcuts} 
+        onClose={() => setShowKeyboardShortcuts(false)} 
+      />
+
+      <Dialog open={showWallpaperUpload} onOpenChange={setShowWallpaperUpload}>
+        <DialogContent className="max-w-2xl bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 border-white/30">
+          <WallpaperUpload onClose={() => setShowWallpaperUpload(false)} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

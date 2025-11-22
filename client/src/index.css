@@ -2,6 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+.high-contrast {
+  filter: contrast(1.5) brightness(1.1);
+}
+
+.high-contrast button,
+.high-contrast a {
+  border-width: 2px !important;
+  font-weight: 600 !important;
+}
+
+.high-contrast .text-purple-300,
+.high-contrast .text-purple-200,
+.high-contrast .text-white\/80 {
+  color: #ffffff !important;
+}
+
+.high-contrast .bg-white\/10,
+.high-contrast .bg-black\/30,
+.high-contrast .backdrop-blur-sm {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+  border-color: rgba(255, 255, 255, 0.8) !important;
+}
+
 @layer base {
   :root {
     --background: 222.2 84% 4.9%;
