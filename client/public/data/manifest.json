@@ -1,0 +1,61 @@
+{
+  "title": "AFRAH20 - A Night For Afrah",
+  "version": "1.0.0",
+  "description": "An interactive birthday celebration experience",
+  "quotes": [
+    "Keep climbing! You're doing amazing! 🌟",
+    "Believe in yourself and all that you are! ✨",
+    "Every step forward is a step toward achieving something bigger! 🚀",
+    "Don't look down, keep your eyes on the prize! 🎯",
+    "You are braver than you believe, stronger than you seem! 💪",
+    "Success is not final, failure is not fatal! 🌈",
+    "The only impossible journey is the one you never begin! 🛤️",
+    "Your potential is endless! Go do what you were created to do! 🎨",
+    "Dream big, work hard, stay focused! 💫",
+    "The best is yet to come! Keep going! 🎉"
+  ],
+  "milestones": {
+    "5": "Quarter way there! 🎯",
+    "10": "Halfway to greatness! ⭐",
+    "15": "Three-quarters complete! 🚀",
+    "20": "You made it! Incredible! 🎉"
+  },
+  "gifts": [
+    {
+      "id": 1,
+      "title": "A Sweet Message",
+      "type": "text",
+      "emoji": "💌"
+    },
+    {
+      "id": 2,
+      "title": "Memories",
+      "type": "image",
+      "emoji": "📷"
+    },
+    {
+      "id": 3,
+      "title": "Your Favorite Song",
+      "type": "audio",
+      "emoji": "🎵"
+    },
+    {
+      "id": 4,
+      "title": "Words of Wisdom",
+      "type": "text",
+      "emoji": "⭐"
+    },
+    {
+      "id": 5,
+      "title": "Creative Wishes",
+      "type": "image",
+      "emoji": "🎨"
+    },
+    {
+      "id": 6,
+      "title": "The Final Surprise",
+      "type": "final",
+      "emoji": "🌟"
+    }
+  ]
+}
