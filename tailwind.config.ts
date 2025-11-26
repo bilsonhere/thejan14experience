@@ -5,10 +5,42 @@ export default {
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      spacing: {
+        'xs': '0.25rem',   // 4px
+        'sm': '0.5rem',    // 8px
+        'md': '0.75rem',   // 12px
+        'lg': '1.25rem',   // 20px
+        'xl': '1.5rem',    // 24px
+        '2xl': '2rem',     // 32px
+        '3xl': '3rem',     // 48px
+        '4xl': '4rem',     // 64px
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        'xl': '1rem',      // 16px
+        '2xl': '1.25rem',  // 20px
+        '3xl': '1.5rem',   // 24px
+      },
+      boxShadow: {
+        'soft': '0 2px 8px rgba(0, 0, 0, 0.08)',
+        'base': '0 4px 12px rgba(0, 0, 0, 0.1)',
+        'md': '0 8px 24px rgba(0, 0, 0, 0.12)',
+        'lg': '0 12px 32px rgba(0, 0, 0, 0.15)',
+        'xl': '0 20px 48px rgba(0, 0, 0, 0.2)',
+        'glow-purple': '0 0 20px rgba(147, 51, 234, 0.4), 0 0 40px rgba(147, 51, 234, 0.2)',
+        'glow-pink': '0 0 20px rgba(236, 72, 153, 0.4), 0 0 40px rgba(236, 72, 153, 0.2)',
+        'glow-blue': '0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(59, 130, 246, 0.2)',
+        'glow-amber': '0 0 20px rgba(251, 191, 36, 0.5), 0 0 40px rgba(251, 191, 36, 0.3)',
+      },
+      transitionTimingFunction: {
+        'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
+        'bounce-soft': 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+      },
+      transitionDuration: {
+        '400': '400ms',
+        '600': '600ms',
       },
       colors: {
         background: "hsl(var(--background))",
@@ -79,10 +111,28 @@ export default {
             height: "0",
           },
         },
+        "spin-slow": {
+          from: {
+            transform: "rotate(0deg)",
+          },
+          to: {
+            transform: "rotate(360deg)",
+          },
+        },
+        "planet-parallax": {
+          "0%": {
+            transform: "translate3d(-1.5%, -1.5%, 0)",
+          },
+          "100%": {
+            transform: "translate3d(1.5%, 1.5%, 0)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "spin-slow": "spin-slow 120s linear infinite",
+        "planet-parallax": "planet-parallax 40s ease-in-out infinite alternate",
       },
     },
   },

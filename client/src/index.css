@@ -1,6 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Dancing+Script:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ============================================
+   DESIGN SYSTEM - SPACING SCALE
+   ============================================ */
+:root {
+  --spacing-xs: 0.25rem;   /* 4px */
+  --spacing-sm: 0.5rem;    /* 8px */
+  --spacing-md: 0.75rem;   /* 12px */
+  --spacing-base: 1rem;    /* 16px */
+  --spacing-lg: 1.25rem;   /* 20px */
+  --spacing-xl: 1.5rem;    /* 24px */
+  --spacing-2xl: 2rem;     /* 32px */
+  --spacing-3xl: 3rem;     /* 48px */
+  --spacing-4xl: 4rem;     /* 64px */
+}
+
+/* ============================================
+   DESIGN SYSTEM - SHADOWS & GLOWS
+   ============================================ */
+:root {
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-base: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-2xl: 0 35px 60px -12px rgba(0, 0, 0, 0.35);
+  
+  --glow-purple: 0 0 20px rgba(147, 51, 234, 0.4), 0 0 40px rgba(147, 51, 234, 0.2);
+  --glow-pink: 0 0 20px rgba(236, 72, 153, 0.4), 0 0 40px rgba(236, 72, 153, 0.2);
+  --glow-blue: 0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(59, 130, 246, 0.2);
+  --glow-amber: 0 0 20px rgba(251, 191, 36, 0.5), 0 0 40px rgba(251, 191, 36, 0.3);
+}
 
 .high-contrast {
   filter: contrast(1.5) brightness(1.1);
@@ -27,6 +61,13 @@
 
 @layer base {
   :root {
+    --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-display: 'Space Grotesk', 'Playfair Display', serif;
+    --glass-bg: rgba(4, 7, 19, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.15);
+    --glass-shadow: 0 25px 45px rgba(9, 9, 20, 0.45);
+    --cursor-ring: rgba(147, 197, 253, 0.25);
+    --cursor-dot: #93c5fd;
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
@@ -46,7 +87,7 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 262.1 83.3% 57.8%;
-    --radius: 0.5rem;
+    --radius: 0.75rem; /* 12px - softer rounding */
   }
 
   * {
@@ -60,7 +101,84 @@
     overflow: hidden;
     width: 100vw;
     height: 100vh;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: var(--font-body);
+    font-feature-settings: 'kern' 1, 'liga' 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #020617;
+  }
+
+  /* ============================================
+     TYPOGRAPHY SYSTEM
+     ============================================ */
+  .font-elegant {
+    font-family: 'Cormorant Garamond', 'EB Garamond', serif;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    line-height: 1.6;
+  }
+
+  .font-cursive {
+    font-family: 'Dancing Script', 'Playfair Display', cursive;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1.5;
+  }
+
+  .font-display {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+.font-body {
+    font-family: var(--font-body);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.6;
+  }
+
+  /* Typographic Scale */
+  h1, .text-h1 {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+  }
+
+  h2, .text-h2 {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  h3, .text-h3 {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+
+  .text-body-lg {
+    font-size: 1.125rem; /* 18px */
+    line-height: 1.7;
+  }
+
+  .text-body-md {
+    font-size: 1rem; /* 16px */
+    line-height: 1.6;
+  }
+
+  .text-caption {
+    font-size: 0.875rem; /* 14px */
+    line-height: 1.5;
+    letter-spacing: 0.01em;
   }
 
   body.high-contrast {
@@ -78,29 +196,242 @@
   }
 }
 
+body.has-planet-bg {
+  color: #e2e8f0;
+}
+
+:where(*, *::before, *::after) {
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
 #root {
   width: 100%;
   height: 100%;
   position: fixed;
+  isolation: isolate;
+  z-index: 1;
 }
 
-@keyframes glow {
+/* ============================================
+   PLANET BACKGROUND + OVERLAYS
+   ============================================ */
+.planet-bg,
+.planet-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.planet-bg {
+  background: radial-gradient(circle at 20% 20%, rgba(45, 212, 191, 0.12), transparent 55%),
+    url('/assets/wallpaper/earth.jpg') center/cover no-repeat;
+  opacity: 0.4;
+  animation: spin-slow 120s linear infinite;
+  transform-origin: center;
+  filter: saturate(110%) blur(0.25px);
+}
+
+.planet-overlay {
+  background: radial-gradient(circle at 50% 30%, rgba(15, 118, 110, 0.25), transparent 60%),
+    radial-gradient(circle at 80% 70%, rgba(14, 165, 233, 0.18), transparent 65%),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.15), rgba(2, 6, 23, 0.9));
+  mix-blend-mode: screen;
+  animation: planet-parallax 40s ease-in-out infinite alternate;
+}
+
+body[data-reduced-motion="true"] .planet-bg,
+body[data-reduced-motion="true"] .planet-overlay {
+  animation-play-state: paused;
+}
+
+/* ============================================
+   GLASS + BUTTON UTILITIES
+   ============================================ */
+.glass-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border-radius: 1.5rem;
+}
+
+.glass-app-shell {
+  padding: clamp(1rem, 2vw, 2.75rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.glass-app-surface {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  border-radius: clamp(1.25rem, 2vw, 2rem);
+}
+
+.button-glow {
+  box-shadow: 0 12px 35px rgba(14, 165, 233, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  background-image: linear-gradient(120deg, rgba(59, 130, 246, 0.85), rgba(14, 165, 233, 0.85));
+}
+
+.button-glow:hover {
+  box-shadow: 0 18px 45px rgba(59, 130, 246, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* ============================================
+   CUSTOM CURSOR
+   ============================================ */
+body.custom-cursor-enabled {
+  cursor: none;
+}
+
+.cursor-ring,
+.cursor-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+  border-radius: 999px;
+  z-index: 9999;
+  mix-blend-mode: screen;
+  transform: translate3d(-50%, -50%, 0);
+  transition: opacity 0.3s ease;
+}
+
+.cursor-ring {
+  border: 2px solid var(--cursor-ring);
+  filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.35));
+}
+
+.cursor-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--cursor-dot);
+  box-shadow: 0 0 12px rgba(147, 197, 253, 0.6);
+  animation: cursor-pulse 2.4s ease-in-out infinite;
+}
+
+/* ============================================
+   ENHANCED GLOW ANIMATIONS
+   ============================================ */
+@keyframes glow-soft {
   0%, 100% {
-    text-shadow: 0 0 20px rgba(147, 51, 234, 0.5),
-                 0 0 40px rgba(147, 51, 234, 0.3),
-                 0 0 60px rgba(147, 51, 234, 0.2);
+    text-shadow: 0 0 20px rgba(147, 51, 234, 0.4),
+                 0 0 40px rgba(147, 51, 234, 0.2),
+                 0 0 60px rgba(147, 51, 234, 0.1);
   }
   50% {
-    text-shadow: 0 0 30px rgba(147, 51, 234, 0.8),
-                 0 0 60px rgba(147, 51, 234, 0.5),
-                 0 0 90px rgba(147, 51, 234, 0.3);
+    text-shadow: 0 0 30px rgba(147, 51, 234, 0.6),
+                 0 0 60px rgba(147, 51, 234, 0.3),
+                 0 0 90px rgba(147, 51, 234, 0.15);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(147, 51, 234, 0.3),
+                0 0 40px rgba(147, 51, 234, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(147, 51, 234, 0.5),
+                0 0 60px rgba(147, 51, 234, 0.25);
   }
 }
 
 .animate-glow {
-  animation: glow 2s ease-in-out infinite;
+  animation: glow-soft 3s ease-in-out infinite;
 }
 
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg) scale(1);
+  }
+  to {
+    transform: rotate(360deg) scale(1.05);
+  }
+}
+
+@keyframes planet-parallax {
+  0% {
+    transform: translate3d(-1.5%, -1.5%, 0);
+  }
+  100% {
+    transform: translate3d(1.5%, 1.5%, 0);
+  }
+}
+
+@keyframes cursor-pulse {
+  0%, 100% {
+    transform: translate3d(-50%, -50%, 0) scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate3d(-50%, -50%, 0) scale(0.85);
+    opacity: 0.4;
+  }
+}
+
+/* ============================================
+   MICRO-INTERACTIONS
+   ============================================ */
+.hover-lift {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.hover-lift-sm {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift-sm:hover {
+  transform: translateY(-1px);
+}
+
+/* ============================================
+   ENHANCED KBD STYLING
+   ============================================ */
 kbd {
-  @apply inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-white bg-white/10 border border-white/20 rounded;
+  @apply inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium text-white/90 bg-white/10 border border-white/20 rounded-lg;
+  font-family: 'Inter', monospace;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+kbd:hover {
+  @apply bg-white/15 border-white/30;
+  transform: translateY(-1px);
+}
+
+/* ============================================
+   BACKDROP BLUR UTILITIES
+   ============================================ */
+@layer utilities {
+  .backdrop-blur-soft {
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+  }
+
+  .backdrop-blur-medium {
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+  }
+
+  .backdrop-blur-strong {
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+  }
 }
