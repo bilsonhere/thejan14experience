@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Dancing+Script:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Poppins:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Dancing+Script:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -61,13 +61,8 @@
 
 @layer base {
   :root {
-    --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-display: 'Space Grotesk', 'Playfair Display', serif;
-    --glass-bg: rgba(4, 7, 19, 0.65);
-    --glass-border: rgba(255, 255, 255, 0.15);
-    --glass-shadow: 0 25px 45px rgba(9, 9, 20, 0.45);
-    --cursor-ring: rgba(147, 197, 253, 0.25);
-    --cursor-dot: #93c5fd;
+    --font-body: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-display: 'Playfair Display', serif;
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
@@ -98,7 +93,6 @@
     @apply font-sans antialiased bg-background text-foreground;
     margin: 0;
     padding: 0;
-    overflow: hidden;
     width: 100vw;
     height: 100vh;
     font-family: var(--font-body);
@@ -196,124 +190,10 @@
   }
 }
 
-body.has-planet-bg {
-  color: #e2e8f0;
-}
-
-:where(*, *::before, *::after) {
-  transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
-}
-
+/* Root should simply fill the viewport */
 #root {
-  width: 100%;
-  height: 100%;
-  position: fixed;
-  isolation: isolate;
-  z-index: 1;
-}
-
-/* ============================================
-   PLANET BACKGROUND + OVERLAYS
-   ============================================ */
-.planet-bg,
-.planet-overlay {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.planet-bg {
-  background: radial-gradient(circle at 20% 20%, rgba(45, 212, 191, 0.12), transparent 55%),
-    url('/assets/wallpaper/earth.jpg') center/cover no-repeat;
-  opacity: 0.4;
-  animation: spin-slow 120s linear infinite;
-  transform-origin: center;
-  filter: saturate(110%) blur(0.25px);
-}
-
-.planet-overlay {
-  background: radial-gradient(circle at 50% 30%, rgba(15, 118, 110, 0.25), transparent 60%),
-    radial-gradient(circle at 80% 70%, rgba(14, 165, 233, 0.18), transparent 65%),
-    linear-gradient(180deg, rgba(2, 6, 23, 0.15), rgba(2, 6, 23, 0.9));
-  mix-blend-mode: screen;
-  animation: planet-parallax 40s ease-in-out infinite alternate;
-}
-
-body[data-reduced-motion="true"] .planet-bg,
-body[data-reduced-motion="true"] .planet-overlay {
-  animation-play-state: paused;
-}
-
-/* ============================================
-   GLASS + BUTTON UTILITIES
-   ============================================ */
-.glass-card {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-  border-radius: 1.5rem;
-}
-
-.glass-app-shell {
-  padding: clamp(1rem, 2vw, 2.75rem);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.glass-app-surface {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  overflow: hidden;
-  border-radius: clamp(1.25rem, 2vw, 2rem);
-}
-
-.button-glow {
-  box-shadow: 0 12px 35px rgba(14, 165, 233, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  background-image: linear-gradient(120deg, rgba(59, 130, 246, 0.85), rgba(14, 165, 233, 0.85));
-}
-
-.button-glow:hover {
-  box-shadow: 0 18px 45px rgba(59, 130, 246, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-}
-
-/* ============================================
-   CUSTOM CURSOR
-   ============================================ */
-body.custom-cursor-enabled {
-  cursor: none;
-}
-
-.cursor-ring,
-.cursor-dot {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 24px;
-  height: 24px;
-  pointer-events: none;
-  border-radius: 999px;
-  z-index: 9999;
-  mix-blend-mode: screen;
-  transform: translate3d(-50%, -50%, 0);
-  transition: opacity 0.3s ease;
-}
-
-.cursor-ring {
-  border: 2px solid var(--cursor-ring);
-  filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.35));
-}
-
-.cursor-dot {
-  width: 8px;
-  height: 8px;
-  background: var(--cursor-dot);
-  box-shadow: 0 0 12px rgba(147, 197, 253, 0.6);
-  animation: cursor-pulse 2.4s ease-in-out infinite;
+  width: 100vw;
+  height: 100vh;
 }
 
 /* ============================================
@@ -356,27 +236,7 @@ body.custom-cursor-enabled {
     transform: rotate(0deg) scale(1);
   }
   to {
-    transform: rotate(360deg) scale(1.05);
-  }
-}
-
-@keyframes planet-parallax {
-  0% {
-    transform: translate3d(-1.5%, -1.5%, 0);
-  }
-  100% {
-    transform: translate3d(1.5%, 1.5%, 0);
-  }
-}
-
-@keyframes cursor-pulse {
-  0%, 100% {
-    transform: translate3d(-50%, -50%, 0) scale(1);
-    opacity: 0.9;
-  }
-  50% {
-    transform: translate3d(-50%, -50%, 0) scale(0.85);
-    opacity: 0.4;
+    transform: rotate(360deg) scale(1);
   }
 }
 

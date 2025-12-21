@@ -4,7 +4,6 @@ import { SceneRouter } from "./components/SceneRouter";
 import { FloatingUI } from "./components/FloatingUI";
 import { audioManager } from "./lib/audioManager";
 import { useGlobalKeyboard } from "./hooks/useGlobalKeyboard";
-import { initCustomCursor } from "./lib/customCursor";
 import "@fontsource/inter";
 
 function App() {
@@ -45,17 +44,10 @@ function App() {
     document.body.classList.toggle('high-contrast', settings.highContrast);
   }, [settings.highContrast, settings.reducedMotion]);
 
-  useEffect(() => {
-    const destroyCursor = initCustomCursor({ disabled: settings.reducedMotion });
-    return destroyCursor;
-  }, [settings.reducedMotion]);
-
   return (
-    <div className="w-screen h-screen relative overflow-hidden glass-app-shell">
-      <div className="glass-card glass-app-surface">
-        <SceneRouter />
-        <FloatingUI />
-      </div>
+    <div className="w-screen h-screen relative overflow-hidden">
+      <SceneRouter />
+      <FloatingUI />
     </div>
   );
 }

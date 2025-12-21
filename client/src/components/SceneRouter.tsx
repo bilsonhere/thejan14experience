@@ -11,36 +11,56 @@ import { CandleScene } from './scenes/CandleScene';
 import { GiftsScene } from './scenes/GiftsScene';
 
 export function SceneRouter() {
-  const { currentScene, previousScene, isTransitioning, setTransitioning } = useSceneStore();
+  const { currentScene, previousScene, isTransitioning, setTransitioning, settings } = useSceneStore();
   const containerRef = useRef<HTMLDivElement>(null);
+  const timelineRef = useRef<gsap.core.Timeline | null>(null);
 
   useEffect(() => {
     if (!containerRef.current || !previousScene) return;
 
+    // Kill any existing timeline
+    if (timelineRef.current) {
+      timelineRef.current.kill();
+    }
+
+    if (settings.reducedMotion) {
+      // Instant transition for reduced motion
+      setTransitioning(false);
+      return;
+    }
+
     setTransitioning(true);
 
     const tl = gsap.timeline({
-      onComplete: () => setTransitioning(false)
+      onComplete: () => {
+        setTransitioning(false);
+        timelineRef.current = null;
+      }
     });
 
     tl.to(containerRef.current, {
       opacity: 0,
-      scale: 0.95,
-      duration: 0.5,
+      scale: 0.96,
+      duration: 0.35,
       ease: 'power3.in',
     })
     .set(containerRef.current, { opacity: 0 })
     .to(containerRef.current, {
       opacity: 1,
       scale: 1,
-      duration: 0.8,
-      ease: 'power3.out',
+      duration: 0.5,
+      ease: 'expo.out',
     });
 
+    timelineRef.current = tl;
+
     return () => {
-      tl.kill();
+      if (timelineRef.current) {
+        timelineRef.current.kill();
+        timelineRef.current = null;
+      }
     };
-  }, [currentScene, previousScene, setTransitioning]);
+  }, [currentScene, previousScene, setTransitioning, settings.reducedMotion]);
 
   const renderScene = () => {
     switch (currentScene) {

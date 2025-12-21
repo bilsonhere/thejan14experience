@@ -5,7 +5,7 @@ import { Cake, Gift, Layers } from 'lucide-react';
 
 export function RoomScene() {
   const { navigateTo, settings } = useSceneStore();
-  const wallpaperUrl = settings.customWallpaper || '/assets/wallpaper/cosmic1.jpg';
+  const wallpaperUrl = settings.customWallpaper || '/assets/wallpaper/40.png';
   const wallpaperRef = useRef<HTMLDivElement>(null);
   const cakeRef = useRef<HTMLButtonElement>(null);
   const ladderRef = useRef<HTMLButtonElement>(null);
@@ -15,35 +15,48 @@ export function RoomScene() {
   useEffect(() => {
     if (settings.reducedMotion) return;
 
-    gsap.fromTo(wallpaperRef.current,
-      { y: 0 },
-      { y: -20, duration: 8, ease: 'sine.inOut', repeat: -1, yoyo: true }
-    );
+    const animations: gsap.core.Tween[] = [];
 
-    gsap.to(catRef.current, {
-      x: 20,
-      duration: 3,
-      ease: 'sine.inOut',
-      repeat: -1,
-      yoyo: true,
-    });
+    if (wallpaperRef.current) {
+      const anim = gsap.fromTo(wallpaperRef.current,
+        { y: 0 },
+        { y: -16, duration: 10, ease: 'power3.inOut', repeat: -1, yoyo: true }
+      );
+      animations.push(anim);
+    }
+
+    if (catRef.current) {
+      const anim = gsap.to(catRef.current, {
+        x: 16,
+        duration: 4,
+        ease: 'power3.inOut',
+        repeat: -1,
+        yoyo: true,
+      });
+      animations.push(anim);
+    }
 
     const items = [cakeRef.current, ladderRef.current, giftsRef.current];
     items.forEach((item, i) => {
       if (item) {
-        gsap.fromTo(item,
+        const anim = gsap.fromTo(item,
           { y: 0 },
           {
-            y: -10,
-            duration: 2 + i * 0.5,
-            ease: 'sine.inOut',
+            y: -8,
+            duration: 2.5 + i * 0.3,
+            ease: 'power3.inOut',
             repeat: -1,
             yoyo: true,
-            delay: i * 0.3,
+            delay: i * 0.2,
           }
         );
+        animations.push(anim);
       }
     });
+
+    return () => {
+      animations.forEach(anim => anim.kill());
+    };
   }, [settings.reducedMotion]);
 
   return (
@@ -64,45 +77,47 @@ export function RoomScene() {
       />
 
       <div className="relative z-10 w-full h-full flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-5xl font-bold text-white mb-8 drop-shadow-2xl">Afrah's Cosmic Room</h1>
-          <p className="text-xl text-purple-200 mb-12">Choose your adventure...</p>
+        <div className="text-center px-6">
+          <h1 className="text-5xl md:text-6xl font-display font-bold text-white mb-6 drop-shadow-2xl">
+            <span className="font-cursive">Afrah's Birthday Room</span>
+          </h1>
+          <p className="text-xl text-purple-200/90 mb-16 font-elegant">Choose your adventure...</p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             <button
               ref={cakeRef}
               onClick={() => navigateTo('cake')}
-              className="group relative p-8 bg-gradient-to-br from-pink-500/20 to-purple-500/20 backdrop-blur-md rounded-3xl border-2 border-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105 cursor-pointer"
+              className="group relative p-10 bg-gradient-to-br from-pink-500/25 to-purple-500/25 backdrop-blur-soft rounded-3xl border-2 border-white/20 hover:border-white/50 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:shadow-xl hover:shadow-pink-500/20 cursor-pointer"
               aria-label="Go to cake scene"
             >
-              <div className="text-6xl mb-4">🎂</div>
-              <Cake className="w-12 h-12 mx-auto mb-2 text-pink-300" />
-              <h3 className="text-2xl font-bold text-white">Cake Time</h3>
-              <p className="text-purple-200 mt-2">Slice the birthday cake</p>
+              <div className="text-6xl mb-5 transition-transform duration-300 group-hover:scale-110">🎂</div>
+              <Cake className="w-12 h-12 mx-auto mb-3 text-pink-300 transition-transform duration-300 group-hover:scale-110" />
+              <h3 className="text-2xl font-display font-bold text-white mb-2">Cake Time</h3>
+              <p className="text-purple-200/80 font-elegant text-body-md">Slice the birthday cake</p>
             </button>
 
             <button
               ref={ladderRef}
               onClick={() => navigateTo('ladder')}
-              className="group relative p-8 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 backdrop-blur-md rounded-3xl border-2 border-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105 cursor-pointer"
+              className="group relative p-10 bg-gradient-to-br from-blue-500/25 to-cyan-500/25 backdrop-blur-soft rounded-3xl border-2 border-white/20 hover:border-white/50 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/20 cursor-pointer"
               aria-label="Go to ladder game"
             >
-              <div className="text-6xl mb-4">🪜</div>
-              <Layers className="w-12 h-12 mx-auto mb-2 text-cyan-300" />
-              <h3 className="text-2xl font-bold text-white">Ladder Challenge</h3>
-              <p className="text-blue-200 mt-2">Climb to new heights</p>
+              <div className="text-6xl mb-5 transition-transform duration-300 group-hover:scale-110">🪜</div>
+              <Layers className="w-12 h-12 mx-auto mb-3 text-cyan-300 transition-transform duration-300 group-hover:scale-110" />
+              <h3 className="text-2xl font-display font-bold text-white mb-2">Ladder Challenge😍</h3>
+              <p className="text-blue-200/80 font-elegant text-body-md">Climb to new heights:))</p>
             </button>
 
             <button
               ref={giftsRef}
               onClick={() => navigateTo('gifts')}
-              className="group relative p-8 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 backdrop-blur-md rounded-3xl border-2 border-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105 cursor-pointer"
+              className="group relative p-10 bg-gradient-to-br from-yellow-500/25 to-orange-500/25 backdrop-blur-soft rounded-3xl border-2 border-white/20 hover:border-white/50 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:shadow-xl hover:shadow-yellow-500/20 cursor-pointer"
               aria-label="Go to gifts scene"
             >
-              <div className="text-6xl mb-4">🎁</div>
-              <Gift className="w-12 h-12 mx-auto mb-2 text-yellow-300" />
-              <h3 className="text-2xl font-bold text-white">Open Gifts</h3>
-              <p className="text-yellow-200 mt-2">Discover your surprises</p>
+              <div className="text-6xl mb-5 transition-transform duration-300 group-hover:scale-110">🎁</div>
+              <Gift className="w-12 h-12 mx-auto mb-3 text-yellow-300 transition-transform duration-300 group-hover:scale-110" />
+              <h3 className="text-2xl font-display font-bold text-white mb-2">Open Gifts!!</h3>
+              <p className="text-yellow-200/80 font-elegant text-body-md">Unwrap your surprises;)</p>
             </button>
           </div>
 

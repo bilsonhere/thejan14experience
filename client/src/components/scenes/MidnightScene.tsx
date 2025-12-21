@@ -10,32 +10,36 @@ export function MidnightScene() {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [showFinale, setShowFinale] = useState(false);
   const [started, setStarted] = useState(false);
-  const earthRef = useRef<HTMLDivElement>(null);
   const countdownRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' && !started) {
-        startCountdown();
-      }
+      if (e.key === 'Enter' && !started) startCountdown();
     };
-
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [started]);
 
   const startCountdown = () => {
+    if (started) return;
     setStarted(true);
-    
+
     let count = 1;
     const interval = setInterval(() => {
       setCountdown(count);
-      
+
       if (!settings.reducedMotion && countdownRef.current) {
-        gsap.fromTo(countdownRef.current,
-          { scale: 0.5, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 0.3, ease: 'back.out(2)' }
+        gsap.fromTo(
+          countdownRef.current,
+          { scale: 0.85, opacity: 0, filter: 'blur(6px)' },
+          {
+            scale: 1,
+            opacity: 1,
+            filter: 'blur(0px)',
+            duration: 0.35,
+            ease: 'power3.out',
+          }
         );
       }
 
@@ -47,10 +51,19 @@ export function MidnightScene() {
         clearInterval(interval);
         setTimeout(() => {
           setShowFinale(true);
+
           if (settings.soundEnabled) {
             audioManager.play('success');
           }
-          
+
+          if (!settings.reducedMotion && titleRef.current) {
+            gsap.fromTo(
+              titleRef.current,
+              { y: 30, opacity: 0 },
+              { y: 0, opacity: 1, duration: 1.2, ease: 'power3.out' }
+            );
+          }
+
           setTimeout(() => {
             navigateTo('room');
           }, 5000);
@@ -59,75 +72,110 @@ export function MidnightScene() {
 
       count++;
     }, 800);
-
-    return () => clearInterval(interval);
   };
 
-  useEffect(() => {
-    if (!settings.reducedMotion && earthRef.current) {
-      gsap.to(earthRef.current, {
-        rotation: 360,
-        duration: countdown && countdown > 18 ? 2 : 20,
-        ease: 'none',
-        repeat: -1,
-      });
-    }
-  }, [countdown, settings.reducedMotion]);
-
   return (
-    <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <AdaptiveParticleSystem count={600} color={countdown ? '#fbbf24' : '#ffffff'} speed={countdown ? 0.8 : 0.3} size={4} />
+    <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950">
+      {/* Ambient depth */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/30" />
+      <div className="absolute inset-0 backdrop-blur-[1.5px]" />
 
-      {showFinale && <Confetti recycle={false} numberOfPieces={500} />}
+      <AdaptiveParticleSystem
+        count={500}
+        color={countdown ? '#facc15' : '#ffffff'}
+        speed={countdown ? 0.7 : 0.25}
+        size={3}
+      />
 
-      <div className="relative z-10 text-center">
+      {showFinale && (
+        <Confetti recycle={false} numberOfPieces={220} gravity={0.12} />
+      )}
+
+      <div className="relative z-10 text-center px-6 max-w-3xl">
         {!started && (
-          <div className="mb-12">
-            <p className="text-3xl text-white/80 mb-8">Ready to begin the countdown?</p>
-            <div className="text-6xl mb-8 animate-pulse">⏰</div>
+          <div className="mb-14">
+            <p className="text-3xl md:text-4xl text-white/85 mb-12 font-elegant tracking-wide">
+              Ready to begin the countdown?
+            </p>
+
+            <div className="text-6xl mb-12 opacity-90">⏰</div>
+
             <button
               onClick={startCountdown}
-              className="px-12 py-6 text-2xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-2xl shadow-2xl transition-all hover:scale-105"
+              className="px-10 sm:px-12 py-5 sm:py-6 text-xl sm:text-2xl font-elegant font-semibold
+                         bg-gradient-to-r from-purple-600 to-pink-500
+                         hover:from-purple-500 hover:to-pink-400
+                         text-white rounded-2xl shadow-xl
+                         transition-all duration-300
+                         hover:scale-[1.03] hover:-translate-y-0.5"
               aria-label="Start countdown"
             >
               Start Countdown
             </button>
-            <p className="mt-4 text-sm text-purple-300/70">Or press <kbd className="px-2 py-1 bg-white/10 rounded">Enter</kbd></p>
+
+            <p className="mt-6 text-sm text-purple-300/70 font-elegant">
+              or press <kbd className="px-1">Enter</kbd>
+            </p>
           </div>
         )}
 
         {countdown && !showFinale && (
           <>
+            {/* Orb */}
             <div
-              ref={earthRef}
-              className="mx-auto mb-12 w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-green-500 shadow-2xl"
+              className="mx-auto mb-14 w-28 h-28 sm:w-32 sm:h-32 rounded-full
+                         bg-gradient-to-br from-purple-500 via-pink-500 to-yellow-400"
               style={{
-                boxShadow: '0 0 60px rgba(59, 130, 246, 0.5), inset 0 0 30px rgba(0, 0, 0, 0.3)',
+                boxShadow:
+                  '0 0 70px rgba(236,72,153,0.55), inset 0 0 28px rgba(0,0,0,0.35)',
+                animation: 'breathe 3.2s ease-in-out infinite',
               }}
             />
-            
-            <div ref={countdownRef} className="text-9xl font-bold text-white mb-8">
+
+            <div
+              ref={countdownRef}
+              className="text-7xl sm:text-8xl md:text-9xl font-display font-bold text-white mb-10"
+            >
               {countdown}
             </div>
 
-            <div className="text-2xl text-purple-300">
-              {Math.floor(23 + (countdown / 20))}:{String(Math.floor((countdown / 20) * 60) % 60).padStart(2, '0')}:{String(Math.floor((countdown / 20) * 3600) % 60).padStart(2, '0')}
+            <div className="text-xl sm:text-2xl text-purple-300/80 font-elegant tracking-widest">
+              {Math.floor(23 + countdown / 20)}:
+              {String(Math.floor((countdown / 20) * 60) % 60).padStart(2, '0')}:
+              {String(Math.floor((countdown / 20) * 3600) % 60).padStart(2, '0')}
             </div>
           </>
         )}
 
         {showFinale && (
           <div ref={titleRef}>
-            <div className="text-8xl mb-8">🎉🎂🎈</div>
-            <h1 className="text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 mb-4">
-              HAPPY 20th, AFRAH!
+            <div className="text-7xl mb-10 opacity-95">🎉🎂🎈</div>
+
+            <h1
+              className="text-5xl sm:text-6xl md:text-7xl font-display font-bold
+                         text-transparent bg-clip-text
+                         bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500
+                         mb-8 drop-shadow-[0_0_28px_rgba(236,72,153,0.6)]"
+            >
+              <span className="font-elegant italic">
+                Happy 20th, Afrah
+              </span>
             </h1>
-            <p className="text-3xl text-white/90 mt-8">
-              Let the celebration begin! 🎊
+
+            <p className="text-2xl md:text-3xl text-white/90 mt-6 font-elegant">
+              Let the celebration begin ✨
             </p>
           </div>
         )}
       </div>
+
+      {/* Keyframes */}
+      <style>{`
+        @keyframes breathe {
+          0%, 100% { transform: scale(1); opacity: 0.9; }
+          50% { transform: scale(1.06); opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }

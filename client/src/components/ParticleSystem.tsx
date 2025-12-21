@@ -28,23 +28,40 @@ export function ParticleSystem({
     if (!ctx) return;
 
     const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      
+      ctx.scale(dpr, dpr);
+      
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = `${rect.height}px`;
     };
 
     resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+    const resizeHandler = () => resizeCanvas();
+    window.addEventListener('resize', resizeHandler);
 
+    // Initialize particles after canvas is sized
     particlesRef.current = Array.from({ length: count }, () => createParticle());
 
     const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const rect = canvas.getBoundingClientRect();
+      ctx.clearRect(0, 0, rect.width, rect.height);
 
       particlesRef.current.forEach((particle, index) => {
         particle.x += particle.vx * speed;
         particle.y += particle.vy * speed;
         particle.life += 1;
-        particle.opacity = 1 - (particle.life / particle.maxLife);
+        particle.opacity = Math.max(0, 1 - (particle.life / particle.maxLife));
+
+        // Wrap around edges
+        if (particle.x < 0) particle.x = rect.width;
+        if (particle.x > rect.width) particle.x = 0;
+        if (particle.y < 0) particle.y = rect.height;
+        if (particle.y > rect.height) particle.y = 0;
 
         if (particle.life >= particle.maxLife) {
           particlesRef.current[index] = createParticle();
@@ -64,19 +81,21 @@ export function ParticleSystem({
     animate();
 
     return () => {
-      window.removeEventListener('resize', resizeCanvas);
+      window.removeEventListener('resize', resizeHandler);
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
+        animationRef.current = undefined;
       }
     };
   }, [count, color, speed, size]);
 
   function createParticle(): Particle {
     const canvas = canvasRef.current!;
+    const rect = canvas.getBoundingClientRect();
     return {
       id: Math.random().toString(36),
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
+      x: Math.random() * rect.width,
+      y: Math.random() * rect.height,
       vx: (Math.random() - 0.5) * 2,
       vy: (Math.random() - 0.5) * 2,
       life: 0,
@@ -91,7 +110,7 @@ export function ParticleSystem({
     <canvas
       ref={canvasRef}
       className={`fixed inset-0 pointer-events-none ${className}`}
-      style={{ zIndex: 1 }}
+      style={{ zIndex: 1, width: '100%', height: '100%' }}
     />
   );
 }

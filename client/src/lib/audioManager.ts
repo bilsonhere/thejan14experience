@@ -4,6 +4,9 @@ class AudioManager {
   private enabled: boolean = true;
 
   init() {
+    // Only initialize if not already initialized
+    if (this.sounds.size > 0) return;
+    
     this.loadSound('ambient', '/sounds/background.mp3', true);
     this.loadSound('success', '/sounds/success.mp3', false);
     this.loadSound('hit', '/sounds/hit.mp3', false);
@@ -29,16 +32,30 @@ class AudioManager {
     
     const sound = this.sounds.get(key);
     if (sound) {
-      const clone = sound.cloneNode() as HTMLAudioElement;
-      clone.volume = sound.volume;
-      clone.play().catch(() => {});
+      try {
+        const clone = sound.cloneNode() as HTMLAudioElement;
+        clone.volume = sound.volume;
+        clone.play().catch((err) => {
+          // Silently handle autoplay restrictions
+          if (err.name !== 'NotAllowedError') {
+            console.warn(`Error playing sound "${key}":`, err);
+          }
+        });
+      } catch (error) {
+        console.warn(`Error cloning sound "${key}":`, error);
+      }
     }
   }
 
   playMusic() {
     if (!this.enabled || !this.backgroundMusic) return;
     
-    this.backgroundMusic.play().catch(() => {});
+    this.backgroundMusic.play().catch((err) => {
+      // Silently handle autoplay restrictions - user interaction required
+      if (err.name !== 'NotAllowedError') {
+        console.warn('Error playing background music:', err);
+      }
+    });
   }
 
   stopMusic() {
@@ -53,7 +70,12 @@ class AudioManager {
     if (!enabled && this.backgroundMusic) {
       this.backgroundMusic.pause();
     } else if (enabled && this.backgroundMusic) {
-      this.backgroundMusic.play().catch(() => {});
+      this.backgroundMusic.play().catch((err) => {
+        // Silently handle autoplay restrictions
+        if (err.name !== 'NotAllowedError') {
+          console.warn('Error playing background music:', err);
+        }
+      });
     }
   }
 

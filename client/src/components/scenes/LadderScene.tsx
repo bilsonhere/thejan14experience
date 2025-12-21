@@ -4,7 +4,7 @@ import { audioManager } from '../../lib/audioManager';
 import { Button } from '../ui/button';
 import { AdaptiveParticleSystem } from '../AdaptiveParticleSystem';
 import gsap from 'gsap';
-import { getLocalStorage, setLocalStorage } from '../../lib/utils';
+import { setLocalStorage } from '../../lib/utils';
 
 const QUOTES = [
   "Keep climbing! 🌟",
@@ -20,6 +20,7 @@ const QUOTES = [
 const MILESTONES = [5, 10, 15, 20];
 const MAX_PROGRESS = 20;
 const CHARACTER_PADDING = 16;
+
 const STORAGE_KEYS = {
   progress: 'ladderProgress',
   milestones: 'ladderSeenMilestones',
@@ -27,6 +28,7 @@ const STORAGE_KEYS = {
 
 export function LadderScene() {
   const { updateProgress, settings } = useSceneStore();
+
   const [progress, setProgress] = useState(0);
   const [isClimbing, setIsClimbing] = useState(false);
   const [quote, setQuote] = useState('');
@@ -35,44 +37,45 @@ export function LadderScene() {
   const [seenMilestones, setSeenMilestones] = useState<number[]>([]);
   const [maxTranslateY, setMaxTranslateY] = useState(0);
   const [stepSize, setStepSize] = useState(0);
+
   const characterRef = useRef<HTMLDivElement>(null);
   const ladderRef = useRef<HTMLDivElement>(null);
   const quoteRef = useRef<HTMLDivElement>(null);
+
   const progressRef = useRef(0);
   const sideRef = useRef<'left' | 'right'>('left');
   const seenMilestonesRef = useRef<Set<number>>(new Set());
 
-  // Translate progress into clamped ladder movement so the character never leaves the rails.
+  /* ------------------------------------------------------------------ */
+  /* 🔁 REPLAY RESET — runs EVERY time this scene loads */
+  /* ------------------------------------------------------------------ */
+  useEffect(() => {
+    setLocalStorage(STORAGE_KEYS.progress, 0);
+    setLocalStorage(STORAGE_KEYS.milestones, []);
+
+    setProgress(0);
+    progressRef.current = 0;
+    setSeenMilestones([]);
+    seenMilestonesRef.current = new Set();
+    setShowMilestone(false);
+
+    updateProgress({
+      ladderProgress: 0,
+      unlockedGifts: false,
+    });
+  }, [updateProgress]);
+
+  /* ------------------------------------------------------------------ */
+  /* Geometry + positioning */
+  /* ------------------------------------------------------------------ */
   const getTranslateForProgress = useCallback(
     (value: number) => {
       const effectiveStep =
         stepSize || (maxTranslateY > 0 ? maxTranslateY / MAX_PROGRESS : 0);
-      const target = Math.min(maxTranslateY, effectiveStep * value);
-      return -target;
+      return -Math.min(maxTranslateY, effectiveStep * value);
     },
     [maxTranslateY, stepSize]
   );
-
-  useEffect(() => {
-    const storedProgress = Number(getLocalStorage(STORAGE_KEYS.progress)) || 0;
-    const hydratedProgress = Math.min(storedProgress, MAX_PROGRESS);
-    progressRef.current = hydratedProgress;
-    setProgress(hydratedProgress);
-
-    const storedMilestones = getLocalStorage(STORAGE_KEYS.milestones);
-    const hydratedMilestones = Array.isArray(storedMilestones)
-      ? storedMilestones
-      : MILESTONES.filter((milestone) => milestone <= hydratedProgress);
-    setSeenMilestones(hydratedMilestones);
-    seenMilestonesRef.current = new Set(hydratedMilestones);
-    if (!storedMilestones) {
-      setLocalStorage(STORAGE_KEYS.milestones, hydratedMilestones);
-    }
-
-    if (hydratedProgress >= MAX_PROGRESS) {
-      updateProgress({ unlockedGifts: true, ladderProgress: MAX_PROGRESS });
-    }
-  }, [updateProgress]);
 
   useLayoutEffect(() => {
     const ladderEl = ladderRef.current;
@@ -90,32 +93,21 @@ export function LadderScene() {
       setStepSize(safeMax / MAX_PROGRESS || 0);
 
       if (characterRef.current) {
-        const perStep = safeMax / MAX_PROGRESS || 0;
-        const current = Math.min(safeMax, perStep * progressRef.current);
-        gsap.set(characterRef.current, { y: -current });
+        gsap.set(characterRef.current, {
+          y: getTranslateForProgress(progressRef.current),
+        });
       }
     };
 
     updateGeometry();
-
-    if (typeof ResizeObserver === 'undefined') {
-      return undefined;
-    }
-
     const observer = new ResizeObserver(updateGeometry);
     observer.observe(ladderEl);
-
     return () => observer.disconnect();
-  }, []);
+  }, [getTranslateForProgress]);
 
-  useEffect(() => {
-    progressRef.current = progress;
-  }, [progress]);
-
-  useEffect(() => {
-    sideRef.current = side;
-  }, [side]);
-
+  /* ------------------------------------------------------------------ */
+  /* Movement animation */
+  /* ------------------------------------------------------------------ */
   useEffect(() => {
     if (!characterRef.current) return;
 
@@ -125,65 +117,53 @@ export function LadderScene() {
     });
   }, [progress, side, getTranslateForProgress]);
 
+  /* ------------------------------------------------------------------ */
+  /* Milestones + completion */
+  /* ------------------------------------------------------------------ */
   useEffect(() => {
-    let milestoneTimeout: number | undefined;
+    let timeout: number | undefined;
 
-    if (progress > 0) {
-      const milestoneJustReached = MILESTONES.find(
-        (milestone) =>
-          milestone === progress && !seenMilestonesRef.current.has(milestone)
-      );
+    const milestone = MILESTONES.find(
+      (m) => m === progress && !seenMilestonesRef.current.has(m)
+    );
 
-      if (milestoneJustReached) {
-        setShowMilestone(true);
-        seenMilestonesRef.current.add(milestoneJustReached);
-        const updated = Array.from(seenMilestonesRef.current).sort(
-          (a, b) => a - b
-        );
-        setSeenMilestones(updated);
-        setLocalStorage(STORAGE_KEYS.milestones, updated);
+    if (milestone) {
+      setShowMilestone(true);
+      seenMilestonesRef.current.add(milestone);
+      setSeenMilestones(Array.from(seenMilestonesRef.current));
 
-        if (settings.soundEnabled) {
-          audioManager.play('success');
-        }
-
-        milestoneTimeout = window.setTimeout(
-          () => setShowMilestone(false),
-          2000
-        );
+      if (settings.soundEnabled) {
+        audioManager.play('success');
       }
 
-      if (progress >= MAX_PROGRESS) {
-        updateProgress({ unlockedGifts: true, ladderProgress: MAX_PROGRESS });
-      }
+      timeout = window.setTimeout(() => setShowMilestone(false), 1800);
+    }
+
+    if (progress >= MAX_PROGRESS) {
+      updateProgress({
+        unlockedGifts: true,
+        ladderProgress: MAX_PROGRESS,
+      });
     }
 
     return () => {
-      if (milestoneTimeout) {
-        window.clearTimeout(milestoneTimeout);
-      }
+      if (timeout) clearTimeout(timeout);
     };
   }, [progress, settings.soundEnabled, updateProgress]);
 
+  /* ------------------------------------------------------------------ */
+  /* Climb action */
+  /* ------------------------------------------------------------------ */
   const climb = useCallback(() => {
-    const currentProgress = progressRef.current;
+    if (isClimbing || progressRef.current >= MAX_PROGRESS) return;
 
-    if (isClimbing || currentProgress >= MAX_PROGRESS) return;
-
-    // Timing mechanic removed per requirements—each input yields exactly one climb.
     setIsClimbing(true);
 
-    const nextProgress = Math.min(MAX_PROGRESS, currentProgress + 1);
+    const next = Math.min(MAX_PROGRESS, progressRef.current + 1);
     const nextSide = sideRef.current === 'left' ? 'right' : 'left';
-    const finishClimb = () => setIsClimbing(false);
 
-    setProgress(nextProgress);
-    progressRef.current = nextProgress;
-    setLocalStorage(STORAGE_KEYS.progress, nextProgress);
-    updateProgress({
-      ladderProgress: nextProgress,
-      unlockedGifts: nextProgress >= MAX_PROGRESS,
-    });
+    setProgress(next);
+    progressRef.current = next;
     setSide(nextSide);
     sideRef.current = nextSide;
 
@@ -191,93 +171,75 @@ export function LadderScene() {
       audioManager.play('hit');
     }
 
-    const randomQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)];
-    setQuote(randomQuote);
+    setQuote(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
 
     if (!settings.reducedMotion && characterRef.current) {
       gsap.to(characterRef.current, {
-        y: getTranslateForProgress(nextProgress),
+        y: getTranslateForProgress(next),
         x: (nextSide === 'left' ? 1 : -1) * 30,
         duration: 0.35,
         ease: 'power3.out',
-        onComplete: finishClimb,
+        onComplete: () => setIsClimbing(false),
       });
 
       if (quoteRef.current) {
         gsap.fromTo(
           quoteRef.current,
           { opacity: 0, y: 8, scale: 0.9 },
-          { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: 'back.out(1.4)' }
+          { opacity: 1, y: 0, scale: 1, duration: 0.4 }
         );
       }
     } else {
-      if (characterRef.current) {
-        gsap.set(characterRef.current, {
-          y: getTranslateForProgress(nextProgress),
-          x: (nextSide === 'left' ? 1 : -1) * 30,
-        });
-      }
-      finishClimb();
+      setIsClimbing(false);
     }
-  }, [
-    getTranslateForProgress,
-    isClimbing,
-    settings.reducedMotion,
-    settings.soundEnabled,
-    updateProgress,
-  ]);
+  }, [isClimbing, settings, getTranslateForProgress]);
 
+  /* Keyboard support */
   useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
+    const onKey = (e: KeyboardEvent) => {
       if (e.key === ' ' || e.key === 'ArrowUp') {
         e.preventDefault();
         climb();
       }
     };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, [climb]);
 
-  useEffect(() => {
-    // Lightweight instrumentation for QA validation.
-    console.info('[QA][LadderScene]', {
-      progress,
-      stepSize,
-      seenMilestones,
-    });
-  }, [progress, stepSize, seenMilestones]);
-
+  /* ------------------------------------------------------------------ */
+  /* UI */
+  /* ------------------------------------------------------------------ */
   return (
-    <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-sky-900 via-blue-900 to-indigo-900">
-      {showMilestone && <AdaptiveParticleSystem count={150} color="#fbbf24" speed={0.6} size={3} />}
-      {progress >= 20 && <AdaptiveParticleSystem count={300} color="#ffffff" speed={0.8} size={4} />}
-      
-      <div className="relative z-10 text-center">
-        <h1 className="text-5xl font-display font-bold text-white mb-6 drop-shadow-2xl">Ladder Challenge</h1>
-        <p className="text-xl text-blue-200/90 mb-12 font-elegant">
-          Progress: {progress}/20 {progress >= 20 && '🎉 Completed!'}
+    <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-sky-900 via-blue-900 to-indigo-900 px-4">
+      {showMilestone && (
+        <AdaptiveParticleSystem count={150} color="#fbbf24" speed={0.6} size={3} />
+      )}
+      {progress >= MAX_PROGRESS && (
+        <AdaptiveParticleSystem count={300} color="#ffffff" speed={0.8} size={4} />
+      )}
+
+      <div className="relative z-10 text-center w-full max-w-md">
+        <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
+          Ladder Challenge
+        </h1>
+
+        <p className="text-lg text-blue-200 mb-6">
+          Progress: {progress}/20 {progress >= 20 && '🎉'}
         </p>
 
-        {showMilestone && (
-          <div className="mb-4 text-4xl font-bold text-yellow-300 animate-pulse">
-            🎉 Milestone Reached! 🎉
-          </div>
-        )}
-
         {quote && (
-          <div 
+          <div
             ref={quoteRef}
-            className="mb-4 text-2xl text-yellow-300 font-cursive font-semibold drop-shadow-lg"
+            className="mb-4 text-xl text-yellow-300 font-cursive"
           >
             {quote}
           </div>
         )}
 
-        <div className="relative w-96 h-96 mx-auto mb-8 glass-card border border-white/20">
+        <div className="relative w-full aspect-square mx-auto mb-6 rounded-2xl bg-black/20 border border-white/15">
           <div
             ref={ladderRef}
-            className="absolute left-1/2 -translate-x-1/2 w-20 h-full bg-gradient-to-b from-amber-600 to-amber-800 rounded-lg shadow-2xl"
+            className="absolute left-1/2 -translate-x-1/2 w-16 h-full bg-gradient-to-b from-amber-600 to-amber-800 rounded-lg"
           >
             {Array.from({ length: MAX_PROGRESS }).map((_, i) => (
               <div
@@ -290,48 +252,25 @@ export function LadderScene() {
 
           <div
             ref={characterRef}
-            className="absolute bottom-4 transition-transform will-change-transform"
-            style={{
-              left: '50%',
-              transform: 'translateX(-50%)',
-            }}
+            className="absolute bottom-4 left-1/2 -translate-x-1/2"
           >
-            <img 
+            <img
               src="/character.png"
               alt="character"
-              className="w-16 h-16 object-contain select-none"
-              draggable="false"
+              className="w-14 h-14 object-contain select-none"
+              draggable={false}
             />
           </div>
-
         </div>
 
         <Button
           onClick={climb}
-          disabled={isClimbing || progress >= 20}
+          disabled={isClimbing || progress >= MAX_PROGRESS}
           size="lg"
-          className="text-xl px-8 py-6 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 hover:scale-105 shadow-2xl"
+          className="w-full text-lg py-5 bg-gradient-to-r from-blue-500 to-cyan-500"
         >
-          {progress >= 20 ? 'Completed! 🎉' : isClimbing ? 'Climbing...' : 'Climb (Space / ↑)'}
+          {progress >= 20 ? 'Completed 🎉' : 'Climb'}
         </Button>
-        
-        {progress > 0 && progress < 20 && (
-          <p className="mt-4 text-sm text-blue-300/70">
-            Keep tapping (or press space/↑) to reach the summit—every climb counts!
-          </p>
-        )}
-
-        <div className="mt-4 flex gap-2 justify-center">
-          {MILESTONES.map((milestone) => (
-            <div
-              key={milestone}
-              className={`w-4 h-4 rounded-full ${
-                progress >= milestone ? 'bg-yellow-400' : 'bg-gray-600'
-              }`}
-              aria-label={`Milestone ${milestone}`}
-            />
-          ))}
-        </div>
       </div>
     </div>
   );

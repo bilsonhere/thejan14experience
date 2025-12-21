@@ -14,34 +14,49 @@ export function IntroScene() {
   useEffect(() => {
     audioManager.init();
 
-    if (settings.reducedMotion) return;
+    if (settings.reducedMotion) {
+      const handleKeyPress = (e: KeyboardEvent) => {
+        if (e.key === 'Escape' || e.key === 'Enter') {
+          navigateTo('midnight');
+        }
+      };
+      window.addEventListener('keydown', handleKeyPress);
+      return () => window.removeEventListener('keydown', handleKeyPress);
+    }
 
     const tl = gsap.timeline();
 
-    tl.from(titleRef.current, {
-      opacity: 0,
-      y: -50,
-      scale: 0.8,
-      duration: 1.5,
-      ease: 'back.out(1.7)',
-    })
-    .from(subtitleRef.current, {
-      opacity: 0,
-      y: 20,
-      duration: 1,
-      ease: 'power3.out',
-    }, '-=0.8')
-    .from(buttonRef.current, {
-      opacity: 0,
-      scale: 0.8,
-      duration: 0.8,
-      ease: 'elastic.out(1, 0.5)',
-    }, '-=0.5');
+    if (titleRef.current) {
+      tl.from(titleRef.current, {
+        opacity: 0,
+        y: -60,
+        scale: 0.9,
+        duration: 1.4,
+        ease: 'power3.out',
+      });
+    }
+
+    if (subtitleRef.current) {
+      tl.from(subtitleRef.current, {
+        opacity: 0,
+        y: 24,
+        duration: 1,
+        ease: 'expo.out',
+      }, '-=0.8');
+    }
+
+    if (buttonRef.current) {
+      tl.from(buttonRef.current, {
+        opacity: 0,
+        scale: 0.9,
+        y: 16,
+        duration: 0.8,
+        ease: 'back.out(1.4)',
+      }, '-=0.5');
+    }
 
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        navigateTo('midnight');
-      } else if (e.key === 'Enter') {
+      if (e.key === 'Escape' || e.key === 'Enter') {
         navigateTo('midnight');
       }
     };
@@ -55,25 +70,25 @@ export function IntroScene() {
   }, [navigateTo, settings.reducedMotion]);
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
-      <AdaptiveParticleSystem count={150} color="#ffffff" speed={0.3} size={3} />
-      
-      <div className="relative z-10 text-center px-4 max-w-4xl">
+    <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-purple-950 to-fuchsia-900">
+      <AdaptiveParticleSystem count={200} color="#e0e7ff" speed={0.4} size={2} />
+
+      <div className="relative z-10 text-center px-6 max-w-6xl">
         <div
           ref={titleRef}
           className="mb-8"
           style={{
-            textShadow: '0 0 30px rgba(255, 255, 255, 0.5), 0 0 60px rgba(147, 51, 234, 0.5)',
+            textShadow: '0 0 32px rgba(255, 255, 255, 0.5), 0 0 64px rgba(147, 51, 234, 0.4), 0 0 96px rgba(147, 51, 234, 0.25)',
           }}
         >
-          <h1 className="text-7xl md:text-9xl font-bold text-white mb-4 tracking-wider">
-            AFRAH20
+          <h1 className="text-6xl md:text-8xl lg:text-9xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-400 mb-2 tracking-tight">
+            T W E N T Y 
           </h1>
         </div>
 
-        <div ref={subtitleRef}>
-          <p className="text-2xl md:text-4xl text-purple-200 mb-12 font-light tracking-wide">
-            A Night For Afrah
+        <div ref={subtitleRef} className="mb-20">
+          <p className="text-xl md:text-3xl lg:text-4xl text-purple-200/90 font-cursive font-medium tracking-wide">
+            An experience for your special day(❁´◡`❁)
           </p>
         </div>
 
@@ -81,22 +96,21 @@ export function IntroScene() {
           ref={buttonRef}
           onClick={() => navigateTo('midnight')}
           size="lg"
-          className="text-xl px-8 py-6 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-2 border-white/30 shadow-2xl backdrop-blur-sm"
+          className="text-lg md:text-xl px-12 py-8 bg-gradient-to-r from-purple-600/95 via-pink-600/95 to-purple-600/95 hover:from-purple-500 hover:via-pink-500 hover:to-purple-500 text-white border-2 border-white/30 shadow-xl hover:shadow-2xl hover:shadow-purple-500/30 backdrop-blur-soft font-elegant font-semibold tracking-wide rounded-2xl"
           aria-label="Enter the Birthday House"
         >
-          Enter the Birthday House
+          🌺Enter the Experience🌺
         </Button>
 
-        <p className="mt-8 text-sm text-purple-300/70">
-          Press <kbd className="px-2 py-1 bg-white/10 rounded">Enter</kbd> or{' '}
-          <kbd className="px-2 py-1 bg-white/10 rounded">Esc</kbd> to skip
+        <p className="mt-12 text-sm md:text-base text-purple-300/70 font-elegant">
+          Press <kbd>Enter</kbd> or <kbd>Esc</kbd> to continue
         </p>
       </div>
 
       <div
-        className="absolute inset-0 opacity-20"
+        className="absolute inset-0 opacity-30"
         style={{
-          background: 'radial-gradient(circle at 50% 50%, rgba(147, 51, 234, 0.3) 0%, transparent 70%)',
+          background: 'radial-gradient(circle at 50% 30%, rgba(147, 51, 234, 0.4) 0%, transparent 60%), radial-gradient(circle at 50% 70%, rgba(236, 72, 153, 0.3) 0%, transparent 60%)',
         }}
       />
     </div>

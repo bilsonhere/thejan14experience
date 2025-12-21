@@ -13,49 +13,78 @@ export function CandleScene() {
   const candle1Ref = useRef<HTMLDivElement>(null);
   const candle2Ref = useRef<HTMLDivElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const isLitRef = useRef<boolean>(true);
+  const animationFrameRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    isLitRef.current = isLit;
+  }, [isLit]);
 
   useEffect(() => {
     if (!settings.reducedMotion && isLit) {
-      [candle1Ref, candle2Ref].forEach((ref) => {
+      const animations: gsap.core.Tween[] = [];
+      [candle1Ref, candle2Ref].forEach((ref, index) => {
         if (ref.current) {
-          gsap.to(ref.current, {
-            scaleY: 1.1,
-            opacity: 0.9,
-            duration: 0.3,
-            ease: 'sine.inOut',
+          const anim = gsap.to(ref.current, {
+            scaleY: 1.08,
+            opacity: 0.85,
+            duration: 0.4 + index * 0.1,
+            ease: 'power3.inOut',
             repeat: -1,
             yoyo: true,
           });
+          animations.push(anim);
         }
       });
+      return () => animations.forEach(anim => anim.kill());
     }
   }, [isLit, settings.reducedMotion]);
 
   const requestMicrophoneAccess = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const audioContext = new AudioContext();
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        } 
+      });
+      
+      streamRef.current = stream;
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       audioContextRef.current = audioContext;
 
       const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.8;
+      
       const microphone = audioContext.createMediaStreamSource(stream);
       microphone.connect(analyser);
-      analyser.fftSize = 256;
 
       const dataArray = new Uint8Array(analyser.frequencyBinCount);
 
       const checkBlowing = () => {
-        if (!isLit) return;
+        // Use ref to avoid stale closure
+        if (!isLitRef.current) {
+          if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+            animationFrameRef.current = null;
+          }
+          return;
+        }
 
         analyser.getByteFrequencyData(dataArray);
-        const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+        // Focus on lower frequencies for blowing detection
+        const lowFreq = dataArray.slice(0, Math.floor(dataArray.length / 3));
+        const average = lowFreq.reduce((a, b) => a + b, 0) / lowFreq.length;
         
         setBlowStrength(average);
 
-        if (average > 50) {
+        if (average > 40) {
           blowOut();
         } else {
-          requestAnimationFrame(checkBlowing);
+          animationFrameRef.current = requestAnimationFrame(checkBlowing);
         }
       };
 
@@ -69,22 +98,36 @@ export function CandleScene() {
     if (!isLit || isBlowing) return;
 
     setIsBlowing(true);
+    isLitRef.current = false;
+
+    // Stop microphone if active
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+    
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
 
     if (!settings.reducedMotion) {
-      [candle1Ref, candle2Ref].forEach((ref) => {
+      [candle1Ref, candle2Ref].forEach((ref, index) => {
         if (ref.current) {
-          gsap.timeline()
+          gsap.timeline({
+            delay: index * 0.08,
+          })
             .to(ref.current, {
-              scaleX: 0.5,
-              x: -10,
-              duration: 0.2,
-              ease: 'power2.in',
+              scaleX: 0.4,
+              x: index % 2 === 0 ? -12 : 12,
+              duration: 0.25,
+              ease: 'power3.in',
             })
             .to(ref.current, {
               opacity: 0,
               scale: 0,
-              duration: 0.3,
-              ease: 'power2.out',
+              duration: 0.35,
+              ease: 'expo.out',
             });
         }
       });
@@ -98,24 +141,37 @@ export function CandleScene() {
       setIsLit(false);
       updateProgress({ candleBlown: true });
       setIsBlowing(false);
+      setBlowStrength(0);
     }, 500);
   };
 
   useEffect(() => {
-    if (!isLit && audioContextRef.current) {
-      audioContextRef.current.close();
-    }
-  }, [isLit]);
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+      
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close().catch(console.warn);
+      }
+    };
+  }, []);
 
   return (
     <div className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-950 via-purple-950 to-pink-950">
       {isLit && <AdaptiveParticleSystem count={100} color="#fbbf24" speed={0.5} size={2} />}
 
-      <h1 className="text-5xl font-bold text-white mb-12 drop-shadow-2xl">
-        Make a Wish! 🌟
+      <h1 className="text-5xl md:text-6xl font-display font-bold text-white mb-16 drop-shadow-2xl">
+        <span className="font-cursive text-6xl md:text-7xl">Make a Wish</span> 🌟
       </h1>
 
-      <div className="relative mb-12">
+      <div className="relative mb-16">
         <div className="flex gap-8">
           <div className="relative">
             <div className="w-16 h-48 bg-gradient-to-b from-red-400 to-red-600 rounded-t-full rounded-b-sm shadow-xl" />
