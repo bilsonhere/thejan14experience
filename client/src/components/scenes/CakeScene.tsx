@@ -21,14 +21,14 @@ export function CakeScene() {
     const rect = containerRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-    
+
     gsap.to(knifeRef.current, {
       left: `${x}%`,
       top: `${y}%`,
       duration: 0.3,
       ease: 'power2.out',
     });
-    
+
     setKnifePos({ x, y });
   };
 
@@ -36,7 +36,7 @@ export function CakeScene() {
     if (sliceCount >= 8 || isSlicing) return;
 
     setIsSlicing(true);
-    
+
     if (settings.soundEnabled) {
       audioManager.play('hit');
     }
@@ -55,7 +55,7 @@ export function CakeScene() {
     setTimeout(() => {
       const newCount = sliceCount + 1;
       setSliceCount(newCount);
-      
+
       if (newCount === 1) {
         updateProgress({ cakeSliced: true });
       }
@@ -65,12 +65,12 @@ export function CakeScene() {
         if (sliceElement) {
           gsap.fromTo(sliceElement,
             { scale: 0, opacity: 0, rotation: -45, y: 20 },
-            { 
-              scale: 1, 
-              opacity: 1, 
-              rotation: 0, 
+            {
+              scale: 1,
+              opacity: 1,
+              rotation: 0,
               y: 0,
-              duration: 0.6, 
+              duration: 0.6,
               ease: 'back.out(1.4)',
               onComplete: () => {
                 // Bounce effect after landing
@@ -125,13 +125,19 @@ export function CakeScene() {
   }, [settings.reducedMotion]);
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-pink-900 via-rose-900 to-red-900"
       onMouseMove={handleMouseMove}
     >
+      {/* Background Image Layer */}
+      <div
+        className="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat opacity-35"
+        style={{ backgroundImage: "url('/backgrounds/cake.jpg')" }}
+      />
+
       {showSuccess && <AdaptiveParticleSystem count={200} color="#fbbf24" speed={0.8} size={3} />}
-      
+
       <h1 className="text-5xl md:text-6xl font-display font-bold text-white mb-12 drop-shadow-2xl">
         <span className="font-cursive text-6xl md:text-7xl">Cut the Cake</span>
       </h1>
@@ -154,7 +160,7 @@ export function CakeScene() {
               (e.target as HTMLImageElement).src = '/assets/cakes/cake2.svg';
             }}
           />
-          
+
           {sliceCount > 0 && sliceCount < 8 && (
             <div
               className="absolute inset-0 pointer-events-none"
@@ -185,8 +191,8 @@ export function CakeScene() {
             key={i}
             ref={(el) => (slicesRef.current[i] = el)}
             className={`text-3xl transition-all duration-300 ${
-              i < sliceCount 
-                ? 'opacity-100 scale-100 filter drop-shadow-lg' 
+              i < sliceCount
+                ? 'opacity-100 scale-100 filter drop-shadow-lg'
                 : 'opacity-30 scale-90'
             }`}
             style={{
@@ -197,7 +203,7 @@ export function CakeScene() {
           </div>
         ))}
       </div>
-      
+
       {showSuccess && (
         <div className="mb-4 text-3xl font-cursive font-bold text-yellow-300 animate-pulse">
           🎉 All Sliced! 🎉
