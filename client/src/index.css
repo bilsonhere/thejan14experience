@@ -295,3 +295,22 @@ kbd:hover {
     -webkit-backdrop-filter: blur(24px) saturate(180%);
   }
 }
+/* =========================
+   GLOBAL MOBILE FIXES
+   ========================= */
+
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Reduce base font size slightly on mobile */
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+}
