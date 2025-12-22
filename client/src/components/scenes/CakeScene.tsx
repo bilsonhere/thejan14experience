@@ -12,7 +12,7 @@ export function CakeScene() {
   const [isSlicing, setIsSlicing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showSliceGuide, setShowSliceGuide] = useState(true);
-  const [bgImage, setBgImage] = useState<string>(settings.customCakeBackground || '/assets/cakes/background.jpg');
+  const [bgImage, setBgImage] = useState<string>(settings.customCakeBackground || '/assets/cakes/background.png');
   const [activeSliceLines, setActiveSliceLines] = useState<{x1: number, y1: number, x2: number, y2: number}[]>([]);
   
   const cakeRef = useRef<HTMLDivElement>(null);
