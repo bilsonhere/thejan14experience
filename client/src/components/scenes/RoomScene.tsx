@@ -81,7 +81,7 @@ export function RoomScene() {
           <h1 className="text-5xl md:text-6xl font-display font-bold text-white mb-6 drop-shadow-2xl">
             <span className="font-cursive">Afrah's Birthday Room</span>
           </h1>
-          <p className="text-xl text-purple-200/90 mb-16 font-elegant">Choose your adventure...</p>
+          <p className="text-xl text-purple-200/90 mb-16 font-elegant">Its all yours:)</p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             <button
