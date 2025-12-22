@@ -60,7 +60,6 @@ export function GiftsScene() {
   const [openedGifts, setOpenedGifts] = useState<number[]>([]);
   const [selectedGift, setSelectedGift] = useState<Gift | null>(null);
   const [showFinale, setShowFinale] = useState(false);
-  const [hoveredGift, setHoveredGift] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioProgress, setAudioProgress] = useState(0);
 
@@ -126,11 +125,10 @@ export function GiftsScene() {
     switch (gift.type) {
       case 'letter':
         return (
-          <div className="font-elegant whitespace-pre-wrap text-lg leading-relaxed">
+          <div className="font-elegant whitespace-pre-wrap text-lg leading-relaxed text-white">
             {LETTER_CONTENT_1}
           </div>
         );
-
       case 'media':
         return (
           <div className="space-y-6">
@@ -144,13 +142,12 @@ export function GiftsScene() {
                       src: `/assets/gifts/media/img${i}.jpeg`,
                     })
                   }
-                  className="cursor-zoom-in aspect-square bg-purple-800/30 rounded-lg flex items-center justify-center border border-purple-400/20"
+                  className="cursor-zoom-in aspect-square bg-purple-800/30 rounded-lg flex items-center justify-center border border-purple-400/20 hover:bg-purple-800/50 transition-colors"
                 >
                   <span className="text-3xl">🌺</span>
                 </div>
               ))}
             </div>
-
             <div
               onClick={() =>
                 setActiveMedia({
@@ -158,17 +155,13 @@ export function GiftsScene() {
                   src: '/assets/gifts/media/video.mp4',
                 })
               }
-              className="cursor-zoom-in aspect-video bg-pink-800/30 rounded-lg flex items-center justify-center border border-pink-400/20"
+              className="cursor-zoom-in aspect-video bg-pink-800/30 rounded-lg flex items-center justify-center border border-pink-400/20 hover:bg-pink-800/50 transition-colors"
             >
               <span className="text-4xl">🎬</span>
             </div>
-
-            <p className="text-center text-purple-200/70 text-sm">
-              Tap to view full media
-            </p>
+            <p className="text-center text-purple-200/70 text-sm">Tap to view full media</p>
           </div>
         );
-
       case 'audio':
         return (
           <div className="space-y-4">
@@ -185,63 +178,71 @@ export function GiftsScene() {
             </Button>
           </div>
         );
-
       case 'pdf':
         return (
           <div className="text-center space-y-4">
-            <p className="text-lg font-semibold">🌺bday ppt🌺</p>
-            <p className="text-sm text-white/70">
-              branches, trees, garden 
-            </p>
-            <Button
-              onClick={() =>
-                window.open(GOOGLE_SLIDES_LINK, '_blank')
-              }
-            >
+            <p className="text-lg font-semibold text-white">🌺 bday ppt 🌺</p>
+            <p className="text-sm text-white/70">branches, trees, garden</p>
+            <Button onClick={() => window.open(GOOGLE_SLIDES_LINK, '_blank')}>
               Unwrap It
             </Button>
           </div>
         );
-
       case 'final':
         return (
-          <div className="text-center whitespace-pre-wrap text-lg">
+          <div className="text-center whitespace-pre-wrap text-lg text-white">
             {LETTER_CONTENT_FINAL}
           </div>
         );
-
       default:
         return null;
     }
   };
 
   return (
-    <div className="relative w-full h-full flex flex-col items-center justify-center p-8">
-      {showFinale && <Confetti recycle={false} numberOfPieces={700} />}
+    <div className="relative w-full h-full flex flex-col items-center justify-center p-8 bg-slate-950">
+      
+      {/* 1. BACKGROUND IMAGE LAYER */}
+      <div
+        className="absolute inset-0 pointer-events-none bg-cover bg-center bg-no-repeat opacity-30"
+        style={{ 
+          backgroundImage: "url('/assets/cakes/background2.jpg')",
+          zIndex: 0 
+        }}
+      />
 
-      <h1 className="text-5xl font-bold text-white mb-10">
-        🎁
-      </h1>
+      {/* 2. INTERACTIVE CONTENT LAYER */}
+      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center">
+        {showFinale && <Confetti recycle={false} numberOfPieces={700} />}
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
-        {GIFTS.map((gift, index) => (
-          <div
-            key={gift.id}
-            ref={(el) => (giftsRefs.current[index] = el)}
-            onClick={() => openGift(gift)}
-            className="p-8 rounded-3xl cursor-pointer bg-white/10 hover:bg-white/20 transition text-center"
-          >
-            <div className="text-5xl">{gift.emoji}</div>
-            <div className="mt-2 font-semibold">{gift.title}</div>
-          </div>
-        ))}
+        <h1 className="text-5xl font-bold text-white mb-10 drop-shadow-lg">
+          🎁
+        </h1>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
+          {GIFTS.map((gift, index) => (
+            <div
+              key={gift.id}
+              ref={(el) => (giftsRefs.current[index] = el)}
+              onClick={() => openGift(gift)}
+              className={`p-8 rounded-3xl cursor-pointer transition-all duration-300 text-center border ${
+                openedGifts.includes(gift.id) 
+                  ? 'bg-white/5 border-white/10 opacity-60' 
+                  : 'bg-white/10 border-white/20 hover:bg-white/20 hover:scale-105 active:scale-95 shadow-xl'
+              }`}
+            >
+              <div className="text-5xl drop-shadow-md">{gift.emoji}</div>
+              <div className="mt-2 font-semibold text-white">{gift.title}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Main Gift Dialog */}
+      {/* 3. DIALOGS (Kept outside z-10 flow to ensure proper overlay) */}
       <Dialog open={!!selectedGift} onOpenChange={() => setSelectedGift(null)}>
-        <DialogContent ref={dialogRef}>
+        <DialogContent ref={dialogRef} className="bg-slate-900/95 border-white/10 text-white">
           <DialogHeader>
-            <DialogTitle className="text-2xl">
+            <DialogTitle className="text-2xl text-pink-300">
               {selectedGift?.title}
             </DialogTitle>
           </DialogHeader>
@@ -249,47 +250,30 @@ export function GiftsScene() {
         </DialogContent>
       </Dialog>
 
-      {/* Media Lightbox Dialog */}
-<Dialog
-  open={!!activeMedia}
-  onOpenChange={() => setActiveMedia(null)}
->
-  <DialogContent className="max-w-5xl bg-black/95 border-none p-6 flex items-center justify-center">
-    {activeMedia?.type === 'image' && (
-      <div className="max-h-[85vh] max-w-full flex items-center justify-center">
-        <img
-          src={activeMedia.src}
-          alt="Gift media"
-          className="
-            max-h-[85vh]
-            max-w-full
-            object-contain
-            rounded-xl
-            shadow-2xl
-          "
-        />
-      </div>
-    )}
+      <Dialog open={!!activeMedia} onOpenChange={() => setActiveMedia(null)}>
+        <DialogContent className="max-w-5xl bg-black/95 border-none p-6 flex items-center justify-center">
+          {activeMedia?.type === 'image' && (
+            <div className="max-h-[85vh] max-w-full flex items-center justify-center">
+              <img
+                src={activeMedia.src}
+                alt="Gift media"
+                className="max-h-[85vh] max-w-full object-contain rounded-xl shadow-2xl"
+              />
+            </div>
+          )}
 
-    {activeMedia?.type === 'video' && (
-      <div className="w-full max-h-[85vh] flex items-center justify-center">
-        <video
-          src={activeMedia.src}
-          controls
-          autoPlay
-          className="
-            max-h-[85vh]
-            max-w-full
-            rounded-xl
-            shadow-2xl
-            object-contain
-          "
-        />
-      </div>
-    )}
-  </DialogContent>
-</Dialog>
-
+          {activeMedia?.type === 'video' && (
+            <div className="w-full max-h-[85vh] flex items-center justify-center">
+              <video
+                src={activeMedia.src}
+                controls
+                autoPlay
+                className="max-h-[85vh] max-w-full rounded-xl shadow-2xl object-contain"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
