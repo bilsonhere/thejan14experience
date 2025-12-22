@@ -18,7 +18,7 @@ class AudioManager {
     
     if (isMusic) {
       audio.loop = true;
-      audio.volume = 0.3;
+      audio.volume = 0.14;
       this.backgroundMusic = audio;
     } else {
       audio.volume = 0.5;
