@@ -32,14 +32,8 @@ export function MidnightScene() {
       if (!settings.reducedMotion && countdownRef.current) {
         gsap.fromTo(
           countdownRef.current,
-          { scale: 0.85, opacity: 0, filter: 'blur(6px)' },
-          {
-            scale: 1,
-            opacity: 1,
-            filter: 'blur(0px)',
-            duration: 0.35,
-            ease: 'power3.out',
-          }
+          { opacity: 0, y: 12 },
+          { opacity: 1, y: 0, duration: 0.35, ease: 'power3.out' }
         );
       }
 
@@ -59,7 +53,7 @@ export function MidnightScene() {
           if (!settings.reducedMotion && titleRef.current) {
             gsap.fromTo(
               titleRef.current,
-              { y: 30, opacity: 0 },
+              { y: 24, opacity: 0 },
               { y: 0, opacity: 1, duration: 1.2, ease: 'power3.out' }
             );
           }
@@ -75,31 +69,32 @@ export function MidnightScene() {
   };
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950">
-      {/* Ambient depth */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/40" />
-      <div className="absolute inset-0 backdrop-blur-[1.5px]" />
+    <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-black via-purple-950 to-black">
+      {/* Dark vignette */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/60" />
 
-      {/* Soft radial depth */}
+      {/* Horizon glow */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(168,85,247,0.18),transparent_60%)]" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[120%] h-[45%]
+                        bg-[radial-gradient(ellipse_at_center,rgba(168,85,247,0.22),transparent_70%)]" />
       </div>
 
       <AdaptiveParticleSystem
-        count={window.innerWidth < 640 ? 260 : 500}
-        color={countdown ? '#facc15' : '#ffffff'}
-        speed={countdown ? 0.7 : 0.25}
-        size={3}
+        count={window.innerWidth < 640 ? 220 : 420}
+        color={countdown ? '#e9d5ff' : '#ffffff'}
+        speed={countdown ? 0.55 : 0.2}
+        size={2}
       />
 
       {showFinale && (
-        <Confetti recycle={false} numberOfPieces={220} gravity={0.12} />
+        <Confetti recycle={false} numberOfPieces={200} gravity={0.11} />
       )}
 
       <div className="relative z-10 text-center px-6 max-w-3xl">
         {!started && (
           <div className="mb-16">
-            <p className="text-3xl md:text-4xl text-white/90 mb-12 font-elegant tracking-wide drop-shadow-[0_0_18px_rgba(168,85,247,0.45)]">
+            <p className="text-3xl md:text-4xl text-white/90 mb-12 font-elegant tracking-wide
+                          drop-shadow-[0_0_24px_rgba(168,85,247,0.45)]">
               Ready to begin the countdown?
             </p>
 
@@ -113,7 +108,6 @@ export function MidnightScene() {
                          text-white rounded-2xl shadow-xl
                          transition-all duration-300
                          hover:scale-[1.04] hover:-translate-y-0.5"
-              aria-label="Start countdown"
             >
               Start Countdown
             </button>
@@ -126,35 +120,13 @@ export function MidnightScene() {
 
         {countdown && !showFinale && (
           <>
-            {/* Midnight Orb */}
-            <div className="relative mx-auto mb-16 w-44 h-44 sm:w-52 sm:h-52">
-              {/* Outer aura */}
-              <div
-                className="absolute inset-0 rounded-full blur-2xl opacity-60"
-                style={{
-                  background:
-                    'radial-gradient(circle at center, rgba(236,72,153,0.55), transparent 65%)',
-                  animation: 'auraPulse 5s ease-in-out infinite',
-                }}
-              />
-
-              {/* Inner orb */}
-              <div
-                className="relative w-full h-full rounded-full"
-                style={{
-                  background:
-                    'radial-gradient(circle at 30% 30%, #f5d0fe, #a855f7 45%, #581c87 75%)',
-                  boxShadow:
-                    '0 0 90px rgba(168,85,247,0.65), inset 0 0 35px rgba(0,0,0,0.45)',
-                  animation: 'orbFloat 4s ease-in-out infinite',
-                }}
-              />
-            </div>
-
+            {/* Countdown Number – HERO */}
             <div
               ref={countdownRef}
-              className="text-7xl sm:text-8xl md:text-9xl font-display font-bold text-white mb-10
-                         drop-shadow-[0_0_40px_rgba(236,72,153,0.6)]"
+              className="text-[7rem] sm:text-[9rem] md:text-[11rem]
+                         font-display font-bold text-white mb-10
+                         tracking-tight
+                         drop-shadow-[0_0_60px_rgba(236,72,153,0.6)]"
             >
               {countdown}
             </div>
@@ -176,36 +148,20 @@ export function MidnightScene() {
                          text-transparent bg-clip-text
                          bg-gradient-to-r from-yellow-300 via-pink-400 to-purple-400
                          mb-8
-                         drop-shadow-[0_0_45px_rgba(236,72,153,0.7)]"
+                         drop-shadow-[0_0_55px_rgba(236,72,153,0.75)]"
             >
               <span className="font-elegant italic">
                 AFRAH GHAZI IS 20!!!!!!!!
               </span>
             </h1>
 
-            <p className="text-2xl md:text-3xl text-white/90 mt-6 font-elegant drop-shadow-[0_0_20px_rgba(168,85,247,0.45)]">
+            <p className="text-2xl md:text-3xl text-white/90 mt-6 font-elegant
+                          drop-shadow-[0_0_24px_rgba(168,85,247,0.45)]">
               Pop the sugarcane juice champagne off and let the celebrations begin 🍾✨
             </p>
           </div>
         )}
       </div>
-
-      {/* Animations */}
-      <style>{`
-        @keyframes orbFloat {
-          0%, 100% {
-            transform: translateY(0) scale(1);
-          }
-          50% {
-            transform: translateY(-8px) scale(1.03);
-          }
-        }
-
-        @keyframes auraPulse {
-          0%, 100% { opacity: 0.45; }
-          50% { opacity: 0.75; }
-        }
-      `}</style>
     </div>
   );
 }
