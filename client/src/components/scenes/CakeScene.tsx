@@ -131,10 +131,13 @@ export function CakeScene() {
       onMouseMove={handleMouseMove}
     >
       {/* Background Image Layer */}
-      <div
-        className="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat opacity-35"
-        style={{ backgroundImage: "url('/assets/cakes/background1.jpg')" }}
-      />
+<div
+  className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-35"
+  style={{ 
+    backgroundImage: "url('/assets/cakes/background1.jpg')",
+    zIndex: 0 // Change from -z-10 to 0
+  }}
+/>
 
       {showSuccess && <AdaptiveParticleSystem count={200} color="#fbbf24" speed={0.8} size={3} />}
 
