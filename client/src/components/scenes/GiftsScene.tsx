@@ -6,15 +6,17 @@ import { Button } from '../ui/button';
 import { AdaptiveParticleSystem } from '../AdaptiveParticleSystem';
 import gsap from 'gsap';
 import Confetti from 'react-confetti';
-import { Play, Pause, Volume2, X, ExternalLink, Maximize2, Music, Loader2 } from 'lucide-react';
+import { Play, Pause, Volume2, X, ExternalLink, Maximize2, Music, Loader2, Image as ImageIcon } from 'lucide-react';
 
 interface Gift {
   id: number;
   emoji: string;
   title: string;
+  subtitle: string;
   type: 'letter' | 'media' | 'audio' | 'pdf' | 'final';
   color: string;
   gradient: string;
+  glowColor: string;
 }
 
 const GOOGLE_SLIDES_LINK = 'https://docs.google.com/presentation/d/192aK3xvHF8VkuSBFzhxgdMKcER61AhOUfQpVj_681LE/view';
@@ -25,72 +27,80 @@ const GIFTS: Gift[] = [
     id: 1, 
     emoji: '💛', 
     title: 'Happy', 
+    subtitle: 'Heartfelt Letter',
     type: 'letter',
     color: '#f472b6',
-    gradient: 'from-pink-500/20 via-rose-500/15 to-rose-600/10'
+    gradient: 'from-pink-500/30 via-rose-500/25 to-rose-600/20',
+    glowColor: '#f472b6'
   },
   { 
     id: 2, 
     emoji: '🎂', 
     title: 'Birthday', 
+    subtitle: 'Precious Memories',
     type: 'media',
     color: '#8b5cf6',
-    gradient: 'from-purple-500/20 via-violet-500/15 to-indigo-600/10'
+    gradient: 'from-purple-500/30 via-violet-500/25 to-indigo-600/20',
+    glowColor: '#8b5cf6'
   },
   { 
     id: 3, 
     emoji: '🎶', 
     title: 'To', 
+    subtitle: 'Birthday Melody',
     type: 'audio',
     color: '#60a5fa',
-    gradient: 'from-blue-500/20 via-cyan-500/15 to-sky-600/10'
+    gradient: 'from-blue-500/30 via-cyan-500/25 to-sky-600/20',
+    glowColor: '#60a5fa'
   },
   { 
     id: 4, 
     emoji: '📄', 
     title: 'You', 
+    subtitle: 'Special Presentation',
     type: 'pdf',
     color: '#34d399',
-    gradient: 'from-emerald-500/20 via-teal-500/15 to-green-600/10'
+    gradient: 'from-emerald-500/30 via-teal-500/25 to-green-600/20',
+    glowColor: '#34d399'
   },
   { 
     id: 5, 
     emoji: '💖', 
     title: 'Afrah Ghazi', 
+    subtitle: 'Final Message',
     type: 'final',
     color: '#fbbf24',
-    gradient: 'from-yellow-500/20 via-amber-500/15 to-orange-600/10'
+    gradient: 'from-yellow-500/30 via-amber-500/25 to-orange-600/20',
+    glowColor: '#fbbf24'
   },
 ];
 
-const LETTER_CONTENT_1 = `Dear Afrah,
+const LETTER_CONTENT_1 = `Dearest Afrah,
 
-Happy Birthday 🎉
+Happy 20th Birthday! 🎉
 
-I hope today wraps you in warmth, smiles, and the quiet joy of knowing how deeply you are appreciated.
+May this day wrap you in warmth, joy, and the quiet comfort of knowing how deeply cherished you are. Your presence brings light to every moment without effort - a rare and beautiful gift.
 
-You bring light into moments without trying, and that itself is something rare.
+Here's to laughter that echoes, growth that inspires, peaceful days, and dreams that feel closer than ever.
 
-Here's to laughter, growth, soft days, and dreams that feel closer than before.
-
-Always wishing you happiness,
-Your Friend 💛`;
+Wishing you endless happiness,
+With love 💛`;
 
 const LETTER_CONTENT_FINAL = `Afrah,
 
-Some people leave marks on time without realizing it.
-You are one of them.
+Some souls leave imprints on time without ever realizing their impact.
+You are one of those remarkable souls.
 
-Thank you for existing exactly as you are.
-Thank you for the memories, the calm, the chaos, the meaning.
+Thank you for being exactly who you are - for the memories, the calm amidst chaos, the laughter, and the meaning you bring.
 
-May life be gentle with you.
+May life treat you gently.
 May joy find you often.
-May you always know your worth.
+May you always recognize your incredible worth.
 
 Happy Birthday.
+May this year be your most beautiful yet.
 
-Always. 💖`;
+Forever. 💖`;
 
 export function GiftsScene() {
   const { updateProgress, settings } = useSceneStore();
@@ -103,12 +113,20 @@ export function GiftsScene() {
   const [audioError, setAudioError] = useState(false);
   const [activeMedia, setActiveMedia] = useState<{ type: 'image' | 'video'; src: string } | null>(null);
   const [hoveredGift, setHoveredGift] = useState<number | null>(null);
+  const [bgImage, setBgImage] = useState<string>(settings.customGiftBackground || '/assets/gifts/background.jpg');
 
   const giftsRefs = useRef<(HTMLDivElement | null)[]>([]);
   const dialogRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRefs = useRef<gsap.core.Tween[]>([]);
+
+  // Update background image when settings change
+  useEffect(() => {
+    if (settings.customGiftBackground) {
+      setBgImage(settings.customGiftBackground);
+    }
+  }, [settings.customGiftBackground]);
 
   // Initialize animations
   useEffect(() => {
@@ -117,16 +135,17 @@ export function GiftsScene() {
       animationRefs.current.forEach(anim => anim.kill());
       animationRefs.current = [];
 
-      // Create floating animations for unopened gifts
+      // Create floating animations for unopened gifts with rotation
       giftsRefs.current.forEach((ref, i) => {
         if (ref && !openedGifts.includes(i + 1)) {
           const anim = gsap.to(ref, {
-            y: -12,
-            duration: 2 + i * 0.15,
+            y: -15,
+            rotation: 3,
+            duration: 2.5 + i * 0.2,
             repeat: -1,
             yoyo: true,
-            ease: 'power3.inOut',
-            delay: i * 0.1,
+            ease: 'sine.inOut',
+            delay: i * 0.15,
           });
           animationRefs.current.push(anim);
         }
@@ -164,17 +183,17 @@ export function GiftsScene() {
     const giftElement = giftsRefs.current[giftIndex];
     if (giftElement && !settings.reducedMotion) {
       gsap.to(giftElement, {
-        scale: 1.1,
+        scale: 1.15,
         duration: 0.2,
         yoyo: true,
         repeat: 1,
-        ease: 'power2.inOut',
+        ease: 'back.out(1.7)',
         onComplete: () => {
-          setTimeout(() => setSelectedGift(gift), 200);
+          setTimeout(() => setSelectedGift(gift), 250);
         }
       });
     } else {
-      setTimeout(() => setSelectedGift(gift), 200);
+      setTimeout(() => setSelectedGift(gift), 250);
     }
 
     if (settings.soundEnabled) {
@@ -183,32 +202,34 @@ export function GiftsScene() {
 
     // Create sparkle effect
     if (!settings.reducedMotion && giftElement) {
-      createSparkleEffect(giftElement);
+      createSparkleEffect(giftElement, gift.glowColor);
     }
 
     if (gift.id === 5) {
-      setTimeout(() => setShowFinale(true), 600);
+      setTimeout(() => setShowFinale(true), 800);
     }
   };
 
-  const createSparkleEffect = (element: HTMLElement) => {
+  const createSparkleEffect = (element: HTMLElement, color: string) => {
     const rect = element.getBoundingClientRect();
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 5; i++) {
       setTimeout(() => {
         const sparkle = document.createElement('div');
         sparkle.innerHTML = '✨';
         sparkle.className = 'fixed text-2xl pointer-events-none z-50';
         sparkle.style.left = `${rect.left + rect.width / 2}px`;
         sparkle.style.top = `${rect.top + rect.height / 2}px`;
+        sparkle.style.filter = `drop-shadow(0 0 8px ${color})`;
         document.body.appendChild(sparkle);
 
         gsap.to(sparkle, {
-          x: (Math.random() - 0.5) * 80,
-          y: (Math.random() - 0.5) * 80 - 40,
+          x: (Math.random() - 0.5) * 100,
+          y: (Math.random() - 0.5) * 100 - 50,
           opacity: 0,
           scale: 0,
-          duration: 0.8,
-          ease: 'power2.out',
+          rotation: 360,
+          duration: 1.2,
+          ease: 'power3.out',
           onComplete: () => sparkle.remove(),
         });
       }, i * 100);
@@ -222,10 +243,8 @@ export function GiftsScene() {
     setAudioError(false);
     
     try {
-      // Try to load the audio file
       audioRef.current = new Audio('/assets/gifts/audio/Hbd.wav');
       
-      // Set up event listeners
       audioRef.current.addEventListener('canplaythrough', () => {
         setIsAudioLoading(false);
       });
@@ -249,10 +268,8 @@ export function GiftsScene() {
         setAudioProgress(0);
       });
       
-      // Preload the audio
       audioRef.current.load();
       
-      // If still loading after 3 seconds, mark as error
       setTimeout(() => {
         if (isAudioLoading && audioRef.current?.readyState !== 4) {
           setIsAudioLoading(false);
@@ -292,7 +309,6 @@ export function GiftsScene() {
         setIsPlaying(true);
       }
     } catch (error) {
-      console.warn('Audio play failed:', error);
       setAudioError(true);
       window.open(GOOGLE_DRIVE_AUDIO_LINK, '_blank');
     }
@@ -307,16 +323,17 @@ export function GiftsScene() {
       case 'letter':
         return (
           <div className="relative">
-            <div className="absolute -top-4 -right-4 text-3xl opacity-20">💌</div>
-            <div className="font-elegant whitespace-pre-wrap text-base sm:text-lg leading-relaxed text-white/90 p-4 sm:p-6 bg-gradient-to-br from-pink-900/20 to-rose-900/10 rounded-xl sm:rounded-2xl border border-pink-500/20 backdrop-blur-sm">
+            <div className="absolute -top-4 -right-4 text-3xl opacity-30 animate-float-slow">💌</div>
+            <div className="absolute -bottom-4 -left-4 text-2xl opacity-20 animate-float-slow" style={{animationDelay: '1s'}}>💛</div>
+            <div className="font-elegant whitespace-pre-wrap text-base sm:text-lg leading-relaxed text-white/95 p-5 sm:p-6 bg-gradient-to-br from-pink-900/40 to-rose-900/30 rounded-2xl border-2 border-pink-500/30 backdrop-blur-xl shadow-2xl shadow-pink-900/30">
               {LETTER_CONTENT_1}
             </div>
           </div>
         );
       case 'media':
         return (
-          <div className="space-y-4 sm:space-y-6">
-            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          <div className="space-y-5 sm:space-y-6">
+            <div className="grid grid-cols-3 gap-3 sm:gap-4">
               {[1, 2, 3, 4, 5].map((i) => (
                 <button
                   key={i}
@@ -326,13 +343,14 @@ export function GiftsScene() {
                       src: `/assets/gifts/media/img${i}.jpeg`,
                     })
                   }
-                  className="group relative aspect-square bg-gradient-to-br from-purple-900/30 to-violet-900/20 rounded-lg sm:rounded-xl flex items-center justify-center border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300 hover:scale-105 overflow-hidden"
+                  className="group relative aspect-square bg-gradient-to-br from-purple-900/40 to-violet-900/30 rounded-xl sm:rounded-2xl flex items-center justify-center border-2 border-purple-500/40 hover:border-purple-400/70 transition-all duration-500 hover:scale-110 overflow-hidden shadow-lg shadow-purple-900/30"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 via-transparent to-violet-500/0 group-hover:from-purple-500/10 group-hover:to-violet-500/10 transition-all duration-300" />
-                  <span className="text-2xl sm:text-3xl group-hover:scale-110 transition-transform duration-300">🌺</span>
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5 text-white/80" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 via-transparent to-violet-500/0 group-hover:from-purple-500/20 group-hover:to-violet-500/20 transition-all duration-500" />
+                  <span className="text-3xl sm:text-4xl group-hover:scale-125 group-hover:rotate-12 transition-all duration-500">🌺</span>
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 bg-black/30">
+                    <Maximize2 className="w-6 h-6 sm:w-8 sm:h-8 text-white/90" />
                   </div>
+                  <div className="absolute inset-0 border-4 border-transparent group-hover:border-white/20 rounded-xl sm:rounded-2xl transition-all duration-500" />
                 </button>
               ))}
             </div>
@@ -343,40 +361,47 @@ export function GiftsScene() {
                   src: '/assets/gifts/media/video.mp4',
                 })
               }
-              className="group relative aspect-video bg-gradient-to-br from-pink-900/30 to-rose-900/20 rounded-lg sm:rounded-xl flex items-center justify-center border border-pink-500/30 hover:border-pink-400/50 transition-all duration-300 overflow-hidden"
+              className="group relative aspect-video bg-gradient-to-br from-pink-900/40 to-rose-900/30 rounded-xl sm:rounded-2xl flex items-center justify-center border-2 border-pink-500/40 hover:border-pink-400/70 transition-all duration-500 overflow-hidden shadow-lg shadow-pink-900/30"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-pink-500/0 via-transparent to-rose-500/0 group-hover:from-pink-500/10 group-hover:to-rose-500/10 transition-all duration-300" />
-              <span className="text-3xl sm:text-4xl group-hover:scale-110 transition-transform duration-300">🎬</span>
-              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <p className="text-xs sm:text-sm text-pink-200/80">Click to watch</p>
+              <div className="absolute inset-0 bg-gradient-to-br from-pink-500/0 via-transparent to-rose-500/0 group-hover:from-pink-500/20 group-hover:to-rose-500/20 transition-all duration-500" />
+              <span className="text-4xl sm:text-5xl group-hover:scale-125 transition-all duration-500">🎬</span>
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500">
+                <div className="bg-black/60 backdrop-blur-sm rounded-full p-3 sm:p-4">
+                  <Play className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                </div>
               </div>
             </button>
-            <p className="text-center text-purple-300/60 text-xs sm:text-sm font-elegant">
-              Click on any media to view full size
+            <p className="text-center text-purple-300/70 text-xs sm:text-sm font-elegant">
+              Click on any media to view in full size
             </p>
           </div>
         );
       case 'audio':
         return (
-          <div className="space-y-4 sm:space-y-6">
-            <div className="flex items-center justify-center gap-3 sm:gap-4">
-              <Music className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-blue-300" />
+          <div className="space-y-5 sm:space-y-6">
+            <div className="flex flex-col items-center justify-center gap-4">
+              <div className="relative">
+                <div className="absolute inset-0 bg-blue-500/30 blur-xl rounded-full" />
+                <Music className="relative w-12 h-12 sm:w-16 sm:h-16 text-blue-300" />
+              </div>
               <div className="text-center">
-                <h3 className="text-lg sm:text-xl font-semibold text-white mb-1">Birthday Melody</h3>
-                <p className="text-blue-300/70 text-xs sm:text-sm">A special song for you</p>
+                <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">bday song</h3>
+                <p className="text-blue-300/80 text-sm sm:text-base">Mute the bg audio and put on em headphones for best experience!</p>
               </div>
             </div>
             
-            <div className="space-y-2 sm:space-y-3">
-              <div className="bg-blue-900/30 h-2 sm:h-2.5 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-blue-400 to-cyan-400 transition-all duration-300"
-                  style={{ width: `${audioProgress}%` }}
-                />
-              </div>
-              <div className="flex justify-between text-xs text-blue-300/60">
-                <span>{formatTime(audioRef.current?.currentTime || 0)}</span>
-                <span>{formatTime(audioRef.current?.duration || 0)}</span>
+            <div className="space-y-3 sm:space-y-4">
+              <div className="relative">
+                <div className="bg-blue-900/40 h-2.5 sm:h-3 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-blue-400 via-cyan-400 to-sky-400 rounded-full transition-all duration-300 shadow-lg shadow-blue-500/30"
+                    style={{ width: `${audioProgress}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-xs sm:text-sm text-blue-300/70 mt-2">
+                  <span>{formatTime(audioRef.current?.currentTime || 0)}</span>
+                  <span>{formatTime(audioRef.current?.duration || 0)}</span>
+                </div>
               </div>
             </div>
             
@@ -384,25 +409,26 @@ export function GiftsScene() {
               <Button 
                 onClick={handleAudioPlay}
                 disabled={isAudioLoading}
-                className="w-full py-4 sm:py-5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 rounded-lg sm:rounded-xl group relative"
+                className="w-full py-4 sm:py-5 bg-gradient-to-r from-blue-600 via-cyan-600 to-sky-600 hover:from-blue-500 hover:via-cyan-500 hover:to-sky-500 text-white rounded-xl sm:rounded-2xl group relative overflow-hidden shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300"
               >
                 {isAudioLoading ? (
-                  <Loader2 className="mr-2 sm:mr-3 w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                  <Loader2 className="mr-3 w-5 h-5 animate-spin" />
                 ) : isPlaying ? (
-                  <Pause className="mr-2 sm:mr-3 w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+                  <Pause className="mr-3 w-5 h-5 group-hover:scale-110 transition-transform" />
                 ) : (
-                  <Play className="mr-2 sm:mr-3 w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+                  <Play className="mr-3 w-5 h-5 group-hover:scale-110 transition-transform" />
                 )}
-                {isAudioLoading ? 'Loading...' : audioError ? 'Open in Google Drive' : isPlaying ? 'Pause Melody' : 'Play Birthday Melody'}
+                {isAudioLoading ? 'Loading Melody...' : audioError ? 'Open in Google Drive' : isPlaying ? 'Pause Birthday Song' : 'Play Birthday Song'}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
               </Button>
               
               {audioError && (
-                <div className="text-center">
-                  <p className="text-sm text-red-300/80 mb-2">Audio loading failed</p>
+                <div className="text-center p-3 bg-red-900/30 rounded-xl border border-red-500/30">
+                  <p className="text-sm text-red-300/90 mb-2">Couldn't load audio directly</p>
                   <Button
                     onClick={handleDirectAudioLink}
                     variant="outline"
-                    className="w-full py-3 text-sm border-blue-400/40 text-blue-300 hover:bg-blue-900/30"
+                    className="w-full py-3 text-sm border-blue-400/50 text-blue-300 hover:bg-blue-900/40"
                   >
                     <ExternalLink className="mr-2 w-4 h-4" />
                     Open in Google Drive
@@ -413,9 +439,9 @@ export function GiftsScene() {
               <div className="text-center">
                 <button
                   onClick={handleDirectAudioLink}
-                  className="text-xs sm:text-sm text-blue-400/70 hover:text-blue-300 transition-colors underline underline-offset-2"
+                  className="text-xs sm:text-sm text-blue-400/80 hover:text-blue-300 transition-colors underline underline-offset-2 decoration-blue-400/50 hover:decoration-blue-300"
                 >
-                  Or open directly in Google Drive
+                  Or open directly in Google Drive ↗
                 </button>
               </div>
             </div>
@@ -423,24 +449,28 @@ export function GiftsScene() {
         );
       case 'pdf':
         return (
-          <div className="text-center space-y-4 sm:space-y-6">
-            <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">📖✨</div>
+          <div className="text-center space-y-5 sm:space-y-6">
+            <div className="relative">
+              <div className="absolute inset-0 bg-emerald-500/20 blur-2xl rounded-full" />
+              <div className="relative text-5xl sm:text-6xl mb-4">📖✨</div>
+            </div>
             <div>
-              <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">Special Birthday Presentation</h3>
-              <p className="text-emerald-300/80 text-sm sm:text-base">"Branches, Trees, Garden"</p>
-              <p className="text-emerald-200/60 text-xs sm:text-sm mt-1">A curated collection of memories and wishes</p>
+              <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3">bday ppt</h3>
+              <p className="text-emerald-300/90 text-lg sm:text-xl mb-2">"Branches, Trees, Garden"</p>
+              <p className="text-emerald-200/70 text-sm sm:text-base">🍀</p>
             </div>
             
-            <div className="p-3 sm:p-4 bg-gradient-to-br from-emerald-900/30 to-green-900/20 rounded-lg sm:rounded-xl border border-emerald-500/20">
-              <p className="text-emerald-200/70 text-sm sm:text-base mb-3 sm:mb-4">
-                This interactive presentation holds heartfelt messages and beautiful memories curated just for you.
+            <div className="p-4 sm:p-5 bg-gradient-to-br from-emerald-900/40 to-green-900/30 rounded-2xl border-2 border-emerald-500/40 backdrop-blur-lg shadow-xl shadow-emerald-900/30">
+              <p className="text-emerald-200/80 text-sm sm:text-base mb-4">
+                📦
               </p>
               <Button 
                 onClick={() => window.open(GOOGLE_SLIDES_LINK, '_blank')}
-                className="w-full py-4 sm:py-5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 rounded-lg sm:rounded-xl group"
+                className="w-full py-4 sm:py-5 bg-gradient-to-r from-emerald-600 via-teal-600 to-green-600 hover:from-emerald-500 hover:via-teal-500 hover:to-green-500 text-white rounded-xl sm:rounded-2xl group relative overflow-hidden shadow-lg shadow-emerald-500/30"
               >
-                <ExternalLink className="mr-2 sm:mr-3 w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
-                Open Special Presentation
+                <ExternalLink className="mr-3 w-5 h-5 group-hover:scale-110 transition-transform" />
+                Unwrap it
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
               </Button>
             </div>
           </div>
@@ -448,9 +478,10 @@ export function GiftsScene() {
       case 'final':
         return (
           <div className="relative">
-            <div className="absolute -top-6 -right-6 text-3xl sm:text-4xl opacity-20 animate-pulse">✨</div>
-            <div className="absolute -bottom-6 -left-6 text-3xl sm:text-4xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}>💖</div>
-            <div className="font-elegant whitespace-pre-wrap text-base sm:text-lg leading-relaxed text-white/90 p-4 sm:p-6 bg-gradient-to-br from-yellow-900/20 via-amber-900/15 to-orange-900/10 rounded-xl sm:rounded-2xl border border-amber-500/20 backdrop-blur-sm text-center">
+            <div className="absolute -top-6 -right-6 text-4xl sm:text-5xl opacity-30 animate-float">✨</div>
+            <div className="absolute -bottom-6 -left-6 text-4xl sm:text-5xl opacity-30 animate-float" style={{animationDelay: '1s'}}>💖</div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-yellow-500/10 blur-3xl rounded-full" />
+            <div className="relative font-elegant whitespace-pre-wrap text-base sm:text-lg leading-relaxed text-white/95 p-6 sm:p-8 bg-gradient-to-br from-yellow-900/40 via-amber-900/35 to-orange-900/30 rounded-2xl border-2 border-amber-500/40 backdrop-blur-xl shadow-2xl shadow-amber-900/30 text-center">
               {LETTER_CONTENT_FINAL}
             </div>
           </div>
@@ -471,14 +502,34 @@ export function GiftsScene() {
       ref={containerRef}
       className="relative w-full h-full overflow-hidden bg-gradient-to-br from-indigo-950 via-purple-950/80 to-pink-950/90"
     >
-      {/* Enhanced Background */}
+      {/* Custom Background Image Layer */}
+      <div
+        className="absolute inset-0 transition-all duration-1000"
+        style={{
+          backgroundImage: `url(${bgImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          opacity: 0.25,
+          filter: 'blur(0.5px)',
+        }}
+      />
+
+      {/* Gradient Overlay */}
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-pink-900/20 to-indigo-900/30" />
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjc0IiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wMiIvPjwvc3ZnPg==')] 
-                    opacity-10" />
-        <div className="absolute top-1/4 left-1/4 w-48 h-48 sm:w-64 sm:h-64 bg-purple-500/10 rounded-full blur-2xl sm:blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-48 h-48 sm:w-64 sm:h-64 bg-pink-500/10 rounded-full blur-2xl sm:blur-3xl" />
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/60 via-pink-900/40 to-indigo-900/60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/30" />
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjc0IiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wMiIvPjwvc3ZnPg==')] 
+                    opacity-5" />
+        <div className="absolute top-1/4 left-1/4 w-48 h-48 sm:w-64 sm:h-64 bg-purple-500/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-48 h-48 sm:w-64 sm:h-64 bg-pink-500/20 rounded-full blur-3xl" />
       </div>
+
+      {/* Decorative Floating Elements */}
+      <div className="absolute top-10 left-10 text-3xl sm:text-4xl opacity-20 animate-float-slow">🎀</div>
+      <div className="absolute top-20 right-12 text-2xl sm:text-3xl opacity-15 animate-float-slow" style={{animationDelay: '2s'}}>✨</div>
+      <div className="absolute bottom-16 left-16 text-2xl sm:text-3xl opacity-15 animate-float-slow" style={{animationDelay: '1s'}}>🎁</div>
+      <div className="absolute bottom-20 right-10 text-3xl sm:text-4xl opacity-20 animate-float-slow" style={{animationDelay: '3s'}}>💝</div>
 
       {/* Celebration Effects */}
       {showFinale && (
@@ -486,46 +537,51 @@ export function GiftsScene() {
           <div className="absolute inset-0 pointer-events-none">
             <Confetti 
               recycle={false} 
-              numberOfPieces={400} 
+              numberOfPieces={500} 
               gravity={0.08}
               colors={['#fbbf24', '#ec4899', '#a855f7', '#60a5fa', '#34d399']}
               wind={0.01}
+              opacity={0.9}
             />
           </div>
-          <AdaptiveParticleSystem 
-            count={150} 
-            color="#fbbf24" 
-            speed={0.5} 
-            size={2}
-            className="absolute inset-0 pointer-events-none"
-          />
+          <div className="absolute inset-0 pointer-events-none">
+            <AdaptiveParticleSystem 
+              count={200} 
+              color="#fbbf24" 
+              speed={0.6} 
+              size={2.5}
+            />
+          </div>
         </>
       )}
 
       {/* Main Content */}
-      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-3 sm:p-4 md:p-6">
+      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-4 sm:p-6 md:p-8">
         {/* Header */}
-        <div className="text-center mb-6 sm:mb-10 md:mb-12 px-2">
-          <div className="text-4xl sm:text-5xl md:text-6xl mb-3 sm:mb-4 animate-float">
-            🎁✨
+        <div className="text-center mb-8 sm:mb-12 md:mb-16 px-2">
+          <div className="relative inline-block mb-4 sm:mb-6">
+            <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500 blur-xl rounded-full opacity-50" />
+            <div className="relative text-5xl sm:text-6xl md:text-7xl animate-float">
+              🎁✨
+            </div>
           </div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2
-                        drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]">
-            <span className="font-cursive bg-gradient-to-r from-yellow-200 via-pink-200 to-purple-200 
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3
+                        drop-shadow-[0_0_40px_rgba(168,85,247,0.8)]">
+            <span className="font-cursive bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 
                            bg-clip-text text-transparent">
               Unwrap Your Gifts
             </span>
           </h1>
-          <p className="text-xs sm:text-sm md:text-base text-purple-200/80 font-elegant max-w-xl mx-auto">
-            Click on each gift to discover something special
-            <span className="block text-xs text-purple-300/60 mt-1">
-              {openedGifts.length === 0 ? 'Start with the first gift!' : `${openedGifts.length}/5 gifts opened`}
+          <p className="text-sm sm:text-base md:text-lg text-purple-200/90 font-elegant max-w-xl mx-auto">
+            Each gift holds a special surprise just for you
+            <span className="block text-xs sm:text-sm text-purple-300/60 mt-1">
+              {openedGifts.length === 0 ? 'Click any gift to begin!' : `${openedGifts.length}/5 gifts opened`}
             </span>
           </p>
         </div>
 
         {/* Gifts Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 max-w-5xl mx-auto w-full px-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 max-w-5xl mx-auto w-full px-2">
           {GIFTS.map((gift, index) => {
             const isOpened = openedGifts.includes(gift.id);
             const isHovered = hoveredGift === gift.id;
@@ -537,49 +593,55 @@ export function GiftsScene() {
                 onClick={() => openGift(gift)}
                 onMouseEnter={() => setHoveredGift(gift.id)}
                 onMouseLeave={() => setHoveredGift(null)}
-                className={`group relative p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl transition-all duration-300 
+                className={`group relative p-4 sm:p-5 md:p-6 rounded-2xl transition-all duration-500 
                           ${isOpened 
-                            ? 'opacity-80 scale-95 cursor-default' 
-                            : 'cursor-pointer hover:scale-105 active:scale-95'
-                          } overflow-hidden`}
+                            ? 'opacity-90 scale-95 cursor-default grayscale-20' 
+                            : 'cursor-pointer hover:scale-110 active:scale-105'
+                          } overflow-hidden backdrop-blur-sm`}
                 style={{
-                  background: isOpened 
-                    ? `linear-gradient(135deg, ${gift.color}15, ${gift.color}08)` 
-                    : `linear-gradient(135deg, ${gift.color}30, ${gift.color}15)`,
-                  border: `1px solid ${gift.color}${isOpened ? '20' : '40'}`,
+                  background: `linear-gradient(135deg, ${gift.color}40, ${gift.color}20)`,
+                  border: `2px solid ${gift.color}${isOpened ? '40' : '60'}`,
                   boxShadow: isHovered && !isOpened 
-                    ? `0 15px 30px ${gift.color}30, 0 0 40px ${gift.color}20` 
-                    : `0 8px 20px ${gift.color}15`,
+                    ? `0 25px 50px ${gift.color}50, 0 0 80px ${gift.color}40, inset 0 0 40px ${gift.color}20` 
+                    : `0 15px 35px ${gift.color}30, inset 0 0 20px ${gift.color}10`,
                 }}
                 disabled={isOpened}
               >
-                {/* Background Glow */}
+                {/* Animated Glow Ring */}
                 <div 
-                  className={`absolute inset-0 rounded-xl sm:rounded-2xl transition-opacity duration-300 ${
-                    isHovered && !isOpened ? 'opacity-80' : 'opacity-0'
+                  className={`absolute inset-0 rounded-2xl transition-all duration-700 ${
+                    isHovered && !isOpened ? 'opacity-100' : 'opacity-0'
                   }`}
                   style={{
-                    background: `radial-gradient(circle at center, ${gift.color}25, transparent 70%)`,
+                    background: `radial-gradient(circle at center, ${gift.color}40, transparent 70%)`,
+                    filter: 'blur(15px)',
                   }}
                 />
 
                 {/* Content */}
                 <div className="relative z-10 flex flex-col items-center justify-center">
-                  <div className={`text-3xl sm:text-4xl md:text-5xl mb-1 sm:mb-2 transition-transform duration-300 
-                                ${isHovered && !isOpened ? 'scale-110' : ''}`}>
+                  <div className={`text-4xl sm:text-5xl md:text-6xl mb-2 sm:mb-3 transition-all duration-500 
+                                ${isHovered && !isOpened ? 'scale-125 rotate-12' : ''}`}>
                     {gift.emoji}
                   </div>
-                  <h3 className={`text-sm sm:text-base font-semibold text-center transition-colors duration-300
-                               ${isOpened ? 'text-white/70' : 'text-white'}`}>
+                  <h3 className={`text-base sm:text-lg md:text-xl font-bold text-center transition-all duration-300
+                               ${isOpened ? 'text-white/80' : 'text-white'}`}>
                     {gift.title}
                   </h3>
+                  <p className={`text-xs sm:text-sm text-center mt-1 transition-all duration-300
+                              ${isOpened ? 'opacity-0 scale-0' : 'opacity-70'}`}>
+                    {gift.subtitle}
+                  </p>
                 </div>
 
-                {/* Opened Checkmark */}
+                {/* Opened Overlay */}
                 {isOpened && (
-                  <div className="absolute top-2 right-2 text-base sm:text-lg opacity-70">
-                    ✓
-                  </div>
+                  <>
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
+                    <div className="absolute top-3 right-3 text-lg sm:text-xl opacity-90">
+                      ✓
+                    </div>
+                  </>
                 )}
               </button>
             );
@@ -588,32 +650,35 @@ export function GiftsScene() {
 
         {/* Progress Indicator */}
         {openedGifts.length > 0 && (
-          <div className="mt-6 sm:mt-8 max-w-sm w-full px-4">
-            <div className="flex justify-between text-xs sm:text-sm text-purple-300/80 mb-2">
-              <span>Progress</span>
-              <span>{openedGifts.length}/5 gifts</span>
+          <div className="mt-8 sm:mt-12 max-w-md w-full px-4">
+            <div className="flex justify-between text-sm sm:text-base text-purple-300/90 mb-3">
+              <span className="font-elegant">Gift Progress</span>
+              <span className="font-semibold">{openedGifts.length}/5</span>
             </div>
-            <div className="h-1.5 sm:h-2 bg-purple-900/30 rounded-full overflow-hidden">
+            <div className="h-2 sm:h-3 bg-purple-900/40 rounded-full overflow-hidden shadow-inner">
               <div 
-                className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500 rounded-full transition-all duration-500"
+                className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500 rounded-full transition-all duration-700 shadow-lg shadow-purple-500/30"
                 style={{ width: `${(openedGifts.length / 5) * 100}%` }}
               />
             </div>
           </div>
         )}
 
-        {/* Completion Message */}
+        {/* Completion Celebration */}
         {showFinale && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 p-4">
-            <div className="text-center p-5 sm:p-6 bg-gradient-to-br from-purple-900/95 via-pink-900/90 to-yellow-900/90 
-                          rounded-xl sm:rounded-2xl border border-pink-500/30 backdrop-blur-xl
-                          max-w-xs sm:max-w-sm w-full animate-scale-in">
-              <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">🎉✨</div>
-              <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">All Gifts Opened!</h2>
-              <p className="text-pink-200/80 text-sm sm:text-base mb-4">
-                You've discovered all the special gifts!
+          <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-lg z-50 p-4 animate-fade-in">
+            <div className="text-center p-6 sm:p-8 bg-gradient-to-br from-purple-900/95 via-pink-900/90 to-yellow-900/95 
+                          rounded-2xl sm:rounded-3xl border-2 border-pink-500/50 backdrop-blur-2xl
+                          max-w-sm sm:max-w-md w-full animate-scale-in shadow-2xl shadow-pink-900/50">
+              <div className="relative mb-4 sm:mb-6">
+                <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500 blur-2xl rounded-full opacity-30" />
+                <div className="relative text-5xl sm:text-6xl animate-bounce">🎉✨</div>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">All Gifts Revealed!</h2>
+              <p className="text-pink-200/90 text-sm sm:text-base mb-6">
+                You've discovered every special gift prepared for your birthday!
               </p>
-              <div className="text-2xl sm:text-3xl animate-bounce">🎁</div>
+              <div className="text-3xl sm:text-4xl animate-pulse">🎁💝</div>
             </div>
           </div>
         )}
@@ -623,29 +688,39 @@ export function GiftsScene() {
       <Dialog open={!!selectedGift} onOpenChange={() => setSelectedGift(null)}>
         <DialogContent 
           ref={dialogRef}
-          className="bg-gradient-to-br from-slate-900/95 to-slate-950/95 border-white/20 
-                   backdrop-blur-xl text-white max-w-xs sm:max-w-md md:max-w-lg 
-                   rounded-xl sm:rounded-2xl p-0 overflow-hidden"
+          className="bg-gradient-to-br from-slate-900/95 via-gray-900/95 to-slate-950/95 border-white/30 
+                   backdrop-blur-2xl text-white max-w-sm sm:max-w-md md:max-w-xl 
+                   rounded-2xl sm:rounded-3xl p-0 overflow-hidden shadow-2xl shadow-black/50"
         >
           {selectedGift && (
             <>
-              <DialogHeader className="p-4 sm:p-6 pb-0">
+              <DialogHeader className="p-5 sm:p-6 border-b border-white/10">
                 <div className="flex items-center justify-between">
-                  <DialogTitle className="text-lg sm:text-xl flex items-center gap-2 sm:gap-3">
-                    <span className="text-2xl sm:text-3xl">{selectedGift.emoji}</span>
-                    <span className="bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">
-                      {selectedGift.title}
+                  <DialogTitle className="text-xl sm:text-2xl flex items-center gap-3">
+                    <span 
+                      className="text-3xl sm:text-4xl filter drop-shadow-lg"
+                      style={{ filter: `drop-shadow(0 0 10px ${selectedGift.glowColor}80)` }}
+                    >
+                      {selectedGift.emoji}
                     </span>
+                    <div>
+                      <div className="bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">
+                        {selectedGift.title}
+                      </div>
+                      <div className="text-xs sm:text-sm text-gray-400 mt-0.5">
+                        {selectedGift.subtitle}
+                      </div>
+                    </div>
                   </DialogTitle>
                   <button
                     onClick={() => setSelectedGift(null)}
-                    className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors"
+                    className="p-2 hover:bg-white/10 rounded-xl transition-all duration-300 hover:rotate-90"
                   >
-                    <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
               </DialogHeader>
-              <div className="p-4 sm:p-6">
+              <div className="p-5 sm:p-6">
                 {renderGiftContent(selectedGift)}
               </div>
             </>
@@ -658,9 +733,9 @@ export function GiftsScene() {
           <div className="relative">
             <button
               onClick={() => setActiveMedia(null)}
-              className="absolute top-2 sm:top-4 right-2 sm:right-4 z-50 p-1.5 sm:p-2 bg-black/50 hover:bg-black/70 rounded-lg transition-colors"
+              className="absolute top-3 sm:top-4 right-3 sm:right-4 z-50 p-2 bg-black/60 hover:bg-black/80 rounded-xl transition-all duration-300 hover:scale-110"
             >
-              <X className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
+              <X className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </button>
             
             {activeMedia?.type === 'image' && (
@@ -668,7 +743,7 @@ export function GiftsScene() {
                 <img
                   src={activeMedia.src}
                   alt="Special memory"
-                  className="max-h-[75vh] sm:max-h-[80vh] max-w-full object-contain rounded-lg"
+                  className="max-h-[75vh] sm:max-h-[80vh] max-w-full object-contain rounded-xl shadow-2xl shadow-black/50"
                   loading="lazy"
                 />
               </div>
@@ -680,7 +755,7 @@ export function GiftsScene() {
                   src={activeMedia.src}
                   controls
                   autoPlay
-                  className="w-full h-auto max-h-[75vh] sm:max-h-[80vh] rounded-lg"
+                  className="w-full h-auto max-h-[75vh] sm:max-h-[80vh] rounded-xl shadow-2xl shadow-black/50"
                   controlsList="nodownload"
                 />
               </div>
@@ -692,8 +767,13 @@ export function GiftsScene() {
       {/* CSS Animations */}
       <style>{`
         @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-8px); }
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-10px) rotate(2deg); }
+        }
+        
+        @keyframes float-slow {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-5px) rotate(1deg); }
         }
         
         @keyframes scale-in {
@@ -701,19 +781,49 @@ export function GiftsScene() {
           100% { transform: scale(1); opacity: 1; }
         }
         
+        @keyframes fade-in {
+          0% { opacity: 0; }
+          100% { opacity: 1; }
+        }
+        
         .animate-float {
           animation: float 3s ease-in-out infinite;
         }
         
-        .animate-scale-in {
-          animation: scale-in 0.3s ease-out;
+        .animate-float-slow {
+          animation: float-slow 4s ease-in-out infinite;
         }
         
-        /* Improve scrolling for dialogs on mobile */
+        .animate-scale-in {
+          animation: scale-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .animate-fade-in {
+          animation: fade-in 0.3s ease-out;
+        }
+        
+        /* Custom scrollbar for dialogs */
+        [role="dialog"] > div {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(168, 85, 247, 0.3) transparent;
+        }
+        
+        [role="dialog"] > div::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        [role="dialog"] > div::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        
+        [role="dialog"] > div::-webkit-scrollbar-thumb {
+          background-color: rgba(168, 85, 247, 0.3);
+          border-radius: 3px;
+        }
+        
         @media (max-height: 700px) {
           [role="dialog"] > div {
             max-height: 85vh;
-            overflow-y: auto;
           }
         }
       `}</style>
