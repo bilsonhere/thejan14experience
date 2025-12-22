@@ -27,7 +27,7 @@ const GIFTS: Gift[] = [
     id: 1, 
     emoji: '💛', 
     title: 'Happy', 
-    subtitle: 'Heartfelt Letter',
+    subtitle: 'سعيد',
     type: 'letter',
     color: '#f472b6',
     gradient: 'from-pink-500/30 via-rose-500/25 to-rose-600/20',
@@ -37,7 +37,7 @@ const GIFTS: Gift[] = [
     id: 2, 
     emoji: '🎂', 
     title: 'Birthday', 
-    subtitle: 'Precious Memories',
+    subtitle: 'ميلاد',
     type: 'media',
     color: '#8b5cf6',
     gradient: 'from-purple-500/30 via-violet-500/25 to-indigo-600/20',
@@ -47,7 +47,7 @@ const GIFTS: Gift[] = [
     id: 3, 
     emoji: '🎶', 
     title: 'To', 
-    subtitle: 'Birthday Melody',
+    subtitle: 'لكِ',
     type: 'audio',
     color: '#60a5fa',
     gradient: 'from-blue-500/30 via-cyan-500/25 to-sky-600/20',
@@ -57,7 +57,7 @@ const GIFTS: Gift[] = [
     id: 4, 
     emoji: '📄', 
     title: 'You', 
-    subtitle: 'Special Presentation',
+    subtitle: 'أنتِ',
     type: 'pdf',
     color: '#34d399',
     gradient: 'from-emerald-500/30 via-teal-500/25 to-green-600/20',
@@ -67,7 +67,7 @@ const GIFTS: Gift[] = [
     id: 5, 
     emoji: '💖', 
     title: 'Afrah Ghazi', 
-    subtitle: 'Final Message',
+    subtitle: 'أفراح غازي',
     type: 'final',
     color: '#fbbf24',
     gradient: 'from-yellow-500/30 via-amber-500/25 to-orange-600/20',
@@ -75,30 +75,27 @@ const GIFTS: Gift[] = [
   },
 ];
 
-const LETTER_CONTENT_1 = `Dearest Afrah,
-
-Happy 20th Birthday! 🎉
-
-May this day wrap you in warmth, joy, and the quiet comfort of knowing how deeply cherished you are. Your presence brings light to every moment without effort - a rare and beautiful gift.
-
-Here's to laughter that echoes, growth that inspires, peaceful days, and dreams that feel closer than ever.
-
-Wishing you endless happiness,
-With love 💛`;
+const LETTER_CONTENT_1 = `i will write this on january 14 12 am.`;
 
 const LETTER_CONTENT_FINAL = `Afrah,
 
-Some souls leave imprints on time without ever realizing their impact.
-You are one of those remarkable souls.
+Thanks a lot for giving this your time.
 
-Thank you for being exactly who you are - for the memories, the calm amidst chaos, the laughter, and the meaning you bring.
+The core intention behind this was to make your special day memorable,happier. 
+It was to honour this special day, this special moment that happened 20 years ago.
+You being what you are is what truly helped to craft this.
+This is all yours.
+You are free to percieve this in any way your heart feels.
 
-May life treat you gently.
-May joy find you often.
+Happy Birthday,
+May life treat you the way you desire.
+May joy find you all the time.
 May you always recognize your incredible worth.
 
 Happy Birthday.
 May this year be your most beautiful yet.
+And the next one more beautiful.
+And so on,
 
 Forever. 💖`;
 
