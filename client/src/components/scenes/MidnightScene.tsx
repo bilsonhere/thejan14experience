@@ -158,12 +158,12 @@ export function MidnightScene() {
                          mb-8 drop-shadow-[0_0_28px_rgba(236,72,153,0.6)]"
             >
               <span className="font-elegant italic">
-                Happy 20th, Afrah
+                  AFRAH GHAZI IS 20!!!!!!!!
               </span>
             </h1>
 
             <p className="text-2xl md:text-3xl text-white/90 mt-6 font-elegant">
-              Let the celebration begin ✨
+              Pop the sugarcane juice champagne off and let the celebrations begin 🍾✨
             </p>
           </div>
         )}
