@@ -11,46 +11,10 @@ export function MidnightScene() {
   const [showFinale, setShowFinale] = useState(false);
   const [started, setStarted] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
-  const [showParticles, setShowParticles] = useState(true); // Control particle visibility
   const countdownRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const animationRef = useRef<gsap.core.Tween | null>(null);
-
-  // Clean up ALL resources on unmount
-  useEffect(() => {
-    return () => {
-      // Clean up intervals
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      
-      // Clean up timeouts
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
-      
-      // Clean up GSAP animations
-      if (animationRef.current) {
-        animationRef.current.kill();
-        animationRef.current = null;
-      }
-      
-      // Clean up audio if playing
-      if (settings.soundEnabled) {
-        audioManager.stop('hit');
-        audioManager.stop('success');
-      }
-      
-      // Hide particles before unmounting
-      setShowParticles(false);
-    };
-  }, [settings.soundEnabled]);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -63,41 +27,31 @@ export function MidnightScene() {
   // Add initial animation for entrance
   useEffect(() => {
     if (!settings.reducedMotion && containerRef.current) {
-      animationRef.current = gsap.fromTo(
+      gsap.fromTo(
         containerRef.current,
         { opacity: 0 },
         { opacity: 1, duration: 1.2, ease: 'power2.out' }
       );
     }
-  }, [settings.reducedMotion]);
+  }, []);
 
-  // Button hover animation with cleanup
+  // Button hover animation
   useEffect(() => {
-    let hoverAnimation: gsap.core.Tween | null = null;
-    
-    if (!settings.reducedMotion && buttonRef.current) {
-      if (isHovering) {
-        hoverAnimation = gsap.to(buttonRef.current, {
-          scale: 1.05,
-          y: -2,
-          duration: 0.3,
-          ease: 'back.out(1.7)',
-        });
-      } else {
-        hoverAnimation = gsap.to(buttonRef.current, {
-          scale: 1,
-          y: 0,
-          duration: 0.3,
-          ease: 'power2.out',
-        });
-      }
+    if (!settings.reducedMotion && buttonRef.current && isHovering) {
+      gsap.to(buttonRef.current, {
+        scale: 1.05,
+        y: -2,
+        duration: 0.3,
+        ease: 'back.out(1.7)',
+      });
+    } else if (!settings.reducedMotion && buttonRef.current && !isHovering) {
+      gsap.to(buttonRef.current, {
+        scale: 1,
+        y: 0,
+        duration: 0.3,
+        ease: 'power2.out',
+      });
     }
-    
-    return () => {
-      if (hoverAnimation) {
-        hoverAnimation.kill();
-      }
-    };
   }, [isHovering, settings.reducedMotion]);
 
   const startCountdown = () => {
@@ -116,7 +70,7 @@ export function MidnightScene() {
     }
 
     let count = 1;
-    intervalRef.current = setInterval(() => {
+    const interval = setInterval(() => {
       setCountdown(count);
 
       if (!settings.reducedMotion && countdownRef.current) {
@@ -138,6 +92,15 @@ export function MidnightScene() {
             ease: 'back.out(1.4)'
           }
         );
+        
+        // Glow pulse effect
+        gsap.to(countdownRef.current, {
+          textShadow: '0 0 80px rgba(236,72,153,0.8)',
+          duration: 0.2,
+          yoyo: true,
+          repeat: 1,
+          delay: 0.1
+        });
       }
 
       if (settings.soundEnabled) {
@@ -145,12 +108,8 @@ export function MidnightScene() {
       }
 
       if (count >= 20) {
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-          intervalRef.current = null;
-        }
-        
-        timeoutRef.current = setTimeout(() => {
+        clearInterval(interval);
+        setTimeout(() => {
           setShowFinale(true);
 
           if (settings.soundEnabled) {
@@ -195,14 +154,8 @@ export function MidnightScene() {
             );
           }
 
-          timeoutRef.current = setTimeout(() => {
-            // Hide particles before navigating
-            setShowParticles(false);
-            
-            // Small delay to ensure cleanup
-            setTimeout(() => {
-              navigateTo('room');
-            }, 100);
+          setTimeout(() => {
+            navigateTo('room');
           }, 5000);
         }, 500);
       }
@@ -230,24 +183,24 @@ export function MidnightScene() {
                         from-pink-900/20 via-transparent to-transparent" />
       </div>
 
-      {/* Enhanced horizon glow */}
+      {/* Enhanced horizon glow with animation */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[140%] h-[50%]
                         bg-[radial-gradient(ellipse_at_center,rgba(168,85,247,0.25),transparent_65%)]" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[120%] h-[40%]
+                        bg-[radial-gradient(ellipse_at_center,rgba(236,72,153,0.15),transparent_70%)]
+                        animate-pulse" style={{ animationDuration: '4s' }} />
       </div>
 
-      {/* Floating particles layer - conditionally rendered */}
-      {showParticles && (
-        <AdaptiveParticleSystem
-          key={`particles-${showParticles}`} // Force re-render on show/hide
-          count={window.innerWidth < 640 ? 220 : 420}
-          color={countdown ? '#e9d5ff' : '#ffffff'}
-          speed={countdown ? 0.55 : 0.2}
-          size={countdown ? 2.5 : 2}
-        />
-      )}
+      {/* Floating particles layer */}
+      <AdaptiveParticleSystem
+        count={window.innerWidth < 640 ? 220 : 420}
+        color={countdown ? '#e9d5ff' : '#ffffff'}
+        speed={countdown ? 0.55 : 0.2}
+        size={countdown ? 2.5 : 2}
+      />
 
-      {/* Enhanced confetti */}
+      {/* Enhanced confetti with better visuals */}
       {showFinale && (
         <Confetti 
           recycle={false} 
@@ -258,17 +211,28 @@ export function MidnightScene() {
         />
       )}
 
+      {/* Animated border glow effect */}
+      {countdown && !showFinale && (
+        <div className="absolute inset-0 border-2 border-transparent rounded-lg 
+                        animate-border-glow pointer-events-none"
+             style={{
+               animation: 'borderGlow 3s ease-in-out infinite',
+               borderImage: 'linear-gradient(45deg, #a855f7, #ec4899, #fbbf24, #ec4899, #a855f7) 1',
+             }} />
+      )}
+
       <div className="relative z-10 text-center px-6 max-w-4xl">
         {!started && (
           <div className="mb-16 space-y-12">
             <div className="space-y-6">
               <p className="text-4xl md:text-5xl text-white/95 mb-8 font-elegant tracking-wider
-                            leading-relaxed drop-shadow-[0_0_32px_rgba(168,85,247,0.6)]">
+                            leading-relaxed drop-shadow-[0_0_32px_rgba(168,85,247,0.6)]
+                            animate-soft-glow">
                 Ready to begin the countdown?
               </p>
               
               {/* Animated clock emoji */}
-              <div className="text-7xl mb-8 opacity-90 
+              <div className="text-7xl mb-8 animate-bounce-slow opacity-90 
                             drop-shadow-[0_0_20px_rgba(251,191,36,0.5)]">
                 ⏰
               </div>
@@ -287,6 +251,10 @@ export function MidnightScene() {
                            transition-all duration-300
                            hover:shadow-[0_0_40px_rgba(168,85,247,0.6)]
                            group overflow-hidden"
+                style={{
+                  backgroundSize: '200% 100%',
+                  animation: isHovering ? 'gradientShift 2s ease infinite' : 'none'
+                }}
               >
                 {/* Button glow effect */}
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/10 to-transparent
@@ -374,9 +342,9 @@ export function MidnightScene() {
           <div ref={titleRef} className="space-y-10">
             {/* Animated emojis */}
             <div className="flex justify-center gap-6 mb-6">
-              <span className="emoji text-8xl opacity-95">🎉</span>
-              <span className="emoji text-8xl opacity-95">🎂</span>
-              <span className="emoji text-8xl opacity-95">🎈</span>
+              <span className="emoji text-8xl opacity-95 animate-float-1">🎉</span>
+              <span className="emoji text-8xl opacity-95 animate-float-2">🎂</span>
+              <span className="emoji text-8xl opacity-95 animate-float-3">🎈</span>
             </div>
 
             {/* Main title with enhanced gradient */}
@@ -396,7 +364,12 @@ export function MidnightScene() {
                            text-transparent bg-clip-text
                            bg-gradient-to-r from-yellow-300 via-pink-400 to-purple-400
                            mb-8 leading-tight
-                           drop-shadow-[0_0_60px_rgba(236,72,153,0.9)]"
+                           drop-shadow-[0_0_60px_rgba(236,72,153,0.9)]
+                           animate-gradient-shift"
+                style={{
+                  backgroundSize: '200% 200%',
+                  animation: 'gradientShift 3s ease infinite'
+                }}
               >
                 <span className="font-elegant italic">
                   AFRAH GHAZI IS 20!!!!!!!!
@@ -413,7 +386,8 @@ export function MidnightScene() {
             
             {/* Celebration note */}
             <div className="mt-12 p-4 bg-gradient-to-r from-purple-900/30 to-pink-900/30 
-                          rounded-xl border border-purple-700/30 backdrop-blur-sm">
+                          rounded-xl border border-purple-700/30 backdrop-blur-sm
+                          animate-pulse" style={{ animationDuration: '2s' }}>
               <p className="text-lg text-purple-200/80 font-elegant">
                 The party continues in 5 seconds...
               </p>
@@ -421,6 +395,60 @@ export function MidnightScene() {
           </div>
         )}
       </div>
+
+      {/* Add CSS animations in style tag */}
+      <style>{`
+        @keyframes borderGlow {
+          0%, 100% { border-color: rgba(168, 85, 247, 0.3); }
+          50% { border-color: rgba(236, 72, 153, 0.6); }
+        }
+        
+        @keyframes gradientShift {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        
+        @keyframes float1 {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-15px) rotate(5deg); }
+        }
+        
+        @keyframes float2 {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(-5deg); }
+        }
+        
+        @keyframes float3 {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-10px) rotate(3deg); }
+        }
+        
+        .animate-float-1 { animation: float1 4s ease-in-out infinite; }
+        .animate-float-2 { animation: float2 5s ease-in-out infinite; }
+        .animate-float-3 { animation: float3 3.5s ease-in-out infinite; }
+        
+        .animate-soft-glow {
+          animation: softGlow 3s ease-in-out infinite;
+        }
+        
+        @keyframes softGlow {
+          0%, 100% { text-shadow: 0 0 32px rgba(168, 85, 247, 0.6); }
+          50% { text-shadow: 0 0 48px rgba(236, 72, 153, 0.8); }
+        }
+        
+        .animate-bounce-slow {
+          animation: bounceSlow 3s ease-in-out infinite;
+        }
+        
+        @keyframes bounceSlow {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-15px); }
+        }
+        
+        .animate-gradient-shift {
+          animation: gradientShift 3s ease infinite;
+        }
+      `}</style>
     </div>
   );
 }
