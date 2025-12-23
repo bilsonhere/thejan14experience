@@ -135,7 +135,7 @@ export function MidnightScene() {
             <div className="space-y-8">
               <p className="text-4xl md:text-5xl text-white/92 mb-12 font-elegant tracking-wider
                             leading-relaxed drop-shadow-[0_0_30px_rgba(168,85,247,0.5)]">
-                Ready to begin the countdown?
+                Are You Ready?
               </p>
               
               {/* Enhanced clock emoji with subtle animation */}
@@ -172,7 +172,7 @@ export function MidnightScene() {
                 
                 {/* Button text with enhanced shadow */}
                 <span className="relative z-10 drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]">
-                  Start Countdown
+                  Let's go!!
                 </span>
                 
                 {/* Corner accents */}
@@ -242,7 +242,7 @@ export function MidnightScene() {
               {/* Subtle indicator text */}
               <p className="mt-8 text-lg text-purple-300/70 font-elegant tracking-wide
                           drop-shadow-[0_0_10px_rgba(168,85,247,0.2)]">
-                Counting down to something special... ✨
+                Prepare yourself... ✨
               </p>
             </div>
           </>
@@ -294,7 +294,7 @@ export function MidnightScene() {
                           rounded-2xl border border-purple-700/30 backdrop-blur-sm
                           animate-pulse" style={{ animationDuration: '1.5s' }}>
               <p className="text-xl text-purple-200/90 font-elegant">
-                The celebration continues in 5 seconds...
+                The experience will begin soon...
               </p>
             </div>
           </div>
