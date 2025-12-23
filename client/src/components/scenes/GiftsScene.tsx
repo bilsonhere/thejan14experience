@@ -77,12 +77,12 @@ const GIFTS: Gift[] = [
 
 const LETTER_CONTENT_1 = `i will write this on january 14 12 am.`;
 
-const LETTER_CONTENT_FINAL = `Afrah,
+const LETTER_CONTENT_FINAL = `Dear Afrah,
 
 Thanks a lot for giving this your time.
 
 The core intention behind this was to make your special day memorable,happier. 
-It was to honour this special day, this special moment that happened 20 years ago.
+It was to honour this special day, this special moment that happened two decades ago.
 You being what you are is what truly helped to craft this.
 This is all yours.
 You are free to percieve this in any way your heart feels.
@@ -570,7 +570,7 @@ export function GiftsScene() {
             </span>
           </h1>
           <p className="text-sm sm:text-base md:text-lg text-purple-200/90 font-elegant max-w-xl mx-auto">
-            Each gift holds a special surprise just for you
+            💕It's all yours💕
             <span className="block text-xs sm:text-sm text-purple-300/60 mt-1">
               {openedGifts.length === 0 ? 'Click any gift to begin!' : `${openedGifts.length}/5 gifts opened`}
             </span>
