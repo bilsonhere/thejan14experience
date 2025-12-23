@@ -6,7 +6,7 @@ import { Button } from '../ui/button';
 import { AdaptiveParticleSystem } from '../AdaptiveParticleSystem';
 import gsap from 'gsap';
 import Confetti from 'react-confetti';
-import { Play, Pause, Volume2, X, ExternalLink, Maximize2, Music, Loader2, Image as ImageIcon, Sparkles, Heart, Eye, EyeOff, Lock, Unlock } from 'lucide-react';
+import { Play, Pause, Volume2, X, ExternalLink, Maximize2, Music, Loader2, Image as ImageIcon, Sparkles } from 'lucide-react';
 
 interface Gift {
   id: number;
@@ -111,8 +111,6 @@ export function GiftsScene() {
   const [activeMedia, setActiveMedia] = useState<{ type: 'image' | 'video'; src: string } | null>(null);
   const [hoveredGift, setHoveredGift] = useState<number | null>(null);
   const [bgImage, setBgImage] = useState<string>(settings.customGiftBackground || '/assets/gifts/background.jpg');
-  const [chosenGiftId, setChosenGiftId] = useState<number | null>(null);
-  const [showChoicePrompt, setShowChoicePrompt] = useState(true);
 
   const giftsRefs = useRef<(HTMLDivElement | null)[]>([]);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -134,22 +132,21 @@ export function GiftsScene() {
       animationRefs.current.forEach(anim => anim.kill());
       animationRefs.current = [];
 
-      // Create floating animations only for the chosen gift (if any)
-      if (chosenGiftId) {
-        const chosenIndex = chosenGiftId - 1;
-        const ref = giftsRefs.current[chosenIndex];
-        if (ref && !openedGifts.includes(chosenGiftId)) {
+      // Create floating animations for unopened gifts with anticipation
+      giftsRefs.current.forEach((ref, i) => {
+        if (ref && !openedGifts.includes(i + 1)) {
           const anim = gsap.to(ref, {
-            y: -15,
-            rotation: 3,
-            duration: 2.5,
+            y: -12,
+            rotation: 2,
+            duration: 3 + i * 0.2,
             repeat: -1,
             yoyo: true,
             ease: 'sine.inOut',
+            delay: i * 0.15,
           });
           animationRefs.current.push(anim);
         }
-      }
+      });
 
       // Background particle effect when all gifts opened
       if (openedGifts.length === 5 && !showFinale) {
@@ -172,57 +169,10 @@ export function GiftsScene() {
         audioRef.current = null;
       }
     };
-  }, [openedGifts, settings.reducedMotion, showFinale, chosenGiftId]);
-
-  const chooseGift = (gift: Gift) => {
-    if (chosenGiftId && chosenGiftId !== gift.id) {
-      // If already chosen a different gift, show gentle message
-      if (!settings.reducedMotion && dialogRef.current) {
-        gsap.fromTo(dialogRef.current,
-          { scale: 0.9, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 0.4, ease: 'back.out(1.7)' }
-        );
-      }
-      return;
-    }
-
-    if (!chosenGiftId) {
-      // First choice - set the chosen gift
-      setChosenGiftId(gift.id);
-      setShowChoicePrompt(false);
-      
-      // Gentle glow animation for the chosen gift
-      const giftElement = giftsRefs.current[gift.id - 1];
-      if (giftElement && !settings.reducedMotion) {
-        gsap.to(giftElement, {
-          scale: 1.1,
-          duration: 0.6,
-          ease: 'elastic.out(1, 0.5)',
-        });
-
-        // Gentle pulse effect
-        gsap.to(giftElement, {
-          boxShadow: `0 0 40px ${gift.glowColor}60`,
-          duration: 1.5,
-          repeat: -1,
-          yoyo: true,
-          ease: 'sine.inOut',
-        });
-      }
-
-      if (settings.soundEnabled) {
-        audioManager.play('success');
-      }
-    }
-  };
+  }, [openedGifts, settings.reducedMotion, showFinale]);
 
   const openGift = (gift: Gift) => {
     if (openedGifts.includes(gift.id)) return;
-
-    // Only open if this is the chosen gift (or any gift after one is opened)
-    if (openedGifts.length === 0 && gift.id !== chosenGiftId) {
-      return;
-    }
 
     // Stop animation for this gift
     const giftIndex = gift.id - 1;
@@ -234,7 +184,7 @@ export function GiftsScene() {
     setOpenedGifts(newOpened);
     updateProgress({ giftsOpened: newOpened });
 
-    // Visual feedback with slow, gentle opening
+    // Visual feedback with anticipation build-up
     const giftElement = giftsRefs.current[giftIndex];
     if (giftElement && !settings.reducedMotion) {
       gsap.timeline({
@@ -243,13 +193,13 @@ export function GiftsScene() {
         }
       })
       .to(giftElement, {
-        scale: 1.25,
-        duration: 0.6,
+        scale: 1.3,
+        duration: 0.3,
         ease: 'back.out(1.7)',
       })
       .to(giftElement, {
         scale: 1,
-        duration: 0.4,
+        duration: 0.2,
         ease: 'power2.inOut',
       });
     } else {
@@ -260,24 +210,9 @@ export function GiftsScene() {
       audioManager.play('success');
     }
 
-    // Create gentle sparkle effect
+    // Create anticipation sparkle effect
     if (!settings.reducedMotion && giftElement) {
       createSparkleEffect(giftElement, gift.glowColor);
-    }
-
-    // After opening first gift, other gifts become available
-    if (newOpened.length === 1) {
-      // Start gentle animations for remaining gifts
-      setTimeout(() => {
-        GIFTS.forEach((g, index) => {
-          if (!newOpened.includes(g.id) && giftsRefs.current[index]) {
-            gsap.fromTo(giftsRefs.current[index],
-              { opacity: 0.3 },
-              { opacity: 0.8, duration: 1.5, ease: 'power2.out', delay: index * 0.2 }
-            );
-          }
-        });
-      }, 800);
     }
 
     if (gift.id === 5) {
@@ -287,7 +222,7 @@ export function GiftsScene() {
 
   const createSparkleEffect = (element: HTMLElement, color: string) => {
     const rect = element.getBoundingClientRect();
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 4; i++) {
       setTimeout(() => {
         const sparkle = document.createElement('div');
         sparkle.innerHTML = '✨';
@@ -307,7 +242,7 @@ export function GiftsScene() {
           ease: 'power2.out',
           onComplete: () => sparkle.remove(),
         });
-      }, i * 200);
+      }, i * 150);
     }
   };
 
@@ -572,16 +507,6 @@ export function GiftsScene() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Calculate gift states
-  const isFirstGiftChosen = !!chosenGiftId;
-  const isGiftAvailable = (giftId: number) => {
-    if (!isFirstGiftChosen) return true; // Can choose first gift
-    if (openedGifts.length === 0) return giftId === chosenGiftId; // Only chosen gift can open first
-    return true; // All gifts available after first is opened
-  };
-  const isGiftOpened = (giftId: number) => openedGifts.includes(giftId);
-  const isGiftChosen = (giftId: number) => giftId === chosenGiftId;
-
   return (
     <div
       ref={containerRef}
@@ -595,16 +520,16 @@ export function GiftsScene() {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          opacity: 0.2,
+          opacity: 0.25,
           filter: 'blur(0.5px)',
         }}
       />
 
       {/* Gradient Overlay */}
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/70 via-pink-900/50 to-indigo-900/70" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/40" />
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjc0IiBzdGl0Y2hUaWxlcz0ic3RpdGchoIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wMiIvPjwvc3ZnPg==')] 
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/60 via-pink-900/40 to-indigo-900/60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/30" />
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjc0IiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wMiIvPjwvc3ZnPg==')] 
                     opacity-5" />
         <div className="absolute top-1/4 left-1/4 w-48 h-48 sm:w-64 sm:h-64 bg-purple-500/20 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-48 h-48 sm:w-64 sm:h-64 bg-pink-500/20 rounded-full blur-3xl" />
@@ -640,34 +565,6 @@ export function GiftsScene() {
         </>
       )}
 
-      {/* Choice Prompt Overlay */}
-      {showChoicePrompt && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="relative bg-gradient-to-br from-purple-900/80 to-pink-900/80 
-                        backdrop-blur-2xl rounded-3xl border border-white/30 
-                        p-6 sm:p-8 max-w-md w-full text-center 
-                        animate-fade-in shadow-2xl shadow-purple-900/50">
-            <div className="relative mb-6">
-              <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500 blur-xl rounded-full opacity-30" />
-              <div className="relative text-4xl sm:text-5xl animate-float">✨</div>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">
-              Choose Your First Gift
-            </h2>
-            <p className="text-purple-200/90 text-sm sm:text-base mb-4">
-              Take your time to choose one gift to open first.
-              <span className="block text-yellow-300/90 text-lg mt-2">
-                You decide the order...
-              </span>
-            </p>
-            <div className="flex items-center justify-center gap-2 text-sm text-purple-300/80 mt-4">
-              <Heart className="w-4 h-4" />
-              <span>Click any gift to begin your journey</span>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Main Content */}
       <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-4 sm:p-6 md:p-8">
         {/* Header */}
@@ -682,17 +579,13 @@ export function GiftsScene() {
                         drop-shadow-[0_0_40px_rgba(168,85,247,0.8)]">
             <span className="font-cursive bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 
                            bg-clip-text text-transparent">
-              Your Gifts
+              Unwrap Your Gifts
             </span>
           </h1>
           <p className="text-sm sm:text-base md:text-lg text-purple-200/90 font-elegant max-w-xl mx-auto">
             💕It's all yours💕
             <span className="block text-xs sm:text-sm text-purple-300/60 mt-1">
-              {!isFirstGiftChosen 
-                ? 'Choose your first gift...' 
-                : openedGifts.length === 0 
-                  ? 'Open your chosen gift...' 
-                  : `${openedGifts.length}/5 gifts opened`}
+              {openedGifts.length === 0 ? 'Each gift holds a special surprise...' : `${openedGifts.length}/5 gifts opened`}
             </span>
           </p>
         </div>
@@ -700,76 +593,45 @@ export function GiftsScene() {
         {/* Gifts Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 max-w-5xl mx-auto w-full px-2">
           {GIFTS.map((gift, index) => {
-            const isOpened = isGiftOpened(gift.id);
+            const isOpened = openedGifts.includes(gift.id);
             const isHovered = hoveredGift === gift.id;
-            const isChosen = isGiftChosen(gift.id);
-            const isAvailable = isGiftAvailable(gift.id);
-            const isDimmed = isFirstGiftChosen && !isChosen && openedGifts.length === 0;
             
             return (
               <button
                 key={gift.id}
                 ref={(el) => (giftsRefs.current[index] = el)}
-                onClick={() => {
-                  if (!isFirstGiftChosen) {
-                    chooseGift(gift);
-                  } else if (isAvailable) {
-                    openGift(gift);
-                  }
-                }}
-                onMouseEnter={() => isAvailable && setHoveredGift(gift.id)}
+                onClick={() => openGift(gift)}
+                onMouseEnter={() => setHoveredGift(gift.id)}
                 onMouseLeave={() => setHoveredGift(null)}
-                className={`group relative p-4 sm:p-5 md:p-6 rounded-2xl transition-all duration-700 
+                className={`group relative p-4 sm:p-5 md:p-6 rounded-2xl transition-all duration-500 
                           ${isOpened 
                             ? 'opacity-90 scale-95 cursor-default' 
-                            : isAvailable 
-                              ? 'cursor-pointer hover:scale-105 active:scale-102' 
-                              : 'cursor-not-allowed opacity-40 blur-[1px]'
-                          } 
-                          ${isChosen && !isOpened ? 'ring-4 ring-white/50 ring-opacity-50' : ''}
-                          overflow-hidden backdrop-blur-sm`}
+                            : 'cursor-pointer hover:scale-105 active:scale-102'
+                          } overflow-hidden backdrop-blur-sm`}
                 style={{
-                  background: isDimmed 
-                    ? `linear-gradient(135deg, ${gift.color}20, ${gift.color}10)`
-                    : `linear-gradient(135deg, ${gift.color}40, ${gift.color}20)`,
-                  border: `2px solid ${gift.color}${isOpened ? '40' : isDimmed ? '20' : '60'}`,
-                  boxShadow: isHovered && isAvailable && !isOpened 
+                  background: `linear-gradient(135deg, ${gift.color}40, ${gift.color}20)`,
+                  border: `2px solid ${gift.color}${isOpened ? '40' : '60'}`,
+                  boxShadow: isHovered && !isOpened 
                     ? `0 20px 40px ${gift.color}40, 0 0 60px ${gift.color}30, inset 0 0 30px ${gift.color}20` 
                     : `0 10px 25px ${gift.color}30, inset 0 0 15px ${gift.color}10`,
-                  transform: isChosen ? 'translateY(-8px)' : 'none',
                 }}
-                disabled={!isAvailable}
+                disabled={isOpened}
               >
-                {/* Gentle Glow Ring for chosen gift */}
-                {isChosen && !isOpened && (
+                {/* Gentle anticipation glow */}
+                {isHovered && !isOpened && (
                   <div 
-                    className="absolute inset-0 rounded-2xl opacity-60"
+                    className="absolute inset-0 rounded-2xl opacity-50"
                     style={{
                       background: `radial-gradient(circle at center, ${gift.color}40, transparent 70%)`,
                       filter: 'blur(12px)',
-                      animation: 'pulse 2s ease-in-out infinite',
                     }}
                   />
                 )}
 
-                {/* Dimmed Overlay */}
-                {isDimmed && (
-                  <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] rounded-2xl" />
-                )}
-
-                {/* Lock Icon for unavailable gifts */}
-                {!isAvailable && openedGifts.length === 0 && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-2xl">
-                    <Lock className="w-8 h-8 text-white/60" />
-                  </div>
-                )}
-
                 {/* Content */}
-                <div className={`relative z-10 flex flex-col items-center justify-center transition-all duration-500
-                               ${isDimmed ? 'opacity-70' : 'opacity-100'}`}>
+                <div className={`relative z-10 flex flex-col items-center justify-center`}>
                   <div className={`text-4xl sm:text-5xl md:text-6xl mb-2 sm:mb-3 transition-all duration-500 
-                                ${isHovered && isAvailable && !isOpened ? 'scale-110 rotate-6' : ''}
-                                ${isChosen ? 'animate-soft-pulse' : ''}`}>
+                                ${isHovered && !isOpened ? 'scale-110 rotate-6' : ''}`}>
                     {gift.emoji}
                   </div>
                   <h3 className={`text-base sm:text-lg md:text-xl font-bold text-center transition-all duration-300
@@ -780,14 +642,6 @@ export function GiftsScene() {
                               ${isOpened ? 'opacity-0 scale-0' : 'opacity-70'}`}>
                     {gift.subtitle}
                   </p>
-                  
-                  {/* Status Indicators */}
-                  {isChosen && !isOpened && (
-                    <div className="mt-2 flex items-center gap-1 text-xs text-white/80">
-                      <Sparkles className="w-3 h-3" />
-                      <span>Chosen</span>
-                    </div>
-                  )}
                 </div>
 
                 {/* Opened Overlay */}
@@ -804,7 +658,7 @@ export function GiftsScene() {
           })}
         </div>
 
-        {/* Progress Indicator - Only show after first gift opened */}
+        {/* Progress Indicator */}
         {openedGifts.length > 0 && (
           <div className="mt-8 sm:mt-12 max-w-md w-full px-4 animate-fade-in">
             <div className="flex justify-between text-sm sm:text-base text-purple-300/90 mb-3">
@@ -813,14 +667,12 @@ export function GiftsScene() {
             </div>
             <div className="h-2 sm:h-3 bg-purple-900/40 rounded-full overflow-hidden shadow-inner">
               <div 
-                className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500 rounded-full transition-all duration-1000 shadow-lg shadow-purple-500/30"
+                className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500 rounded-full transition-all duration-700 shadow-lg shadow-purple-500/30"
                 style={{ width: `${(openedGifts.length / 5) * 100}%` }}
               />
             </div>
             <p className="text-xs text-purple-300/70 text-center mt-2">
-              {openedGifts.length === 1 
-                ? 'Take your time with each gift...' 
-                : 'Continue at your own pace...'}
+              Take your time with each special moment...
             </p>
           </div>
         )}
@@ -836,11 +688,8 @@ export function GiftsScene() {
                 <div className="relative text-5xl sm:text-6xl animate-float">🎉✨</div>
               </div>
               <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">All Gifts Revealed!</h2>
-              <p className="text-pink-200/90 text-sm sm:text-base mb-4">
+              <p className="text-pink-200/90 text-sm sm:text-base mb-6">
                 You've discovered every special gift prepared for your birthday!
-              </p>
-              <p className="text-yellow-300/90 text-sm italic mb-6">
-                Thank you for taking this journey at your own pace...
               </p>
               <div className="text-3xl sm:text-4xl animate-pulse">🎁💝</div>
             </div>
@@ -941,16 +790,6 @@ export function GiftsScene() {
           50% { transform: translateY(-4px) rotate(1deg); }
         }
         
-        @keyframes pulse {
-          0%, 100% { opacity: 0.6; transform: scale(1); }
-          50% { opacity: 0.8; transform: scale(1.05); }
-        }
-        
-        @keyframes soft-pulse {
-          0%, 100% { transform: scale(1); filter: brightness(1); }
-          50% { transform: scale(1.05); filter: brightness(1.2); }
-        }
-        
         @keyframes scale-in {
           0% { transform: scale(0.9); opacity: 0; }
           100% { transform: scale(1); opacity: 1; }
@@ -972,14 +811,6 @@ export function GiftsScene() {
         
         .animate-float-slow {
           animation: float-slow 4s ease-in-out infinite;
-        }
-        
-        .animate-pulse {
-          animation: pulse 2s ease-in-out infinite;
-        }
-        
-        .animate-soft-pulse {
-          animation: soft-pulse 2s ease-in-out infinite;
         }
         
         .animate-scale-in {
