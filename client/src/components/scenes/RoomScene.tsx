@@ -140,7 +140,7 @@ export function RoomScene() {
           <p className="text-xs sm:text-sm md:text-base text-purple-200/80 font-elegant 
                        drop-shadow-[0_1px_10px_rgba(168,85,247,0.3)]
                        max-w-xs sm:max-w-md mx-auto">
-            Your personal celebration space — explore and enjoy! ✨
+            🍀 Its.All.Yours ✨
           </p>
         </div>
 
