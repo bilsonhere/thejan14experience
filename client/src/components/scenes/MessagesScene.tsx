@@ -6,7 +6,7 @@ import { Button } from '../ui/button';
 import { AdaptiveParticleSystem } from '../AdaptiveParticleSystem';
 import gsap from 'gsap';
 import Confetti from 'react-confetti';
-import { Play, Pause, Volume2, X, ExternalLink, Maximize2, Music, Loader2, Image as ImageIcon, Sparkles, ArrowLeft, Pin, Heart } from 'lucide-react';
+import { Play, Pause, X, ExternalLink, Maximize2, Music, Loader2, ArrowLeft, Pin, Heart } from 'lucide-react';
 
 interface Letter {
   id: number;
@@ -119,24 +119,8 @@ You 🌟`,
   },
 ];
 
-const FINAL_MESSAGE = `Dear Afrah,
-
-Thanks a lot for giving this your time.
-The core intention behind this was to make your special day memorable, happier. 
-It was to honour this special day, this special moment that happened two decades ago.
-
-This is all yours.
-You are free to perceive this in any way your heart feels.
-
-Happy Birthday,
-May life treat you the way you desire.
-May joy find you all the time.
-May you always recognize your incredible worth.
-
-Forever. 💖`;
-
 export function GiftsScene() {
-  const { navigateTo, updateProgress, settings } = useSceneStore();
+  const { navigateTo, settings } = useSceneStore();
   const [openedLetters, setOpenedLetters] = useState<number[]>([]);
   const [selectedLetter, setSelectedLetter] = useState<Letter | null>(null);
   const [showFinale, setShowFinale] = useState(false);
@@ -146,19 +130,12 @@ export function GiftsScene() {
   const [audioError, setAudioError] = useState(false);
   const [activeMedia, setActiveMedia] = useState<{ type: 'image' | 'video'; src: string } | null>(null);
   const [hoveredLetter, setHoveredLetter] = useState<number | null>(null);
-  const [bgImage, setBgImage] = useState<string>(settings.customGiftBackground || '/assets/gifts/background.jpg');
-
+  
   const containerRef = useRef<HTMLDivElement>(null);
   const lettersRef = useRef<(HTMLDivElement | null)[]>([]);
   const dialogRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const animationRefs = useRef<gsap.core.Tween[]>([]);
-
-  useEffect(() => {
-    if (settings.customGiftBackground) {
-      setBgImage(settings.customGiftBackground);
-    }
-  }, [settings.customGiftBackground]);
 
   useEffect(() => {
     if (!settings.reducedMotion) {
@@ -216,7 +193,6 @@ export function GiftsScene() {
       gsap.timeline({
         onComplete: () => {
           setOpenedLetters(prev => [...prev, letter.id]);
-          updateProgress({ giftsOpened: [...openedLetters, letter.id] });
           setTimeout(() => setSelectedLetter(letter), 300);
         }
       })
@@ -325,42 +301,48 @@ export function GiftsScene() {
     window.open(GOOGLE_DRIVE_AUDIO_LINK, '_blank');
   };
 
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const allOpened = openedLetters.length === LETTERS.length;
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full overflow-hidden bg-gradient-to-br from-indigo-50/90 via-purple-50/80 to-pink-50/90"
+      className="relative w-full h-full overflow-hidden"
     >
-      {/* Custom Background Image Layer */}
-      <div
-        className="absolute inset-0 transition-all duration-1000"
-        style={{
-          backgroundImage: `url(${bgImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          opacity: 0.15,
-          filter: 'blur(0.5px)',
-        }}
-      />
+      {/* RoomScene background with low opacity */}
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-purple-950/80 to-pink-950/90">
+        {/* Subtle blurred wallpaper texture */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat blur-sm"
+          style={{
+            backgroundImage: `url('/assets/wallpaper/40.png')`,
+            opacity: 0.15,
+          }}
+        />
+        
+        {/* Very subtle gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-purple-100/3 to-pink-100/3" />
+      </div>
 
       {/* Soft gradient overlay */}
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-purple-50/30 to-pink-50/40" />
-        <div className="absolute inset-0 bg-gradient-to-t from-white/60 via-transparent to-white/40" />
-        <div className="absolute inset-0 opacity-5 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjciIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PC9maWx0ZXI+PC9kZWZzPjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wMiIvPjwvc3ZnPg==')]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-purple-50/10 to-pink-50/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-white/30 via-transparent to-white/20" />
         
         {/* Soft light orbs */}
-        <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-gradient-to-r from-purple-200/20 to-pink-200/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/3 right-1/3 w-96 h-96 bg-gradient-to-r from-indigo-200/15 to-blue-200/15 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-purple-200/10 to-pink-200/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/3 right-1/3 w-72 h-72 bg-gradient-to-r from-indigo-200/8 to-blue-200/8 rounded-full blur-3xl" />
       </div>
 
       {/* Floating decorative elements */}
-      <div className="absolute top-12 left-12 text-2xl opacity-10 animate-float-slow">🕊️</div>
-      <div className="absolute top-20 right-16 text-xl opacity-8 animate-float-slow" style={{animationDelay: '2s'}}>✨</div>
-      <div className="absolute bottom-20 left-20 text-2xl opacity-10 animate-float-slow" style={{animationDelay: '1s'}}>🌸</div>
-      <div className="absolute bottom-16 right-12 text-xl opacity-8 animate-float-slow" style={{animationDelay: '3s'}}>🌟</div>
+      <div className="absolute top-12 left-12 text-2xl opacity-5 animate-float-slow">🕊️</div>
+      <div className="absolute top-20 right-16 text-xl opacity-4 animate-float-slow" style={{animationDelay: '2s'}}>✨</div>
+      <div className="absolute bottom-20 left-20 text-2xl opacity-5 animate-float-slow" style={{animationDelay: '1s'}}>🌸</div>
 
       {/* Celebration Effects */}
       {showFinale && (
@@ -368,19 +350,19 @@ export function GiftsScene() {
           <div className="absolute inset-0 pointer-events-none">
             <Confetti 
               recycle={false} 
-              numberOfPieces={300} 
+              numberOfPieces={200} 
               gravity={0.05}
               colors={['#fbbf24', '#ec4899', '#a855f7', '#60a5fa', '#34d399']}
               wind={0.01}
-              opacity={0.7}
+              opacity={0.6}
             />
           </div>
           <div className="absolute inset-0 pointer-events-none">
             <AdaptiveParticleSystem 
-              count={150} 
+              count={100} 
               color="#fbbf24" 
-              speed={0.3} 
-              size={1.5}
+              speed={0.2} 
+              size={1}
             />
           </div>
         </>
@@ -389,7 +371,7 @@ export function GiftsScene() {
       {/* Navigation */}
       <button
         onClick={() => navigateTo('room')}
-        className="absolute top-6 left-6 z-30 flex items-center gap-2 px-4 py-2.5 bg-white/80 hover:bg-white backdrop-blur-sm rounded-full border border-purple-200 shadow-lg hover:shadow-xl transition-all duration-300 group"
+        className="absolute top-6 left-6 z-30 flex items-center gap-2 px-4 py-2.5 bg-white/90 hover:bg-white backdrop-blur-sm rounded-full border border-purple-200 shadow-lg hover:shadow-xl transition-all duration-300 group"
       >
         <ArrowLeft className="w-4 h-4 text-purple-700 group-hover:-translate-x-1 transition-transform" />
         <span className="text-sm font-medium text-purple-800">Back to Room</span>
@@ -400,21 +382,21 @@ export function GiftsScene() {
         {/* Header */}
         <div className="text-center mb-12 sm:mb-16 px-2">
           <div className="relative inline-block mb-6">
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-200 via-pink-200 to-indigo-200 blur-xl rounded-full opacity-30" />
-            <div className="relative text-5xl sm:text-6xl md:text-7xl">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-200/20 via-pink-200/20 to-indigo-200/20 blur-xl rounded-full" />
+            <div className="relative text-5xl sm:text-6xl md:text-7xl text-purple-300/80">
               📜✨
             </div>
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-purple-900 mb-3
-                        drop-shadow-[0_0_20px_rgba(168,85,247,0.3)]">
-            <span className="font-cursive bg-gradient-to-r from-purple-800 via-pink-800 to-indigo-800 
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3
+                        drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]">
+            <span className="font-cursive bg-gradient-to-r from-white via-purple-200 to-pink-200 
                            bg-clip-text text-transparent">
               Letters for You
             </span>
           </h1>
-          <p className="text-sm sm:text-base md:text-lg text-purple-700/80 font-elegant max-w-xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg text-purple-200/80 font-elegant max-w-xl mx-auto">
             Pinned with love, waiting to be read
-            <span className="block text-xs sm:text-sm text-purple-600/60 mt-1">
+            <span className="block text-xs sm:text-sm text-purple-300/60 mt-1">
               {openedLetters.length === 0 ? 'Click any letter to begin...' : `${openedLetters.length}/5 letters opened`}
             </span>
           </p>
@@ -450,14 +432,14 @@ export function GiftsScene() {
                   transform: `rotate(${letter.rotation}deg)`,
                   opacity: isOpened ? 0.7 : 1,
                   filter: hasFaintGlow 
-                    ? `drop-shadow(0 0 15px ${letter.color}40)` 
+                    ? `drop-shadow(0 0 12px ${letter.color}50)` 
                     : 'none',
                 }}
               >
                 {/* Pinned letter */}
                 <div className="relative">
                   {/* Pin */}
-                  <div className={`absolute z-20 text-purple-700/70 transition-colors duration-500 ${
+                  <div className={`absolute z-20 text-white/80 transition-colors duration-500 ${
                     letter.pinPosition === 'tl' ? '-top-2 -left-2' :
                     letter.pinPosition === 'tr' ? '-top-2 -right-2' :
                     letter.pinPosition === 'bl' ? '-bottom-2 -left-2' :
@@ -467,10 +449,9 @@ export function GiftsScene() {
                   </div>
                   
                   {/* Folded paper effect */}
-                  <div className={`relative w-36 h-44 p-4 bg-gradient-to-br from-white to-amber-50/90 
-                    rounded-sm shadow-lg border border-purple-200/40
-                    transition-all duration-500 hover:shadow-xl hover:border-purple-300/60
-                    ${hoveredLetter === letter.id ? 'scale-105 -rotate-1' : ''}
+                  <div className={`relative w-36 h-44 p-4 bg-gradient-to-br from-white/95 to-amber-50/95 
+                    rounded-sm shadow-lg border border-white/40
+                    transition-all duration-500 hover:shadow-xl hover:border-purple-300/60 hover:scale-105
                     ${isOpened ? 'shadow-purple-200/40' : ''}`}>
                     
                     {/* Paper texture */}
@@ -513,17 +494,17 @@ export function GiftsScene() {
         {/* Progress indicator */}
         {openedLetters.length > 0 && (
           <div className="mt-12 max-w-md w-full px-4 animate-fade-in">
-            <div className="flex justify-between text-sm sm:text-base text-purple-700/90 mb-3">
+            <div className="flex justify-between text-sm sm:text-base text-purple-200/90 mb-3">
               <span className="font-elegant">Your Journey</span>
               <span className="font-semibold">{openedLetters.length}/5</span>
             </div>
-            <div className="h-2 bg-purple-200/40 rounded-full overflow-hidden shadow-inner">
+            <div className="h-2 bg-purple-900/30 rounded-full overflow-hidden shadow-inner">
               <div 
-                className="h-full bg-gradient-to-r from-purple-400 via-pink-400 to-amber-400 rounded-full transition-all duration-700 shadow-lg shadow-purple-300/30"
+                className="h-full bg-gradient-to-r from-purple-400 via-pink-400 to-amber-400 rounded-full transition-all duration-700 shadow-lg shadow-purple-500/30"
                 style={{ width: `${(openedLetters.length / 5) * 100}%` }}
               />
             </div>
-            <p className="text-xs text-purple-600/70 text-center mt-2">
+            <p className="text-xs text-purple-300/70 text-center mt-2">
               {allOpened ? 'All letters cherished' : 'Take your time with each message...'}
             </p>
           </div>
@@ -531,20 +512,21 @@ export function GiftsScene() {
 
         {/* Final celebration */}
         {showFinale && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-lg p-4 animate-fade-in">
-            <div className="text-center p-8 sm:p-10 bg-gradient-to-br from-white to-amber-50/80 
-                          rounded-2xl border-2 border-amber-200/60 shadow-2xl max-w-sm sm:max-w-md w-full animate-scale-in">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
+            <div className="text-center p-8 sm:p-10 bg-gradient-to-br from-purple-900/95 via-pink-900/90 to-indigo-900/95 
+                          rounded-2xl border-2 border-pink-500/50 backdrop-blur-2xl 
+                          max-w-sm sm:max-w-md w-full animate-scale-in shadow-2xl shadow-pink-900/50">
               <div className="relative mb-6">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-200 via-pink-200 to-amber-200 blur-xl rounded-full opacity-30" />
-                <div className="relative text-5xl sm:text-6xl mb-4">💝✨</div>
+                <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 via-pink-500/20 to-purple-500/20 blur-xl rounded-full" />
+                <div className="relative text-5xl sm:text-6xl mb-4 text-white">💝✨</div>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-purple-900 mb-4">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
                 All Messages Read
               </h2>
-              <p className="text-purple-700/90 text-sm sm:text-base mb-6 font-elegant">
+              <p className="text-pink-200/90 text-sm sm:text-base mb-6 font-elegant">
                 Every heartfelt message has been cherished
               </p>
-              <div className="text-2xl animate-pulse">📜💌</div>
+              <div className="text-2xl animate-pulse text-white">📜💌</div>
             </div>
           </div>
         )}
@@ -554,36 +536,36 @@ export function GiftsScene() {
       <Dialog open={!!selectedLetter} onOpenChange={() => setSelectedLetter(null)}>
         <DialogContent 
           ref={dialogRef}
-          className="bg-gradient-to-br from-white to-amber-50/95 border-purple-200/50 
-                   text-purple-900 max-w-sm sm:max-w-md md:max-w-xl 
-                   rounded-xl sm:rounded-2xl p-0 overflow-hidden shadow-2xl shadow-purple-200/30
+          className="bg-gradient-to-br from-slate-900/95 via-gray-900/95 to-slate-950/95 border-white/30 
+                   text-white max-w-sm sm:max-w-md md:max-w-xl 
+                   rounded-2xl sm:rounded-3xl p-0 overflow-hidden shadow-2xl shadow-black/50
                    animate-dialog-in"
         >
           {selectedLetter && (
             <>
-              <DialogHeader className="p-5 sm:p-6 border-b border-purple-200/30">
+              <DialogHeader className="p-5 sm:p-6 border-b border-white/10">
                 <div className="flex items-center justify-between">
-                  <DialogTitle className="text-lg sm:text-xl flex items-center gap-3">
-                    <div className="text-3xl">{selectedLetter.emoji}</div>
+                  <DialogTitle className="text-xl sm:text-2xl flex items-center gap-3">
+                    <div className="text-3xl sm:text-4xl">{selectedLetter.emoji}</div>
                     <div>
-                      <div className="font-bold text-purple-900">
+                      <div className="bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">
                         {selectedLetter.from}
                       </div>
-                      <div className="text-xs sm:text-sm text-purple-600/70 font-elegant mt-0.5">
+                      <div className="text-xs sm:text-sm text-gray-400 mt-0.5">
                         {selectedLetter.relationship}
                       </div>
                     </div>
                   </DialogTitle>
                   <button
                     onClick={closeLetter}
-                    className="p-2 hover:bg-purple-100/50 rounded-xl transition-all duration-300"
+                    className="p-2 hover:bg-white/10 rounded-xl transition-all duration-300"
                   >
-                    <X className="w-5 h-5 text-purple-700/70" />
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
               </DialogHeader>
               <div className="p-5 sm:p-6">
-                <div className="font-elegant text-purple-900/90 leading-relaxed whitespace-pre-wrap text-sm sm:text-base">
+                <div className="font-elegant whitespace-pre-wrap text-white/95 leading-relaxed text-base sm:text-lg">
                   {selectedLetter.content}
                 </div>
               </div>
@@ -593,13 +575,13 @@ export function GiftsScene() {
       </Dialog>
 
       <Dialog open={!!activeMedia} onOpenChange={() => setActiveMedia(null)}>
-        <DialogContent className="max-w-4xl sm:max-w-5xl bg-white/95 border-purple-200/30 p-0 overflow-hidden">
+        <DialogContent className="max-w-4xl sm:max-w-5xl bg-black/95 border-none p-0 overflow-hidden">
           <div className="relative">
             <button
               onClick={() => setActiveMedia(null)}
-              className="absolute top-3 sm:top-4 right-3 sm:right-4 z-50 p-2 bg-white/80 hover:bg-white rounded-xl transition-all duration-300 hover:scale-110"
+              className="absolute top-3 sm:top-4 right-3 sm:right-4 z-50 p-2 bg-black/60 hover:bg-black/80 rounded-xl transition-all duration-300 hover:scale-110"
             >
-              <X className="w-5 h-5 sm:w-6 sm:h-6 text-purple-700" />
+              <X className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </button>
             
             {activeMedia?.type === 'image' && (
@@ -607,7 +589,7 @@ export function GiftsScene() {
                 <img
                   src={activeMedia.src}
                   alt="Special memory"
-                  className="max-h-[75vh] sm:max-h-[80vh] max-w-full object-contain rounded-xl shadow-2xl shadow-purple-200/30"
+                  className="max-h-[75vh] sm:max-h-[80vh] max-w-full object-contain rounded-xl shadow-2xl shadow-black/50"
                   loading="lazy"
                 />
               </div>
@@ -619,7 +601,7 @@ export function GiftsScene() {
                   src={activeMedia.src}
                   controls
                   autoPlay
-                  className="w-full h-auto max-h-[75vh] sm:max-h-[80vh] rounded-xl shadow-2xl shadow-purple-200/30"
+                  className="w-full h-auto max-h-[75vh] sm:max-h-[80vh] rounded-xl shadow-2xl shadow-black/50"
                   controlsList="nodownload"
                 />
               </div>
