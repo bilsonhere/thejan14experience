@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSceneStore } from '../../lib/stores/useSceneStore';
 import gsap from 'gsap';
-import { Cake, Gift, Layers, MessageSquare, Calendar } from 'lucide-react';
+import { Cake, Gift, Layers, Calendar } from 'lucide-react';
 
 export function RoomScene() {
   const { navigateTo, settings } = useSceneStore();
@@ -10,7 +10,6 @@ export function RoomScene() {
   const cakeRef = useRef<HTMLButtonElement>(null);
   const ladderRef = useRef<HTMLButtonElement>(null);
   const giftsRef = useRef<HTMLButtonElement>(null);
-  const messagesRef = useRef<HTMLButtonElement>(null);
   const catRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -63,7 +62,7 @@ export function RoomScene() {
       animations.push(anim);
     }
 
-    const items = [cakeRef.current, ladderRef.current, giftsRef.current, messagesRef.current];
+    const items = [cakeRef.current, ladderRef.current, giftsRef.current];
     items.forEach((item, i) => {
       if (item) {
         const anim = gsap.fromTo(item,
@@ -145,9 +144,9 @@ export function RoomScene() {
           </p>
         </div>
 
-        {/* Interactive Cards Grid - More compact on mobile */}
-        <div className="w-full max-w-md sm:max-w-2xl lg:max-w-4xl mx-auto px-2 sm:px-4 flex-1 flex items-center">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 w-full">
+        {/* Interactive Cards Grid - More compact on mobile, now 3 items instead of 4 */}
+        <div className="w-full max-w-md sm:max-w-2xl lg:max-w-3xl mx-auto px-2 sm:px-4 flex-1 flex items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 w-full">
             
             {/* Cake Card - Much smaller on mobile */}
             <button
@@ -259,98 +258,62 @@ export function RoomScene() {
                 </p>
               </div>
             </button>
-
-            {/* NEW: Messages Card */}
-            <button
-              ref={messagesRef}
-              onClick={() => navigateTo('messages')}
-              className="group relative p-4 sm:p-5 md:p-6 
-                        bg-gradient-to-br from-emerald-600/25 via-teal-600/25 to-emerald-600/25 
-                        backdrop-blur-md sm:backdrop-blur-xl rounded-xl sm:rounded-2xl
-                        border border-white/15 hover:border-emerald-400/50 
-                        transition-all duration-300 
-                        hover:scale-[1.02] hover:-translate-y-0.5 
-                        hover:shadow-lg sm:hover:shadow-xl hover:shadow-emerald-500/20 
-                        cursor-pointer
-                        overflow-hidden
-                        min-h-[120px] sm:min-h-[160px] md:min-h-[180px]"
-              aria-label="Go to messages scene"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 
-                            rounded-xl sm:rounded-2xl blur-md sm:blur-xl opacity-0 group-hover:opacity-100 
-                            transition-opacity duration-300" />
-              
-              <div className="relative z-10 flex flex-col items-center justify-center h-full">
-                <div className="text-3xl sm:text-4xl md:text-5xl mb-1 sm:mb-2 transition-all duration-300 
-                              group-hover:scale-105 group-hover:rotate-2">💌</div>
-                <MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 mx-auto mb-1 sm:mb-2 
-                                        text-emerald-200/80 transition-all duration-300 
-                                        group-hover:scale-105 group-hover:text-emerald-100" />
-                <h3 className="text-base sm:text-lg md:text-xl font-display font-semibold text-white mb-0.5 sm:mb-1
-                             drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)]">
-                  Messages ✨
-                </h3>
-                <p className="text-emerald-100/70 font-elegant text-xs sm:text-sm 
-                            group-hover:text-emerald-100 transition-colors duration-300">
-                  From loved ones
-                </p>
-              </div>
-            </button>
           </div>
         </div>
 
-        {/* Birthday Countdown Widget */}
-        <div className="mt-8 sm:mt-12 w-full max-w-xs sm:max-w-sm mx-auto">
-          <div className="bg-gradient-to-br from-purple-900/40 to-pink-900/30 
-                        rounded-xl sm:rounded-2xl border border-purple-500/30 
-                        backdrop-blur-lg p-4 sm:p-5
-                        shadow-lg shadow-purple-900/30">
-            <div className="flex items-center justify-center gap-3 mb-3">
-              <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-pink-300" />
-              <h3 className="text-base sm:text-lg font-semibold text-white">
-                Countdown to 21!
+        {/* UPDATED: Birthday Countdown Widget - Smaller and better design */}
+        <div className="mt-6 sm:mt-8 w-full max-w-xs mx-auto">
+          <div className="bg-gradient-to-br from-purple-900/30 to-pink-900/20 
+                        rounded-xl border border-purple-500/20 
+                        backdrop-blur-md p-3 sm:p-4
+                        shadow-md shadow-purple-900/20
+                        hover:shadow-lg hover:shadow-pink-900/30 transition-shadow duration-300">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-pink-300/90" />
+              <h3 className="text-sm sm:text-base font-semibold text-white/90">
+                Turning 20 in...
               </h3>
             </div>
             
             <div className="text-center">
-              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2
-                            bg-gradient-to-r from-pink-300 via-purple-300 to-pink-300 
+              <div className="text-2xl sm:text-3xl font-bold text-white mb-1
+                            bg-gradient-to-r from-pink-200 via-purple-200 to-pink-200 
                             bg-clip-text text-transparent">
                 {daysUntilBirthday}
               </div>
-              <p className="text-sm sm:text-base text-purple-200/80 mb-3">
+              <p className="text-xs sm:text-sm text-purple-200/70 mb-2">
                 {daysUntilBirthday === 1 ? 'day until January 14' : 'days until January 14'}
               </p>
               
-              <div className="flex justify-center gap-2 text-xs sm:text-sm">
-                <div className="px-2 py-1 bg-pink-900/30 rounded text-pink-200">
-                  Next: 21 🎉
+              <div className="flex justify-center gap-1.5 text-xs">
+                <div className="px-2 py-1 bg-pink-900/20 rounded text-pink-200/90">
+                  Next: 20 🎉
                 </div>
-                <div className="px-2 py-1 bg-purple-900/30 rounded text-purple-200">
-                  Age: 20 ✨
+                <div className="px-2 py-1 bg-purple-900/20 rounded text-purple-200/90">
+                  Age: 19 ✨
                 </div>
               </div>
             </div>
             
-            {/* Progress bar for the year */}
-            <div className="mt-4">
-              <div className="h-1 bg-purple-900/40 rounded-full overflow-hidden">
+            {/* Progress bar for the year - More subtle */}
+            <div className="mt-3">
+              <div className="h-1 bg-purple-900/30 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-gradient-to-r from-pink-400 to-purple-400 rounded-full"
+                  className="h-full bg-gradient-to-r from-pink-400/80 to-purple-400/80 rounded-full transition-all duration-500"
                   style={{ 
-                    width: `${((365 - daysUntilBirthday) / 365) * 100}%` 
+                    width: `${Math.max(2, ((365 - daysUntilBirthday) / 365) * 100)}%` 
                   }}
                 />
               </div>
-              <div className="flex justify-between text-xs text-purple-300/60 mt-1">
+              <div className="flex justify-between text-xs text-purple-300/50 mt-1">
+                <span>Age 19</span>
                 <span>Age 20</span>
-                <span>Age 21</span>
               </div>
             </div>
           </div>
           
-          <p className="text-xs text-purple-300/60 text-center mt-2">
-            Countdown updates automatically 🎂
+          <p className="text-xs text-purple-300/50 text-center mt-1.5">
+            Countdown updates automatically
           </p>
         </div>
 
@@ -367,7 +330,7 @@ export function RoomScene() {
         </div>
 
         {/* Mobile only hint */}
-        <div className="sm:hidden mt-4 mb-2 px-4">
+        <div className="sm:hidden mt-3 mb-2 px-4">
           <p className="text-xs text-purple-300/60 font-elegant text-center">
             Tap any option to explore ↓
           </p>
