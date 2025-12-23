@@ -76,7 +76,7 @@ Your Lil Bro 🎮`,
   { 
     id: 5, 
     from: 'Anjila', 
-    relation: 'Bilsi's sissy',
+    relation: 'Bilsi sissy',
     content: `please write,
 Anjila 💕`,
     rotation: 2.7,
@@ -90,7 +90,7 @@ Anjila 💕`,
   { 
     id: 6, 
     from: 'Prajol', 
-    relation: 'Bilsi's bestie',
+    relation: 'Bilsi' bestie',
     content: `my goat philoshoper,
 Prajol 🥂`,
     rotation: -3.1,
@@ -612,7 +612,7 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 max-w-4xl mx-auto">
           <div className="text-center sm:text-left">
             <div className="font-elegant text-sm text-purple-200/70">
-              You are deeply cherished by everyone in the world. 
+              🎈🎈🎈
             </div>
           </div>
           
