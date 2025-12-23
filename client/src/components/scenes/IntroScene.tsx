@@ -49,6 +49,18 @@ export function IntroScene() {
       });
 
       if (titleRef.current) {
+        // Store initial mobile-friendly styles
+        const titleElement = titleRef.current;
+        const h1Element = titleElement.querySelector('h1');
+        
+        if (h1Element) {
+          // Ensure mobile styles are set before animation
+          if (window.innerWidth < 768) {
+            h1Element.classList.add('text-white');
+            h1Element.classList.remove('md:text-transparent', 'md:bg-clip-text');
+          }
+        }
+        
         tl.from(titleRef.current, {
           opacity: 0,
           y: -80,
@@ -88,8 +100,8 @@ export function IntroScene() {
         );
       }
 
-      // Floating animation for title
-      if (titleRef.current && !settings.reducedMotion) {
+      // Floating animation for title (only on desktop)
+      if (titleRef.current && !settings.reducedMotion && window.innerWidth >= 768) {
         gsap.to(titleRef.current, {
           y: -10,
           duration: 3,
@@ -207,6 +219,7 @@ export function IntroScene() {
             ref={titleRef}
             className="relative"
           >
+            {/* Mobile: Solid white text, Desktop: Gradient text */}
             <h1 className="text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl 
                           font-display font-bold tracking-tight leading-tight
                           text-white md:text-transparent md:bg-clip-text 
@@ -309,7 +322,7 @@ export function IntroScene() {
                       bg-gradient-to-t from-black/70 via-transparent to-transparent 
                       pointer-events-none" />
 
-      {/* CSS Animations */}
+      {/* CSS Animations with mobile fixes */}
       <style>{`
         @keyframes float-slow {
           0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -329,11 +342,23 @@ export function IntroScene() {
           animation: pulse-glow 3s ease-in-out infinite;
         }
         
-        /* Ensure text remains visible on mobile */
-        @media (max-width: 768px) {
+        /* Mobile-specific text styles - FIX for visibility */
+        @media (max-width: 767px) {
           h1 {
-            text-shadow: 0 2px 20px rgba(255, 255, 255, 0.4),
-                         0 0 40px rgba(168, 85, 247, 0.5);
+            color: white !important;
+            background-image: none !important;
+            -webkit-text-fill-color: white !important;
+            text-fill-color: white !important;
+            background-clip: border-box !important;
+            -webkit-background-clip: border-box !important;
+          }
+          
+          /* Ensure text shadow is strong enough */
+          h1 {
+            text-shadow: 
+              0 2px 20px rgba(255, 255, 255, 0.4),
+              0 0 40px rgba(168, 85, 247, 0.6),
+              0 0 60px rgba(236, 72, 153, 0.4) !important;
           }
         }
         
@@ -345,6 +370,17 @@ export function IntroScene() {
           }
           .text-lg {
             font-size: 1rem;
+          }
+        }
+        
+        /* Desktop gradient styles */
+        @media (min-width: 768px) {
+          h1 {
+            background-image: linear-gradient(to right, #fbbf24, #f472b6, #a855f7) !important;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            text-fill-color: transparent !important;
           }
         }
       `}</style>
