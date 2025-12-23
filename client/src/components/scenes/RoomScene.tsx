@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSceneStore } from '../../lib/stores/useSceneStore';
 import gsap from 'gsap';
-import { Cake, Gift, Layers } from 'lucide-react';
+import { Cake, Gift, Layers, MessageSquare, Calendar } from 'lucide-react';
 
 export function RoomScene() {
   const { navigateTo, settings } = useSceneStore();
@@ -10,8 +10,34 @@ export function RoomScene() {
   const cakeRef = useRef<HTMLButtonElement>(null);
   const ladderRef = useRef<HTMLButtonElement>(null);
   const giftsRef = useRef<HTMLButtonElement>(null);
+  const messagesRef = useRef<HTMLButtonElement>(null);
   const catRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  const [daysUntilBirthday, setDaysUntilBirthday] = useState(0);
+
+  // Calculate days until next birthday (January 14)
+  useEffect(() => {
+    const calculateDaysUntilBirthday = () => {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const birthday = new Date(currentYear, 0, 14); // January 14 (month is 0-indexed)
+      
+      // If birthday has passed this year, use next year's birthday
+      if (now > birthday) {
+        birthday.setFullYear(currentYear + 1);
+      }
+      
+      const diffTime = birthday.getTime() - now.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      setDaysUntilBirthday(diffDays);
+    };
+
+    calculateDaysUntilBirthday();
+    // Update every hour to keep countdown accurate
+    const interval = setInterval(calculateDaysUntilBirthday, 3600000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (settings.reducedMotion) return;
@@ -37,7 +63,7 @@ export function RoomScene() {
       animations.push(anim);
     }
 
-    const items = [cakeRef.current, ladderRef.current, giftsRef.current];
+    const items = [cakeRef.current, ladderRef.current, giftsRef.current, messagesRef.current];
     items.forEach((item, i) => {
       if (item) {
         const anim = gsap.fromTo(item,
@@ -71,7 +97,7 @@ export function RoomScene() {
 
   return (
     <div ref={containerRef} className="absolute inset-0 overflow-hidden 
-                                      bg-gradient-to-br from-indigo-950 via-purple-900/80 to-pink-950/90">
+                                      bg-gradient-to-br from-indigo-950 via-purple-950/80 to-pink-950/90">
       
       {/* Animated Wallpaper Layer - Increased opacity on mobile */}
       <div
@@ -79,7 +105,7 @@ export function RoomScene() {
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: `url(${wallpaperUrl})`,
-          opacity: 0.3, // Reduced opacity on all devices
+          opacity: 0.3,
         }}
       />
       
@@ -115,13 +141,13 @@ export function RoomScene() {
           <p className="text-xs sm:text-sm md:text-base text-purple-200/80 font-elegant 
                        drop-shadow-[0_1px_10px_rgba(168,85,247,0.3)]
                        max-w-xs sm:max-w-md mx-auto">
-           💕 Its.All.Yours ✨
+            Your personal celebration space — explore and enjoy! ✨
           </p>
         </div>
 
         {/* Interactive Cards Grid - More compact on mobile */}
         <div className="w-full max-w-md sm:max-w-2xl lg:max-w-4xl mx-auto px-2 sm:px-4 flex-1 flex items-center">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 w-full">
             
             {/* Cake Card - Much smaller on mobile */}
             <button
@@ -233,7 +259,99 @@ export function RoomScene() {
                 </p>
               </div>
             </button>
+
+            {/* NEW: Messages Card */}
+            <button
+              ref={messagesRef}
+              onClick={() => navigateTo('messages')}
+              className="group relative p-4 sm:p-5 md:p-6 
+                        bg-gradient-to-br from-emerald-600/25 via-teal-600/25 to-emerald-600/25 
+                        backdrop-blur-md sm:backdrop-blur-xl rounded-xl sm:rounded-2xl
+                        border border-white/15 hover:border-emerald-400/50 
+                        transition-all duration-300 
+                        hover:scale-[1.02] hover:-translate-y-0.5 
+                        hover:shadow-lg sm:hover:shadow-xl hover:shadow-emerald-500/20 
+                        cursor-pointer
+                        overflow-hidden
+                        min-h-[120px] sm:min-h-[160px] md:min-h-[180px]"
+              aria-label="Go to messages scene"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 
+                            rounded-xl sm:rounded-2xl blur-md sm:blur-xl opacity-0 group-hover:opacity-100 
+                            transition-opacity duration-300" />
+              
+              <div className="relative z-10 flex flex-col items-center justify-center h-full">
+                <div className="text-3xl sm:text-4xl md:text-5xl mb-1 sm:mb-2 transition-all duration-300 
+                              group-hover:scale-105 group-hover:rotate-2">💌</div>
+                <MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 mx-auto mb-1 sm:mb-2 
+                                        text-emerald-200/80 transition-all duration-300 
+                                        group-hover:scale-105 group-hover:text-emerald-100" />
+                <h3 className="text-base sm:text-lg md:text-xl font-display font-semibold text-white mb-0.5 sm:mb-1
+                             drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)]">
+                  Messages ✨
+                </h3>
+                <p className="text-emerald-100/70 font-elegant text-xs sm:text-sm 
+                            group-hover:text-emerald-100 transition-colors duration-300">
+                  From loved ones
+                </p>
+              </div>
+            </button>
           </div>
+        </div>
+
+        {/* Birthday Countdown Widget */}
+        <div className="mt-8 sm:mt-12 w-full max-w-xs sm:max-w-sm mx-auto">
+          <div className="bg-gradient-to-br from-purple-900/40 to-pink-900/30 
+                        rounded-xl sm:rounded-2xl border border-purple-500/30 
+                        backdrop-blur-lg p-4 sm:p-5
+                        shadow-lg shadow-purple-900/30">
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-pink-300" />
+              <h3 className="text-base sm:text-lg font-semibold text-white">
+                Countdown to 21!
+              </h3>
+            </div>
+            
+            <div className="text-center">
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2
+                            bg-gradient-to-r from-pink-300 via-purple-300 to-pink-300 
+                            bg-clip-text text-transparent">
+                {daysUntilBirthday}
+              </div>
+              <p className="text-sm sm:text-base text-purple-200/80 mb-3">
+                {daysUntilBirthday === 1 ? 'day until January 14' : 'days until January 14'}
+              </p>
+              
+              <div className="flex justify-center gap-2 text-xs sm:text-sm">
+                <div className="px-2 py-1 bg-pink-900/30 rounded text-pink-200">
+                  Next: 21 🎉
+                </div>
+                <div className="px-2 py-1 bg-purple-900/30 rounded text-purple-200">
+                  Age: 20 ✨
+                </div>
+              </div>
+            </div>
+            
+            {/* Progress bar for the year */}
+            <div className="mt-4">
+              <div className="h-1 bg-purple-900/40 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-pink-400 to-purple-400 rounded-full"
+                  style={{ 
+                    width: `${((365 - daysUntilBirthday) / 365) * 100}%` 
+                  }}
+                />
+              </div>
+              <div className="flex justify-between text-xs text-purple-300/60 mt-1">
+                <span>Age 20</span>
+                <span>Age 21</span>
+              </div>
+            </div>
+          </div>
+          
+          <p className="text-xs text-purple-300/60 text-center mt-2">
+            Countdown updates automatically 🎂
+          </p>
         </div>
 
         {/* Animated Cat - Smaller and better positioned for mobile */}
@@ -241,7 +359,7 @@ export function RoomScene() {
           ref={catRef}
           className="fixed bottom-2 sm:bottom-4 left-2 sm:left-4 text-3xl sm:text-4xl
                     drop-shadow-[0_0_10px_rgba(251,191,36,0.3)]
-                    z-10 pointer-events-none opacity-80"
+                    z-20 pointer-events-none opacity-80"
           role="img"
           aria-label="Animated cat"
         >
