@@ -20,14 +20,8 @@ const LETTERS: Letter[] = [
   { 
     id: 1, 
     from: 'Maryam', 
-    relation: 'Best Friend',
-    content: `My dearest Afrah,
-
-Happy 20th birthday! I still remember our first day of school together, and now here we are, creating beautiful memories as adults. Your kindness has always been your superpower – the way you make everyone feel seen and heard is truly special.
-
-Here's to more late-night talks, spontaneous adventures, and building our dreams together. May this year bring you all the happiness you deserve and more.
-
-Forever your partner in crime,
+    relation: 'Sissy',
+    content: `TBA,
 Maryam 💫`,
     rotation: -2.5,
     size: 0.98,
@@ -40,14 +34,8 @@ Maryam 💫`,
   { 
     id: 2, 
     from: 'Fatima', 
-    relation: 'Soul Sister',
-    content: `Dearest Afrah,
-
-On your 20th birthday, I want to remind you of the incredible person you are. Your strength through challenges has been inspiring to witness. The way you light up any room you enter is nothing short of magical.
-
-May this new chapter bring you closer to your dreams, and may you always remember how loved you are by so many. Here's to creating more beautiful memories together.
-
-With all my love,
+    relation: 'Long Distance Sissy',
+    content: `TBA,
 Fatima 🌸`,
     rotation: 3.2,
     size: 1.05,
@@ -60,14 +48,8 @@ Fatima 🌸`,
   { 
     id: 3, 
     from: 'Monira', 
-    relation: 'Guiding Light',
-    content: `My beautiful Afrah,
-
-Watching you grow into this amazing young woman has been my greatest joy. Your compassion, intelligence, and grace continue to amaze me every day. You have a heart that understands deeply and loves fiercely.
-
-As you turn twenty, may you embrace all the beautiful possibilities ahead. Remember, you are capable of anything you set your mind to. The world is yours to conquer.
-
-Always here for you,
+    relation: 'Mufasa Mom',
+    content: `TBA,
 Monira 🌟`,
     rotation: 1.8,
     size: 0.95,
@@ -80,14 +62,8 @@ Monira 🌟`,
   { 
     id: 4, 
     from: 'Lil Bro', 
-    relation: 'Brother',
-    content: `Hey Afrah!
-
-Happy Birthday to the best sister ever! Thanks for always having my back and being there for me. You're not just my sister – you're my hero and my favorite person to annoy (in a loving way, of course!).
-
-I hope your 20th is as awesome as you are. Can't wait to celebrate together! Remember, you're never too old for sibling rivalry and inside jokes.
-
-Love you tons,
+    relation: 'Bilsi's heartbeat',
+    content: `AALU,
 Your Lil Bro 🎮`,
     rotation: -1.2,
     size: 1.08,
@@ -100,14 +76,8 @@ Your Lil Bro 🎮`,
   { 
     id: 5, 
     from: 'Anjila', 
-    relation: 'Forever Friend',
-    content: `My dear Afrah,
-
-Happy 20th! Where do I even begin? From our childhood secrets to adult confessions, you've been my constant. Your laughter is my favorite sound, and your friendship my greatest treasure.
-
-May this year bring you endless joy, success in all your endeavors, and the realization of just how incredibly special you are to everyone around you.
-
-Here's to us, always,
+    relation: 'Bilsi's sissy',
+    content: `please write,
 Anjila 💕`,
     rotation: 2.7,
     size: 1.02,
@@ -120,14 +90,8 @@ Anjila 💕`,
   { 
     id: 6, 
     from: 'Prajol', 
-    relation: 'Loyal Friend',
-    content: `Afrah,
-
-Happy Birthday! Twenty looks absolutely wonderful on you. I've always admired your ability to find beauty in ordinary moments and your unwavering support for those you love.
-
-May this milestone year be filled with adventures that excite you, moments that move you, and people who appreciate you just as much as we all do. You deserve the world and more.
-
-Cheers to you,
+    relation: 'Bilsi's bestie',
+    content: `my goat philoshoper,
 Prajol 🥂`,
     rotation: -3.1,
     size: 0.96,
@@ -412,7 +376,7 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
             <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-pink-300/80 animate-pulse" />
           </div>
           <p className="font-elegant text-sm sm:text-base text-purple-200/70 max-w-xl mx-auto leading-relaxed">
-            Letters from loved ones, filled with warmth and cherished memories just for you
+           ✨ Letters from the specials for your special day 🎈
           </p>
           <div className="h-px w-32 sm:w-48 bg-gradient-to-r from-transparent via-purple-400/40 to-transparent mt-4" />
         </div>
@@ -550,7 +514,7 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
                       'text-purple-500/40 italic' : 
                       'bg-gradient-to-r from-purple-600/70 via-pink-600/70 to-indigo-600/70 bg-clip-text text-transparent'} 
                       leading-relaxed`}>
-                      {isOpened ? 'Read with love 💖' : 'Tap to read message'}
+                      {isOpened ? '💖' : 'Tap to read message'}
                     </div>
                     {isOpened && (
                       <div className="absolute bottom-2 right-2 flex gap-1">
@@ -631,7 +595,7 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
                       <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400/80 animate-pulse" />
                       <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-pink-400/80 fill-pink-400/30" />
                       <span className="font-elegant text-xs sm:text-sm text-purple-600/60">
-                        A cherished memory
+                        URTHEBEST
                       </span>
                     </div>
                     <div className="h-px w-8 sm:w-16 bg-gradient-to-r from-transparent via-pink-300/40 to-transparent" />
@@ -648,7 +612,7 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 max-w-4xl mx-auto">
           <div className="text-center sm:text-left">
             <div className="font-elegant text-sm text-purple-200/70">
-              You are deeply cherished by everyone
+              You are deeply cherished by everyone in the world. 
             </div>
           </div>
           
@@ -665,7 +629,7 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
             <div className="hidden sm:flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-xl px-3 py-2">
               <Star className="w-3 h-3 text-yellow-300/80" />
               <span className="font-elegant text-xs text-purple-200/70">
-                {LETTERS.length} heartfelt messages
+                Subhanallah<3
               </span>
             </div>
           </div>
@@ -679,7 +643,7 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
             <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
               <Sparkles className="w-3 h-3 text-yellow-300" />
               <span className="font-elegant text-xs text-purple-100">
-                Tap letters to read messages
+                Tap letters to read messages!
               </span>
             </div>
           </div>
