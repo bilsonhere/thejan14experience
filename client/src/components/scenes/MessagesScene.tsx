@@ -184,6 +184,7 @@ export function MessagesScene() {
     animationRefs.current.forEach(anim => anim.kill());
     
     setSelectedMessage(message);
+    setActiveIndex(MESSAGES.findIndex(m => m.id === message.id));
     
     if (settings.soundEnabled) {
       // You could add a paper unfolding sound here
@@ -326,4 +327,265 @@ export function MessagesScene() {
             </h1>
           </div>
           <p className="text-sm sm:text-base md:text-lg text-purple-200/90 font-elegant max-w-2xl mx-auto">
-            Open each
+            Open each letter to read heartfelt messages from the special people in your life.
+            Each one contains love, memories, and wishes for your 20th birthday.
+          </p>
+        </div>
+
+        {/* Letters Grid */}
+        {!selectedMessage && (
+          <div className="w-full max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+              {MESSAGES.map((message, index) => (
+                <button
+                  key={message.id}
+                  ref={el => lettersRef.current[index] = el}
+                  onClick={() => openMessage(message)}
+                  onMouseEnter={() => !settings.reducedMotion && setHoveredLetter(message.id)}
+                  onMouseLeave={() => setHoveredLetter(null)}
+                  className={`group relative p-5 sm:p-6 rounded-xl sm:rounded-2xl
+                             backdrop-blur-lg border transition-all duration-300
+                             hover:scale-105 hover:shadow-2xl 
+                             cursor-pointer transform-gpu
+                             ${message.gradient}
+                             border-white/20 hover:border-white/40
+                             ${hoveredLetter && hoveredLetter !== message.id ? 'opacity-60' : 'opacity-100'}`}
+                  style={{
+                    transition: settings.reducedMotion ? 'none' : 'all 0.3s ease',
+                    transform: hoveredLetter === message.id ? 'translateY(-8px)' : 'none'
+                  }}
+                  aria-label={`Open message from ${message.sender}`}
+                >
+                  {/* Decorative corner */}
+                  <div className="absolute top-0 right-0 w-12 h-12 overflow-hidden">
+                    <div className="absolute -top-6 -right-6 w-12 h-12 rotate-45 
+                                  bg-white/20 group-hover:bg-white/30 transition-colors" />
+                  </div>
+
+                  {/* Letter seal */}
+                  <div className="absolute top-4 right-4 w-8 h-8 rounded-full 
+                                bg-white/30 backdrop-blur-sm flex items-center justify-center
+                                group-hover:scale-110 group-hover:rotate-12 transition-transform">
+                    <span className="text-lg">{message.emoji}</span>
+                  </div>
+
+                  {/* Content */}
+                  <div className="relative z-10 text-center">
+                    <div className="mb-4">
+                      <Mail className="w-12 h-12 mx-auto mb-3 
+                                     text-white/80 group-hover:text-white 
+                                     transition-colors" />
+                      <div className="text-3xl mb-2 group-hover:scale-110 transition-transform">
+                        {message.emoji}
+                      </div>
+                      <h3 className="text-lg font-bold text-white mb-1">
+                        {message.sender}
+                      </h3>
+                      <p className="text-sm text-white/70">
+                        {message.relationship}
+                      </p>
+                    </div>
+
+                    {/* Open hint */}
+                    <div className="mt-4 pt-4 border-t border-white/20">
+                      <div className="text-xs text-white/60 font-elegant 
+                                    group-hover:text-white/80 transition-colors">
+                        Click to open
+                        <Sparkles className="inline-block ml-2 w-3 h-3" />
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Back Button */}
+            <div className="mt-10 sm:mt-12 text-center">
+              <Button
+                onClick={() => navigateTo('room')}
+                variant="ghost"
+                className="group px-6 py-3 rounded-full 
+                          bg-white/10 hover:bg-white/20 
+                          backdrop-blur-sm border border-white/20
+                          transition-all duration-300"
+              >
+                <ChevronLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+                Back to Room
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Message Modal */}
+        {selectedMessage && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <div 
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={closeMessage}
+            />
+            
+            {/* Message Card */}
+            <div
+              ref={messageRef}
+              className="relative w-full max-w-2xl max-h-[90vh] overflow-hidden
+                        rounded-2xl sm:rounded-3xl shadow-2xl 
+                        transform-gpu animate-in fade-in zoom-in duration-300"
+            >
+              {/* Background with message gradient */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${selectedMessage.gradient}`} />
+              
+              {/* Paper texture */}
+              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48ZGVmcz48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjYiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PC9maWx0ZXI+PC9kZWZzPjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wNSIvPjwvc3ZnPg==')] 
+                              opacity-30" />
+              
+              {/* Content */}
+              <div className="relative z-10 h-full flex flex-col">
+                {/* Header */}
+                <div className="p-6 sm:p-8 border-b border-white/20 bg-gradient-to-r from-white/10 to-transparent">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm 
+                                    flex items-center justify-center text-2xl">
+                        {selectedMessage.emoji}
+                      </div>
+                      <div>
+                        <h2 className="text-xl sm:text-2xl font-bold text-white">
+                          {selectedMessage.sender}
+                        </h2>
+                        <p className="text-white/70 text-sm">
+                          {selectedMessage.relationship} • {selectedMessage.date}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={closeMessage}
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-full bg-white/10 hover:bg-white/20 
+                                 w-8 h-8 p-0 text-white"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Message Body */}
+                <div className="flex-1 overflow-y-auto p-6 sm:p-8">
+                  <div className="max-w-3xl mx-auto">
+                    <div className="prose prose-invert prose-lg max-w-none">
+                      <div className="whitespace-pre-line text-white/90 leading-relaxed 
+                                    font-elegant text-base sm:text-lg">
+                        {selectedMessage.content}
+                      </div>
+                    </div>
+                    
+                    {/* Hearts indicator */}
+                    <div className="mt-8 pt-8 border-t border-white/20">
+                      <div className="flex items-center justify-center gap-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Heart
+                            key={i}
+                            className={`w-5 h-5 ${i < 3 ? 'fill-pink-400 text-pink-400' : 'fill-white/20 text-white/20'}`}
+                          />
+                        ))}
+                        <span className="ml-2 text-sm text-white/60">
+                          Filled with love
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer with Navigation */}
+                <div className="p-6 sm:p-8 border-t border-white/20 
+                              bg-gradient-to-t from-white/10 to-transparent">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-white/60">
+                      Message {activeIndex + 1} of {MESSAGES.length}
+                    </div>
+                    
+                    <div className="flex items-center gap-4">
+                      <Button
+                        onClick={() => navigateMessages('prev')}
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-full bg-white/10 hover:bg-white/20 
+                                 text-white gap-2"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Previous
+                      </Button>
+                      
+                      <div className="flex gap-1">
+                        {MESSAGES.map((_, index) => (
+                          <button
+                            key={index}
+                            onClick={() => {
+                              setSelectedMessage(MESSAGES[index]);
+                              setActiveIndex(index);
+                            }}
+                            className={`w-2 h-2 rounded-full transition-all ${
+                              index === activeIndex 
+                                ? 'bg-white w-6' 
+                                : 'bg-white/30 hover:bg-white/50'
+                            }`}
+                            aria-label={`Go to message ${index + 1}`}
+                          />
+                        ))}
+                      </div>
+                      
+                      <Button
+                        onClick={() => navigateMessages('next')}
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-full bg-white/10 hover:bg-white/20 
+                                 text-white gap-2"
+                      >
+                        Next
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    
+                    <Button
+                      onClick={() => {
+                        // Implement share functionality
+                        navigator.clipboard.writeText(selectedMessage.content);
+                      }}
+                      variant="ghost"
+                      size="sm"
+                      className="rounded-full bg-white/10 hover:bg-white/20 
+                               text-white"
+                    >
+                      <BookOpen className="w-4 h-4 mr-2" />
+                      Save
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Navigation Hint */}
+        {!selectedMessage && (
+          <div className="mt-8 text-center sm:hidden">
+            <p className="text-xs text-purple-300/60 font-elegant">
+              Tap any letter to read the message
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Vignette Effect */}
+      <div className="fixed inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.4) 100%)',
+        }}
+      />
+    </div>
+  );
+}
