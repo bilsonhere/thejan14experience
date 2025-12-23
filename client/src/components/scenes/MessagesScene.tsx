@@ -637,7 +637,7 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
             <div className="hidden sm:flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-xl px-2.5 py-1.5">
               <Star className="w-2.5 h-2.5 text-yellow-300/80" />
               <span className="font-elegant text-xs text-purple-200/70">
-                Subhanallah<3
+                Subhanallah!
               </span>
             </div>
           </div>
