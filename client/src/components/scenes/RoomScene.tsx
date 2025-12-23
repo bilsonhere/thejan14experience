@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSceneStore } from '../../lib/stores/useSceneStore';
 import gsap from 'gsap';
-import { Cake, Gift, Layers, Calendar } from 'lucide-react';
+import { Cake, Gift, Layers, Clock, PartyPopper } from 'lucide-react';
 
 export function RoomScene() {
   const { navigateTo, settings } = useSceneStore();
@@ -12,15 +12,26 @@ export function RoomScene() {
   const giftsRef = useRef<HTMLButtonElement>(null);
   const catRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const clockRef = useRef<HTMLDivElement>(null);
   
   const [daysUntilBirthday, setDaysUntilBirthday] = useState(0);
+  const [currentTime, setCurrentTime] = useState('');
+  const [isBirthday, setIsBirthday] = useState(false);
 
-  // Calculate days until next birthday (January 14)
+  // Calculate days until next birthday (January 14) and check if it's birthday
   useEffect(() => {
     const calculateDaysUntilBirthday = () => {
       const now = new Date();
       const currentYear = now.getFullYear();
       const birthday = new Date(currentYear, 0, 14); // January 14 (month is 0-indexed)
+      
+      // Check if today is the birthday
+      const today = new Date();
+      const isTodayBirthday = 
+        today.getDate() === 14 && 
+        today.getMonth() === 0;
+      
+      setIsBirthday(isTodayBirthday);
       
       // If birthday has passed this year, use next year's birthday
       if (now > birthday) {
@@ -36,6 +47,20 @@ export function RoomScene() {
     // Update every hour to keep countdown accurate
     const interval = setInterval(calculateDaysUntilBirthday, 3600000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Real-time clock update
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const hours = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      setCurrentTime(`${hours}:${minutes}`);
+    };
+
+    updateTime();
+    const timeInterval = setInterval(updateTime, 60000); // Update every minute
+    return () => clearInterval(timeInterval);
   }, []);
 
   useEffect(() => {
@@ -80,6 +105,35 @@ export function RoomScene() {
       }
     });
 
+    // Clock hand animation for birthday countdown
+    if (clockRef.current && !isBirthday) {
+      const hands = clockRef.current.querySelectorAll('.clock-hand');
+      hands.forEach((hand, i) => {
+        const anim = gsap.to(hand, {
+          rotation: 360,
+          duration: 60 / (i + 1), // Different speeds for different hands
+          repeat: -1,
+          ease: 'none',
+        });
+        animations.push(anim);
+      });
+    }
+
+    // Special birthday animation
+    if (isBirthday && clockRef.current) {
+      const celebration = clockRef.current.querySelector('.celebration');
+      if (celebration) {
+        const anim = gsap.to(celebration, {
+          scale: 1.05,
+          duration: 1.5,
+          repeat: -1,
+          yoyo: true,
+          ease: 'power1.inOut',
+        });
+        animations.push(anim);
+      }
+    }
+
     // Entrance animation
     if (containerRef.current) {
       const entranceAnim = gsap.fromTo(containerRef.current,
@@ -92,7 +146,7 @@ export function RoomScene() {
     return () => {
       animations.forEach(anim => anim.kill());
     };
-  }, [settings.reducedMotion]);
+  }, [settings.reducedMotion, isBirthday]);
 
   return (
     <div ref={containerRef} className="absolute inset-0 overflow-hidden 
@@ -261,59 +315,160 @@ export function RoomScene() {
           </div>
         </div>
 
-        {/* UPDATED: Birthday Countdown Widget - Smaller and better design */}
-        <div className="mt-6 sm:mt-8 w-full max-w-xs mx-auto">
-          <div className="bg-gradient-to-br from-purple-900/30 to-pink-900/20 
-                        rounded-xl border border-purple-500/20 
-                        backdrop-blur-md p-3 sm:p-4
-                        shadow-md shadow-purple-900/20
-                        hover:shadow-lg hover:shadow-pink-900/30 transition-shadow duration-300">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-pink-300/90" />
-              <h3 className="text-sm sm:text-base font-semibold text-white/90">
-                Turning 20 in...
-              </h3>
-            </div>
-            
-            <div className="text-center">
-              <div className="text-2xl sm:text-3xl font-bold text-white mb-1
-                            bg-gradient-to-r from-pink-200 via-purple-200 to-pink-200 
-                            bg-clip-text text-transparent">
-                {daysUntilBirthday}
-              </div>
-              <p className="text-xs sm:text-sm text-purple-200/70 mb-2">
-                {daysUntilBirthday === 1 ? 'day until January 14' : 'days until January 14'}
-              </p>
+        {/* UPDATED: Minimalist Clock-Style Birthday Countdown Widget */}
+        <div ref={clockRef} className="mt-6 sm:mt-8 w-full max-w-xs mx-auto">
+          {isBirthday ? (
+            // Special Birthday Celebration Card
+            <div className="celebration relative bg-gradient-to-br from-pink-500/20 to-purple-600/20 
+                          backdrop-blur-xl rounded-2xl border border-white/30 
+                          p-5 sm:p-6 overflow-hidden
+                          shadow-2xl shadow-pink-500/30
+                          transform transition-all duration-500">
+              {/* Animated background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-transparent 
+                            animate-gradient-shift" />
               
-              <div className="flex justify-center gap-1.5 text-xs">
-                <div className="px-2 py-1 bg-pink-900/20 rounded text-pink-200/90">
-                  Next: 20 🎉
+              {/* Confetti overlay */}
+              <div className="absolute inset-0 opacity-20">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="absolute text-xl animate-float" 
+                       style={{
+                         left: `${10 + i * 10}%`,
+                         top: `${20 + i * 8}%`,
+                         animationDelay: `${i * 0.3}s`
+                       }}>
+                    🎉
+                  </div>
+                ))}
+              </div>
+
+              <div className="relative z-10 text-center">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <PartyPopper className="w-6 h-6 text-yellow-300 animate-bounce" />
+                  <h3 className="text-lg font-bold text-white">
+                    🎂 IT'S YOUR DAY! 🎂
+                  </h3>
+                  <PartyPopper className="w-6 h-6 text-yellow-300 animate-bounce" />
                 </div>
-                <div className="px-2 py-1 bg-purple-900/20 rounded text-purple-200/90">
-                  Age: 19 ✨
+                
+                <div className="text-4xl font-bold text-white mb-2 animate-pulse">
+                  HAPPY BIRTHDAY!
+                </div>
+                
+                <div className="text-sm text-white/90 mb-4 font-elegant">
+                  Today, January 14 is all about YOU! ✨
+                </div>
+
+                <div className="flex items-center justify-center gap-4 text-white/80 mb-4">
+                  <div className="text-center">
+                    <div className="text-xl font-mono">{currentTime}</div>
+                    <div className="text-xs mt-1">Current Time</div>
+                  </div>
+                  <div className="h-8 w-px bg-white/30" />
+                  <div className="text-center">
+                    <div className="text-xl font-mono">20</div>
+                    <div className="text-xs mt-1">New Age</div>
+                  </div>
+                </div>
+
+                <div className="text-xs text-white/70 italic mt-3">
+                  Make today unforgettable! 🎈
                 </div>
               </div>
             </div>
-            
-            {/* Progress bar for the year - More subtle */}
-            <div className="mt-3">
-              <div className="h-1 bg-purple-900/30 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-pink-400/80 to-purple-400/80 rounded-full transition-all duration-500"
-                  style={{ 
-                    width: `${Math.max(2, ((365 - daysUntilBirthday) / 365) * 100)}%` 
-                  }}
-                />
+          ) : (
+            // Minimal Clock Countdown Widget
+            <div className="relative bg-gradient-to-br from-white/5 to-white/10 
+                          backdrop-blur-2xl rounded-2xl border border-white/20 
+                          p-4 sm:p-5 overflow-hidden
+                          shadow-xl shadow-purple-900/20
+                          hover:shadow-2xl hover:shadow-purple-900/30 transition-all duration-300">
+              {/* Clock face background */}
+              <div className="absolute inset-4 rounded-full border border-white/10" />
+              
+              {/* Clock center point */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
+                            w-2 h-2 bg-white rounded-full" />
+              
+              {/* Clock hands */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                {/* Hour hand (short) */}
+                <div className="clock-hand absolute w-1 h-8 bg-white/90 origin-bottom -translate-y-8" />
+                {/* Minute hand (medium) */}
+                <div className="clock-hand absolute w-1 h-12 bg-white origin-bottom -translate-y-12" 
+                     style={{ transformOrigin: 'bottom center' }} />
+                {/* Second hand (long) */}
+                <div className="clock-hand absolute w-0.5 h-16 bg-pink-400 origin-bottom -translate-y-16" 
+                     style={{ transformOrigin: 'bottom center' }} />
               </div>
-              <div className="flex justify-between text-xs text-purple-300/50 mt-1">
-                <span>Age 19</span>
-                <span>Age 20</span>
+
+              <div className="relative z-10">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <Clock className="w-4 h-4 text-pink-300" />
+                  <h3 className="text-sm font-medium text-white/90">
+                    Birthday Countdown
+                  </h3>
+                </div>
+                
+                {/* Main countdown display */}
+                <div className="text-center mb-4">
+                  <div className="text-3xl sm:text-4xl font-bold text-white mb-1
+                                font-mono tracking-tight">
+                    {daysUntilBirthday}
+                    <span className="text-sm font-normal text-white/60 ml-2">days</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-center gap-3 text-sm text-white/70">
+                    <div>
+                      <div className="font-mono text-base">{currentTime}</div>
+                      <div className="text-xs mt-0.5">Current Time</div>
+                    </div>
+                    <div className="h-6 w-px bg-white/30" />
+                    <div>
+                      <div className="font-mono text-base">Jan 14</div>
+                      <div className="text-xs mt-0.5">Target Date</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Progress ring */}
+                <div className="relative w-32 h-32 mx-auto mb-3">
+                  <div className="absolute inset-0 rounded-full border-2 border-white/10" />
+                  <div 
+                    className="absolute inset-2 rounded-full border-4 border-transparent"
+                    style={{
+                      borderImage: `conic-gradient(from 0deg, #ec4899 0%, #a855f7 ${((365 - daysUntilBirthday) / 365) * 100}%, transparent 0%) 1`,
+                    }}
+                  />
+                  
+                  {/* Age indicator */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="text-sm text-white/60">Turning</div>
+                      <div className="text-2xl font-bold text-white">20</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status indicator */}
+                <div className="text-center">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 
+                                bg-white/10 rounded-full border border-white/20">
+                    <div className={`w-2 h-2 rounded-full ${daysUntilBirthday <= 30 ? 'bg-pink-400 animate-pulse' : 'bg-purple-400'}`} />
+                    <span className="text-xs text-white/80">
+                      {daysUntilBirthday <= 30 
+                        ? `${daysUntilBirthday} days to go!` 
+                        : 'Countdown active'}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          )}
           
-          <p className="text-xs text-purple-300/50 text-center mt-1.5">
-            Countdown updates automatically
+          {/* Subtle footer text */}
+          <p className="text-xs text-white/40 text-center mt-2 font-mono">
+            {isBirthday ? '✨ Today is magical! ✨' : 'Auto-updating'}
           </p>
         </div>
 
@@ -343,6 +498,26 @@ export function RoomScene() {
           }}
         />
       </div>
+
+      {/* CSS Animations */}
+      <style>{`
+        @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .animate-gradient-shift {
+          background-size: 200% 200%;
+          animation: gradientShift 4s ease infinite;
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 }
