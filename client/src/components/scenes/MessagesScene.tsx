@@ -62,7 +62,7 @@ Monira 🌟`,
   { 
     id: 4, 
     from: 'Lil Bro', 
-    relation: 'Bilsi's heartbeat',
+    relation: 'Bilsis heartbeat',
     content: `AALU,
 Your Lil Bro 🎮`,
     rotation: -1.2,
