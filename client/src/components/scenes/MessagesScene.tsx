@@ -90,7 +90,7 @@ Anjila 💕`,
   { 
     id: 6, 
     from: 'Prajol', 
-    relation: 'Bilsi' bestie',
+    relation: 'Bilsi bestie',
     content: `my goat philoshoper,
 Prajol 🥂`,
     rotation: -3.1,
