@@ -462,12 +462,12 @@ export function LadderScene() {
                           drop-shadow-[0_0_30px_rgba(96,165,250,0.7)]">
               <span className="bg-gradient-to-r from-blue-300 via-cyan-300 to-purple-300 
                              bg-clip-text text-transparent">
-                Dream Ladder Ascent
+                Can you make it to the top
               </span>
             </h1>
           </div>
           <p className="text-sm sm:text-base text-blue-200/90 font-elegant">
-            Climb gently to celestial heights
+          🎈 Climb with care 🎈
           </p>
         </div>
 
