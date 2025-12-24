@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import gsap from 'gsap';
-import { X, Heart, Home, Star } from 'lucide-react';
+import { X, Heart, Home, Star, Sparkles } from 'lucide-react';
 
 interface Letter {
   id: number;
@@ -14,6 +14,7 @@ interface Letter {
   depth: number;
   floatIntensity: number;
   imperfection: string;
+  glowColor: string;
 }
 
 const LETTERS: Letter[] = [
@@ -27,9 +28,10 @@ Maryam 💫`,
     size: 0.85,
     pinPosition: 'tl',
     folded: false,
-    depth: 2,
+    depth: 3,
     floatIntensity: 1.1,
-    imperfection: '2px 4px 2px 255px'
+    imperfection: '4px 6px 4px 8px',
+    glowColor: '#f0abfc'
   },
   { 
     id: 2, 
@@ -41,9 +43,10 @@ Fatima 🌸`,
     size: 0.88,
     pinPosition: 'tr',
     folded: true,
-    depth: 3,
+    depth: 2,
     floatIntensity: 0.9,
-    imperfection: '255px 15px 225px 15px/15px 225px 15px 255px'
+    imperfection: '8px 12px 8px 12px',
+    glowColor: '#c4b5fd'
   },
   { 
     id: 3, 
@@ -57,7 +60,8 @@ Monira 🌟`,
     folded: false,
     depth: 4,
     floatIntensity: 1.3,
-    imperfection: '3px 3px 3px 3px'
+    imperfection: '6px 4px 6px 4px',
+    glowColor: '#93c5fd'
   },
   { 
     id: 4, 
@@ -71,7 +75,8 @@ Your Lil Bro 🎮`,
     folded: true,
     depth: 1,
     floatIntensity: 1.0,
-    imperfection: '2px 2px 25px 2px'
+    imperfection: '2px 8px 2px 8px',
+    glowColor: '#86efac'
   },
   { 
     id: 5, 
@@ -83,9 +88,10 @@ Anjila 💕`,
     size: 0.86,
     pinPosition: 'tl',
     folded: false,
-    depth: 2,
+    depth: 3,
     floatIntensity: 1.2,
-    imperfection: '1px 1px 1px 1px'
+    imperfection: '5px 3px 5px 3px',
+    glowColor: '#fde68a'
   },
   { 
     id: 6, 
@@ -97,9 +103,10 @@ Prajol 🥂`,
     size: 0.84,
     pinPosition: 'tr',
     folded: true,
-    depth: 3,
+    depth: 2,
     floatIntensity: 0.8,
-    imperfection: '2px 10px 2px 5px'
+    imperfection: '3px 7px 3px 7px',
+    glowColor: '#fca5a5'
   },
   { 
     id: 7, 
@@ -113,7 +120,8 @@ Love, Aditi 🦋`,
     folded: false,
     depth: 2,
     floatIntensity: 1.15,
-    imperfection: '5px 2px 8px 2px'
+    imperfection: '7px 3px 7px 3px',
+    glowColor: '#c084fc'
   },
 ];
 
@@ -128,14 +136,32 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
   const [isClosing, setIsClosing] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isMobile, setIsMobile] = useState(false);
+  const [lanterns, setLanterns] = useState<Array<{id: number, x: number, y: number, size: number, speed: number}>>([]);
   
-  // Refs
   const containerRef = useRef<HTMLDivElement>(null);
   const lettersRef = useRef<(HTMLDivElement | null)[]>([]);
-  // We use a ref to track if initial entrance animation is done so we don't repeat it on resize
+  const lanternsRef = useRef<(HTMLDivElement | null)[]>([]);
   const initialAnimationDone = useRef(false);
 
-  // 1. Handle Window Resize & Mouse (No GSAP here)
+  // Initialize lanterns
+  useEffect(() => {
+    const newLanterns = [];
+    const lanternCount = isMobile ? 4 : 6;
+    
+    for (let i = 0; i < lanternCount; i++) {
+      newLanterns.push({
+        id: i,
+        x: Math.random() * 90 + 5,
+        y: Math.random() * 30 + 10,
+        size: 40 + Math.random() * 30,
+        speed: 20 + Math.random() * 15
+      });
+    }
+    
+    setLanterns(newLanterns);
+  }, [isMobile]);
+
+  // Handle window resize & mouse
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
@@ -151,24 +177,44 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
 
     window.addEventListener('resize', checkMobile);
     window.addEventListener('mousemove', handleMouseMove);
+    
+    // Animate lanterns
+    const animateLanterns = () => {
+      lanternsRef.current.forEach((lantern, index) => {
+        if (lantern) {
+          gsap.to(lantern, {
+            y: `+=${10}`,
+            rotation: 5,
+            duration: lanterns[index]?.speed || 20,
+            ease: "sine.inOut",
+            yoyo: true,
+            repeat: -1
+          });
+        }
+      });
+    };
+
+    if (lanternsRef.current.length > 0) {
+      animateLanterns();
+    }
+
     return () => {
       window.removeEventListener('resize', checkMobile);
       window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, []);
+  }, [lanterns]);
 
-  // 2. Handle GSAP Animations safely
+  // Handle GSAP animations
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
-      // Setup Container
       gsap.set(containerRef.current, { opacity: 1 });
       
-      // If this is the FIRST render, play entrance animation
       if (!initialAnimationDone.current) {
+        // Container entrance
         gsap.from(containerRef.current, { 
           opacity: 0, 
-          duration: 2, 
-          ease: 'power2.inOut' 
+          duration: 1.5, 
+          ease: 'power2.out' 
         });
 
         LETTERS.forEach((letter, i) => {
@@ -180,37 +226,33 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
           const xVal = isMobile ? pos.xMobile : pos.xDesktop;
           const yVal = isMobile ? pos.yMobile : pos.yDesktop;
 
-          // Set initial state
           gsap.set(ref, { 
             opacity: 0,
             scale: 0.3,
             x: xVal,
             y: yVal,
-            rotation: letter.rotation + (Math.random() * 20 - 10),
+            rotation: letter.rotation - 15,
             z: -100
           });
 
-          // Animate In
           gsap.to(ref, { 
             opacity: 1, 
-            scale: isMobile ? letter.size * 0.9 : letter.size,
+            scale: isMobile ? letter.size * 0.85 : letter.size,
             x: xVal,
             y: yVal,
             rotation: letter.rotation,
             z: 0,
-            duration: 2, 
-            ease: 'power3.out',
-            delay: i * 0.15,
+            duration: 1.5, 
+            ease: 'back.out(1.7)',
+            delay: i * 0.12,
             onComplete: () => {
-              // Start floating only after entrance is done
               startFloatingAnimation(ref, letter);
             }
           });
         });
+        
         initialAnimationDone.current = true;
       } else {
-        // If resizing (update), just move them to new positions smoothly
-        // WITHOUT resetting opacity to 0
         LETTERS.forEach((letter, i) => {
           const ref = lettersRef.current[i];
           if (!ref) return;
@@ -220,83 +262,72 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
           const xVal = isMobile ? pos.xMobile : pos.xDesktop;
           const yVal = isMobile ? pos.yMobile : pos.yDesktop;
 
-          // Kill only positioning tweens, keep float alive if possible
-          // But simplest is to just re-animate position
           gsap.to(ref, {
             x: xVal,
             y: yVal,
-            scale: isMobile ? letter.size * 0.9 : letter.size,
-            duration: 0.5,
+            scale: isMobile ? letter.size * 0.85 : letter.size,
+            duration: 0.8,
             ease: 'power2.out'
           });
-          
-          // Ensure float is running if it was killed by strict mode cleanup
-          if (!gsap.isTweening(ref)) {
-             startFloatingAnimation(ref, letter);
-          }
         });
       }
-    }, containerRef); // Scope to container
+    }, containerRef);
 
-    return () => ctx.revert(); // Cleanup GSAP on unmount
-  }, [isMobile]); // Re-run when mobile state changes
+    return () => ctx.revert();
+  }, [isMobile]);
 
   const startFloatingAnimation = (ref: HTMLDivElement, letter: Letter) => {
-    // Check if already floating to avoid double animations
     if (gsap.getTweensOf(ref).some(t => t.data === 'float')) return;
 
     gsap.to(ref, {
-      y: `+=${3 * letter.floatIntensity}`,
-      rotation: letter.rotation + (0.5 * letter.floatIntensity),
-      duration: 3 + letter.floatIntensity,
+      y: `+=${2.5 * letter.floatIntensity}`,
+      rotation: letter.rotation + (0.3 * letter.floatIntensity),
+      duration: 4 + letter.floatIntensity,
       ease: "sine.inOut",
       yoyo: true,
       repeat: -1,
-      data: 'float' // Tag this tween
+      data: 'float'
     });
   };
 
   const getLetterPositions = () => {
+    // Better spacing for mobile to prevent overlap
     const desktopPositions = [
-      { xDesktop: '-18vw', yDesktop: '-22vh' },
-      { xDesktop: '22vw', yDesktop: '-18vh' },
-      { xDesktop: '-28vw', yDesktop: '8vh' },
-      { xDesktop: '28vw', yDesktop: '12vh' },
-      { xDesktop: '-12vw', yDesktop: '18vh' },
-      { xDesktop: '32vw', yDesktop: '-2vh' },
-      { xDesktop: '2vw', yDesktop: '-28vh' },
+      { xDesktop: '-22vw', yDesktop: '-18vh' },
+      { xDesktop: '24vw', yDesktop: '-15vh' },
+      { xDesktop: '-28vw', yDesktop: '10vh' },
+      { xDesktop: '26vw', yDesktop: '14vh' },
+      { xDesktop: '-14vw', yDesktop: '20vh' },
+      { xDesktop: '30vw', yDesktop: '-5vh' },
+      { xDesktop: '0vw', yDesktop: '-25vh' },
     ];
     
     const mobilePositions = [
-      { xMobile: '-25vw', yMobile: '-18vh' },
-      { xMobile: '20vw', yMobile: '-12vh' },
-      { xMobile: '-28vw', yMobile: '8vh' },
-      { xMobile: '25vw', yMobile: '15vh' },
-      { xMobile: '-10vw', yMobile: '18vh' },
-      { xMobile: '15vw', yMobile: '24vh' },
-      { xMobile: '-5vw', yMobile: '-28vh' },
+      { xMobile: '-32vw', yMobile: '-15vh' },
+      { xMobile: '28vw', yMobile: '-10vh' },
+      { xMobile: '-36vw', yMobile: '12vh' },
+      { xMobile: '30vw', yMobile: '18vh' },
+      { xMobile: '-18vw', yMobile: '22vh' },
+      { xMobile: '22vw', yMobile: '28vh' },
+      { xMobile: '-4vw', yMobile: '-22vh' },
     ];
 
     return desktopPositions.map((pos, i) => ({
       ...pos,
-      xMobile: mobilePositions[i] ? mobilePositions[i].xMobile : '0vw',
-      yMobile: mobilePositions[i] ? mobilePositions[i].yMobile : '0vh'
+      xMobile: mobilePositions[i]?.xMobile || '0vw',
+      yMobile: mobilePositions[i]?.yMobile || '0vh'
     }));
   };
 
   const handleClose = () => {
     setIsClosing(true);
-    if (containerRef.current) {
-      gsap.to(containerRef.current, {
-        opacity: 0,
-        scale: 0.98,
-        duration: 1,
-        ease: 'power2.inOut',
-        onComplete: onClose
-      });
-    } else {
-      onClose();
-    }
+    gsap.to(containerRef.current, {
+      opacity: 0,
+      scale: 0.95,
+      duration: 0.8,
+      ease: 'power2.inOut',
+      onComplete: onClose
+    });
   };
 
   const openLetter = (letter: Letter) => {
@@ -309,27 +340,26 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
     const ref = lettersRef.current[letterIndex];
     
     if (ref) {
-      // Kill the float, but KEEP the current position so it doesn't jump
-      gsap.killTweensOf(ref); 
+      gsap.killTweensOf(ref);
 
       gsap.to(ref, {
-        scale: isMobile ? letter.size * 1.05 : letter.size * 1.1,
-        y: `-=${isMobile ? 15 : 15}`,
-        rotation: letter.rotation + 1,
-        z: 30,
-        duration: 0.6,
-        ease: 'power3.out',
+        scale: isMobile ? letter.size * 1.08 : letter.size * 1.15,
+        y: `-=${isMobile ? 12 : 18}`,
+        rotation: letter.rotation + 2,
+        z: 40,
+        duration: 0.5,
+        ease: 'elastic.out(1.2)',
         onComplete: () => {
           setOpenedLetters(prev => [...prev, letter.id]);
-          setTimeout(() => setSelectedLetter(letter), 150);
+          setTimeout(() => setSelectedLetter(letter), 180);
           gsap.to(ref, {
-            scale: isMobile ? letter.size * 0.95 : letter.size * 0.9,
-            y: `+=${isMobile ? 10 : 10}`,
+            scale: isMobile ? letter.size * 0.9 : letter.size * 0.85,
+            y: `+=${isMobile ? 8 : 12}`,
             rotation: letter.rotation,
             z: 0,
             duration: 0.4,
             ease: 'power2.out',
-            onComplete: () => startFloatingAnimation(ref, letter) // Resume float
+            onComplete: () => startFloatingAnimation(ref, letter)
           });
         }
       });
@@ -342,8 +372,9 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
       if (modal) {
         gsap.to(modal, {
           opacity: 0,
-          scale: 0.95,
-          y: 10,
+          scale: 0.9,
+          y: 15,
+          rotationX: 5,
           duration: 0.3,
           ease: 'power2.in',
           onComplete: () => setSelectedLetter(null)
@@ -356,17 +387,20 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
 
   const renderPin = (position: string) => {
     return (
-        <div className={`absolute z-30 transition-all duration-500 ${
-            position === 'tl' ? '-top-2 -left-1' :
-            position === 'tr' ? '-top-2 -right-1' :
-            position === 'bl' ? '-bottom-2 -left-1' :
-            '-bottom-2 -right-1'
-        }`}>
-            <div className="absolute top-1.5 left-0.5 w-3 h-3 bg-black/40 blur-[2px] rounded-full" />
-            <div className={`relative w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-gradient-to-br from-slate-200 via-slate-400 to-slate-500 shadow-[inset_1px_1px_2px_rgba(255,255,255,0.7),inset_-1px_-1px_2px_rgba(0,0,0,0.3)] flex items-center justify-center`}>
-                <div className="w-1 h-1 bg-slate-100/50 rounded-full blur-[0.5px]" />
-            </div>
+      <div className={`absolute z-30 transition-all duration-500 group-hover:scale-110 ${
+        position === 'tl' ? '-top-2 -left-2' :
+        position === 'tr' ? '-top-2 -right-2' :
+        position === 'bl' ? '-bottom-2 -left-2' :
+        '-bottom-2 -right-2'
+      }`}>
+        <div className="absolute -inset-1 bg-black/20 blur-[1px] rounded-full" />
+        <div className="relative w-3.5 h-3.5 rounded-full bg-gradient-to-br from-gray-300 via-gray-400 to-gray-500 shadow-[inset_1px_1px_3px_rgba(255,255,255,0.7),inset_-1px_-1px_3px_rgba(0,0,0,0.3)] flex items-center justify-center">
+          <div className="w-1 h-1 bg-white/80 rounded-full" />
         </div>
+        <div className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <Sparkles className="w-2 h-2 text-yellow-300/70" />
+        </div>
+      </div>
     );
   };
 
@@ -376,71 +410,117 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
       className={`fixed inset-0 ${isClosing ? 'pointer-events-none' : ''}`}
       style={{ display: 'block', opacity: 1 }}
     >
-      {/* Background Layer */}
+      {/* Enhanced Background Layer */}
       <div className="fixed inset-0">
         <div 
-          className="absolute inset-0 transition-opacity duration-1000"
+          className="absolute inset-0 transition-all duration-1000"
           style={{
             backgroundImage: `url(${roomImage})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            backgroundAttachment: 'fixed',
-            filter: 'blur(12px) brightness(0.4)',
-            transform: `scale(1.1) translate3d(${mousePosition.x * 5}px, ${mousePosition.y * 5}px, 0)`
+            filter: 'blur(10px) brightness(0.3)',
+            transform: `scale(1.05) translate3d(${mousePosition.x * 8}px, ${mousePosition.y * 8}px, 0)`
           }}
         />
         
+        {/* Graffiti Background */}
         <div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center pointer-events-none opacity-20 mix-blend-overlay rotate-[-5deg] z-0"
-            style={{ transform: `translate(-50%, -50%) rotate(-5deg) translate3d(${mousePosition.x * -10}px, ${mousePosition.y * -10}px, 0)` }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center pointer-events-none opacity-10"
+          style={{ transform: `translate(-50%, -50%) rotate(-3deg) translate3d(${mousePosition.x * -15}px, ${mousePosition.y * -15}px, 0)` }}
         >
-            <h1 className="font-cursive text-6xl sm:text-8xl md:text-9xl text-pink-200/60 blur-[2px] tracking-widest">
-                Happy Birthday Afrah
-            </h1>
-        </div>
-        
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 pointer-events-none" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.6)_100%)] pointer-events-none" />
-      </div>
-
-      {/* Header */}
-      <div className="relative z-20 text-center pt-8 sm:pt-10 px-4">
-        <div className="inline-flex flex-col items-center">
-          <h1 className="font-cursive text-2xl sm:text-3xl text-white/90 tracking-widest drop-shadow-lg">
-            Messages
+          <h1 className="font-graffiti text-7xl sm:text-9xl md:text-[10rem] text-white/20 blur-[1px] tracking-widest leading-tight">
+            Happy Birthday<br/>Afrah
           </h1>
-          <div className="h-px w-24 bg-gradient-to-r from-transparent via-white/30 to-transparent mt-3" />
+        </div>
+        
+        {/* Gradient Overlays */}
+        <div className="absolute inset-0 bg-gradient-to-b from-purple-950/40 via-transparent to-pink-950/60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/20" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,rgba(0,0,0,0.5)_100%)]" />
+        
+        {/* Floating Lanterns */}
+        <div className="absolute inset-0 pointer-events-none">
+          {lanterns.map((lantern, index) => (
+            <div
+              key={lantern.id}
+              ref={el => lanternsRef.current[index] = el}
+              className="absolute will-change-transform"
+              style={{
+                left: `${lantern.x}%`,
+                top: `${lantern.y}%`,
+                width: `${lantern.size}px`,
+                height: `${lantern.size}px`,
+              }}
+            >
+              <div className="relative w-full h-full">
+                {/* Lantern glow */}
+                <div 
+                  className="absolute inset-0 rounded-full blur-md opacity-30"
+                  style={{ background: `radial-gradient(circle at 30% 30%, #fde68a50, transparent 70%)` }}
+                />
+                {/* Lantern body */}
+                <div className="relative w-full h-full rounded-full bg-gradient-to-br from-yellow-200/40 via-orange-200/30 to-transparent backdrop-blur-sm border border-yellow-300/30" />
+                {/* Lantern tassel */}
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0.5 h-6 bg-gradient-to-b from-yellow-400/50 to-transparent" />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Main Interactions */}
-      <div className="relative z-10 w-full h-[calc(100%-120px)] overflow-hidden perspective-1000">
+      {/* Header - Enhanced */}
+      <div className="relative z-20 text-center pt-6 sm:pt-10 px-4">
+        <div className="inline-flex flex-col items-center space-y-2">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300/80 animate-pulse" />
+            <h1 className="font-cursive text-2xl sm:text-3xl md:text-4xl text-white/95 tracking-widest drop-shadow-lg">
+              Birthday Messages
+            </h1>
+            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300/80 animate-pulse" />
+          </div>
+          <p className="font-elegant text-xs sm:text-sm text-purple-200/70 max-w-md mx-auto">
+            Letters from loved ones ✨
+          </p>
+          <div className="h-px w-32 sm:w-48 bg-gradient-to-r from-transparent via-purple-400/40 to-transparent mt-2" />
+        </div>
+      </div>
+
+      {/* Progress Counter */}
+      <div className="relative z-20 text-center mt-3 sm:mt-4">
+        <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5">
+          <Heart className="w-3.5 h-3.5 text-pink-300/80 fill-pink-300/20" />
+          <span className="font-elegant text-xs text-white/90">
+            {openedLetters.length}/{LETTERS.length} opened
+          </span>
+        </div>
+      </div>
+
+      {/* Main Content with better mobile spacing */}
+      <div className="relative z-10 w-full h-[calc(100%-140px)] sm:h-[calc(100%-160px)] overflow-hidden perspective-1000">
         
-        {/* Strings */}
+        {/* Hanging Strings - More subtle */}
         <div className="absolute inset-0 pointer-events-none">
           {LETTERS.map((_, i) => {
             const positions = getLetterPositions();
             return (
               <div
                 key={`string-${i}`}
-                className="absolute w-[0.5px] bg-white/20"
+                className="absolute w-[0.3px] bg-gradient-to-b from-white/30 via-white/15 to-transparent"
                 style={{
                   left: `calc(50% + ${isMobile ? parseFloat(positions[i].xMobile) / 2 : parseFloat(positions[i].xDesktop) / 2}vw)`,
-                  top: '-10%',
-                  height: '40%',
+                  top: '-5%',
+                  height: '35%',
                   transformOrigin: 'top',
-                  maskImage: 'linear-gradient(to bottom, black, transparent)'
                 }}
               />
             );
           })}
         </div>
 
-        {/* Letters */}
+        {/* Letters with improved layout */}
         <div className="relative w-full h-full">
           {LETTERS.map((letter, index) => {
             const isOpened = openedLetters.includes(letter.id);
-            // We set initial styles here so they are visible even before GSAP takes over if there's a delay
             const positions = getLetterPositions();
             const xPos = isMobile ? positions[index].xMobile : positions[index].xDesktop;
             const yPos = isMobile ? positions[index].yMobile : positions[index].yDesktop;
@@ -454,43 +534,80 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
                 style={{
                   left: '50%',
                   top: '50%',
-                  // Fallback transform in case GSAP is slow
-                  transform: `translate3d(${xPos}, ${yPos}, ${letter.depth * 10}px) rotate(${letter.rotation}deg)`,
+                  transform: `translate3d(${xPos}, ${yPos}, ${letter.depth * 15}px) rotate(${letter.rotation}deg)`,
                   zIndex: letter.depth,
                 }}
               >
+                {/* Letter glow effect */}
+                {!isOpened && (
+                  <div className="absolute -inset-4 opacity-0 group-hover:opacity-40 transition-opacity duration-500">
+                    <div 
+                      className="absolute inset-0 rounded-lg blur-lg"
+                      style={{ background: `radial-gradient(circle at center, ${letter.glowColor}30, transparent 70%)` }}
+                    />
+                  </div>
+                )}
+
+                {/* Paper Container */}
                 <div 
-                  className={`relative w-32 sm:w-40 p-4 transition-all duration-500 ease-out ${isOpened ? 'opacity-90 grayscale-[0.2]' : 'hover:-translate-y-1'}`}
+                  className={`relative transition-all duration-500 ease-out ${
+                    isMobile ? 'w-36 p-3' : 'w-40 sm:w-44 p-4'
+                  } ${isOpened ? 'opacity-90 saturate-80' : 'group-hover:-translate-y-1 group-hover:scale-105'}`}
                   style={{
-                     boxShadow: `1px 2px 2px rgba(0,0,0,0.1), 2px 4px 8px rgba(0,0,0,0.1), 0 10px 20px rgba(0,0,0,0.15)`,
+                    boxShadow: `
+                      inset 0 1px 0 rgba(255,255,255,0.8),
+                      0 2px 4px rgba(0,0,0,0.1),
+                      0 8px 16px rgba(0,0,0,0.1),
+                      0 20px 40px rgba(0,0,0,0.15)
+                    `,
                   }}
                 >
+                  {/* Paper with texture */}
                   <div 
-                    className="absolute inset-0 bg-[#fdfbf7]"
+                    className="absolute inset-0 bg-gradient-to-br from-[#fefefe] via-[#faf5e9] to-[#fdf8f0]"
                     style={{
-                        borderRadius: letter.imperfection || '2px',
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E")`,
+                      borderRadius: letter.imperfection,
+                      backgroundImage: `
+                        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E"),
+                        linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.3) 100%)
+                      `,
                     }}
                   />
+                  
+                  {/* Fold effect */}
                   {letter.folded && (
-                     <div className="absolute bottom-0 right-0 w-8 h-8 bg-gradient-to-tl from-black/5 to-transparent pointer-events-none rounded-br-sm" />
+                    <div className="absolute -top-1 -right-1 w-6 h-8 bg-gradient-to-br from-black/10 to-transparent rounded-sm transform rotate-12" />
                   )}
+                  
+                  {/* Pin */}
                   {renderPin(letter.pinPosition)}
 
-                  <div className="relative z-10 flex flex-col items-center justify-center min-h-[5rem] text-center">
-                    <span className={`font-cursive text-lg text-slate-800 leading-none mb-1 transition-colors duration-300 ${isOpened ? 'text-slate-600' : ''}`}>
+                  {/* Bottom edge shadow for paper weight */}
+                  <div className="absolute -bottom-1 left-2 right-2 h-1 bg-gradient-to-t from-black/20 to-transparent rounded-b-lg" />
+
+                  {/* Content */}
+                  <div className="relative z-10 flex flex-col items-center justify-center text-center">
+                    <span className={`font-cursive text-lg sm:text-xl text-gray-800 leading-tight mb-1 transition-colors duration-300 ${
+                      isOpened ? 'text-gray-600' : ''
+                    }`}>
                       {letter.from}
                     </span>
-                    <span className="font-elegant text-[10px] text-slate-500 tracking-wider uppercase opacity-80 mb-2">
+                    <span className="font-elegant text-[11px] text-gray-600/80 tracking-widest uppercase mb-2">
                       {letter.relation}
                     </span>
-                    <div className={`transition-all duration-500 ${isOpened ? 'opacity-0 h-0' : 'opacity-0 group-hover:opacity-100'}`}>
-                        <span className="font-elegant text-[9px] text-slate-400 tracking-widest border-b border-slate-200 pb-0.5">
-                            TAP TO READ
-                        </span>
+                    <div className="h-px w-12 sm:w-16 bg-gradient-to-r from-transparent via-gray-300/60 to-transparent mb-2" />
+                    <div className={`transition-all duration-500 ${
+                      isOpened ? 'opacity-0 h-0' : 'opacity-0 group-hover:opacity-100'
+                    }`}>
+                      <span className="font-elegant text-[10px] text-gray-500 tracking-widest border-b border-gray-200 pb-0.5">
+                        TAP TO READ
+                      </span>
                     </div>
                     {isOpened && (
-                         <Heart className="w-3 h-3 text-rose-300/80 fill-rose-100 mt-1" />
+                      <div className="flex items-center gap-1 mt-1">
+                        <Heart className="w-3.5 h-3.5 text-pink-400/80 fill-pink-400/30" />
+                        <Star className="w-3 h-3 text-yellow-400/60" />
+                      </div>
                     )}
                   </div>
                 </div>
@@ -500,72 +617,173 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Enhanced Modal */}
       {selectedLetter && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
           <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity duration-500"
+            className="absolute inset-0 bg-black/70 backdrop-blur-lg transition-opacity duration-500"
             onClick={closeLetter}
           />
-          <div className="letter-modal relative z-50 w-full max-w-md animate-modal-in perspective-1000">
-            <div className="relative bg-[#fdfbf7] rounded-sm sm:rounded-md shadow-2xl overflow-hidden transform-gpu rotate-1">
-                <div className="absolute inset-0 opacity-[0.07] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48ZGVmcz48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjQiLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PC9maWx0ZXI+PC9kZWZzPjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wOCIvPjwvc3ZnPg==')]" />
-                <div className="relative z-10 p-8 sm:p-10">
-                    <button onClick={closeLetter} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors">
-                        <X className="w-5 h-5" />
-                    </button>
-                    <div className="text-center mb-8">
-                        <div className="font-cursive text-3xl text-slate-800 mb-2">{selectedLetter.from}</div>
-                        <div className="font-elegant text-xs text-slate-500 uppercase tracking-widest">{selectedLetter.relation}</div>
-                        <div className="w-12 h-px bg-slate-200 mx-auto mt-4" />
-                    </div>
-                    <div className="font-elegant text-slate-700 text-base leading-loose text-center px-4">
-                        {selectedLetter.content.split(',').map((line, i) => (
-                             <p key={i} className={i === 0 ? "mb-6 italic" : "font-cursive text-xl text-slate-600"}>
-                                {line}
-                             </p>
-                        ))}
-                    </div>
-                    <div className="mt-10 flex justify-center">
-                        <Heart className="w-4 h-4 text-rose-300 fill-rose-50" />
-                    </div>
+          <div className="letter-modal relative z-50 w-full max-w-sm sm:max-w-md md:max-w-lg animate-modal-in">
+            <div className="relative bg-gradient-to-br from-[#fefefe] via-[#faf5e9] to-[#fdf8f0] rounded-lg sm:rounded-xl shadow-2xl overflow-hidden">
+              {/* Modal texture */}
+              <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48ZGVmcz48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjMiLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PC9maWx0ZXI+PC9kZWZzPjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wNiIvPjwvc3ZnPg==')]" />
+              
+              <div className="relative z-10 p-6 sm:p-8 md:p-10">
+                {/* Close button */}
+                <button 
+                  onClick={closeLetter}
+                  className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1.5 hover:bg-white/30 rounded-lg transition-colors duration-300"
+                >
+                  <X className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
+                </button>
+                
+                {/* Header */}
+                <div className="text-center mb-6 sm:mb-8">
+                  <div className="font-cursive text-2xl sm:text-3xl text-gray-800 mb-1.5">
+                    From {selectedLetter.from}
+                  </div>
+                  <div className="font-elegant text-xs sm:text-sm text-gray-600/80 tracking-widest uppercase">
+                    {selectedLetter.relation}
+                  </div>
+                  <div className="w-16 sm:w-20 h-px bg-gradient-to-r from-transparent via-gray-300/60 to-transparent mx-auto mt-3" />
                 </div>
+                
+                {/* Content */}
+                <div className="font-elegant text-gray-700 text-center px-2 sm:px-4">
+                  {selectedLetter.content.split(',').map((line, i) => (
+                    <p 
+                      key={i} 
+                      className={`leading-relaxed ${
+                        i === 0 
+                          ? "text-base sm:text-lg mb-4 text-gray-800" 
+                          : "text-xl sm:text-2xl font-cursive text-gray-600 mt-4"
+                      }`}
+                    >
+                      {line}
+                    </p>
+                  ))}
+                </div>
+                
+                {/* Footer */}
+                <div className="mt-8 sm:mt-10 pt-4 sm:pt-6 border-t border-gray-200/50">
+                  <div className="flex items-center justify-center gap-4">
+                    <div className="h-px w-8 sm:w-12 bg-gradient-to-r from-transparent via-gray-300/40 to-transparent" />
+                    <div className="flex items-center gap-2">
+                      <Heart className="w-3.5 h-3.5 text-pink-400/70 fill-pink-400/20" />
+                      <Star className="w-3 h-3 text-yellow-400/50" />
+                      <span className="font-elegant text-xs text-gray-500/70">
+                        A cherished message
+                      </span>
+                    </div>
+                    <div className="h-px w-8 sm:w-12 bg-gradient-to-r from-transparent via-gray-300/40 to-transparent" />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Navigation */}
-      <div className="absolute bottom-6 left-0 right-0 z-20 px-6">
-        <div className="flex items-center justify-between max-w-4xl mx-auto">
-           <div className="flex gap-2">
-                {openedLetters.length === LETTERS.length && (
-                    <span className="font-elegant text-xs text-white/50 animate-pulse">All letters collected</span>
-                )}
-           </div>
-           <button
-             onClick={handleClose}
-             className="group flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 rounded-full transition-all duration-500"
-           >
-             <Home className="w-3.5 h-3.5 text-white/70 group-hover:text-white transition-colors" />
-             <span className="font-elegant text-xs text-white/70 group-hover:text-white transition-colors tracking-wide">RETURN</span>
-           </button>
+      {/* Enhanced Navigation */}
+      <div className="absolute bottom-4 sm:bottom-6 left-0 right-0 z-20 px-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 max-w-4xl mx-auto">
+          <div className="text-center sm:text-left">
+            <div className="font-elegant text-xs text-white/50">
+              {openedLetters.length === LETTERS.length ? (
+                <span className="flex items-center gap-1.5 animate-pulse">
+                  <Sparkles className="w-3 h-3 text-yellow-300" />
+                  All messages collected ✨
+                </span>
+              ) : (
+                <span className="flex items-center gap-1.5">
+                  <Star className="w-3 h-3 text-yellow-300/60" />
+                  {LETTERS.length - openedLetters.length} remaining
+                </span>
+              )}
+            </div>
+          </div>
+          
+          <button
+            onClick={handleClose}
+            className="group flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/20 rounded-full transition-all duration-300"
+          >
+            <Home className="w-3.5 h-3.5 text-white/70 group-hover:text-white transition-colors" />
+            <span className="font-elegant text-xs text-white/80 group-hover:text-white transition-colors">
+              Return to Room
+            </span>
+          </button>
         </div>
       </div>
 
+      {/* Mobile Instruction */}
+      {isMobile && !selectedLetter && openedLetters.length < LETTERS.length && (
+        <div className="absolute bottom-20 left-0 right-0 z-20 px-4">
+          <div className="text-center">
+            <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 animate-pulse">
+              <Sparkles className="w-3 h-3 text-yellow-300/80" />
+              <span className="font-elegant text-[10px] text-white/80">
+                Tap letters to read messages
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>{`
         @keyframes modal-in {
-          0% { opacity: 0; transform: translateY(20px) rotateX(10deg); }
-          100% { opacity: 1; transform: translateY(0) rotateX(0); }
+          0% { 
+            opacity: 0; 
+            transform: translateY(20px) scale(0.95) rotateX(5deg); 
+          }
+          100% { 
+            opacity: 1; 
+            transform: translateY(0) scale(1) rotateX(0); 
+          }
         }
+        
         .animate-modal-in {
-          animation: modal-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+          animation: modal-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
+        
         .perspective-1000 {
-          perspective: 1200px;
+          perspective: 1000px;
         }
+        
         .transform-gpu {
           transform-style: preserve-3d;
+        }
+        
+        /* Graffiti font */
+        .font-graffiti {
+          font-family: 'Brush Script MT', cursive, sans-serif;
+          font-weight: bold;
+          letter-spacing: 1px;
+        }
+        
+        /* Custom scrollbar */
+        .scrollbar-thin::-webkit-scrollbar {
+          width: 4px;
+        }
+        
+        .scrollbar-thumb-gray-300\/20::-webkit-scrollbar-thumb {
+          background-color: rgba(209, 213, 219, 0.2);
+          border-radius: 4px;
+        }
+        
+        /* Prevent flickering */
+        * {
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          backface-visibility: hidden;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 767px) {
+          .letter-modal {
+            max-width: 95%;
+            margin: 0 2.5%;
+          }
         }
       `}</style>
     </div>
