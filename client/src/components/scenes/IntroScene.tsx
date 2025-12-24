@@ -293,6 +293,16 @@ export function IntroScene() {
                         rounded-2xl md:rounded-3xl scale-105" />
         </div>
 
+        {/* Mobile tip about desktop experience */}
+        <div className="mt-6 sm:mt-8">
+          <div className="inline-flex items-center justify-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 
+                        bg-white/5 backdrop-blur-sm rounded-full border border-white/10">
+            <span className="text-xs sm:text-sm text-purple-200/60 font-elegant">
+              💻 Tip: For best experience, try on laptop/desktop
+            </span>
+          </div>
+        </div>
+
         {/* Instructions */}
         <div className="mt-8 sm:mt-10 md:mt-12 space-y-4">
           {/* Mobile Instructions */}
