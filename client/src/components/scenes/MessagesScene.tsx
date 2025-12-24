@@ -9,12 +9,12 @@ interface Letter {
   content: string;
   rotation: number;
   size: number;
-  pinPosition: 'tl' | 'tr' | 'bl' | 'br';
   folded: boolean;
   depth: number;
   floatIntensity: number;
-  imperfection: string;
   glowColor: string;
+  paperColor: string;
+  borderColor: string;
 }
 
 const LETTERS: Letter[] = [
@@ -26,12 +26,12 @@ const LETTERS: Letter[] = [
 Maryam 💫`,
     rotation: -2.5,
     size: 0.85,
-    pinPosition: 'tl',
     folded: false,
     depth: 3,
     floatIntensity: 1.1,
-    imperfection: '4px 6px 4px 8px',
-    glowColor: '#f0abfc'
+    glowColor: '#f0abfc',
+    paperColor: 'from-[#fff9f0] via-[#fff5e6] to-[#fff0db]',
+    borderColor: 'border-orange-300/30'
   },
   { 
     id: 2, 
@@ -41,12 +41,12 @@ Maryam 💫`,
 Fatima 🌸`,
     rotation: 3.2,
     size: 0.88,
-    pinPosition: 'tr',
     folded: true,
     depth: 2,
     floatIntensity: 0.9,
-    imperfection: '8px 12px 8px 12px',
-    glowColor: '#c4b5fd'
+    glowColor: '#c4b5fd',
+    paperColor: 'from-[#f8f7ff] via-[#f3f1ff] to-[#eae7ff]',
+    borderColor: 'border-purple-300/30'
   },
   { 
     id: 3, 
@@ -56,12 +56,12 @@ Fatima 🌸`,
 Monira 🌟`,
     rotation: 1.8,
     size: 0.82,
-    pinPosition: 'bl',
     folded: false,
     depth: 4,
     floatIntensity: 1.3,
-    imperfection: '6px 4px 6px 4px',
-    glowColor: '#93c5fd'
+    glowColor: '#93c5fd',
+    paperColor: 'from-[#f0f9ff] via-[#e0f2fe] to-[#bae6fd]',
+    borderColor: 'border-blue-300/30'
   },
   { 
     id: 4, 
@@ -71,12 +71,12 @@ Monira 🌟`,
 Your Lil Bro 🎮`,
     rotation: -4.2,
     size: 0.9,
-    pinPosition: 'br',
     folded: true,
     depth: 1,
     floatIntensity: 1.0,
-    imperfection: '2px 8px 2px 8px',
-    glowColor: '#86efac'
+    glowColor: '#86efac',
+    paperColor: 'from-[#f0fdf4] via-[#dcfce7] to-[#bbf7d0]',
+    borderColor: 'border-green-300/30'
   },
   { 
     id: 5, 
@@ -86,12 +86,12 @@ Your Lil Bro 🎮`,
 Anjila 💕`,
     rotation: 2.7,
     size: 0.86,
-    pinPosition: 'tl',
     folded: false,
     depth: 3,
     floatIntensity: 1.2,
-    imperfection: '5px 3px 5px 3px',
-    glowColor: '#fde68a'
+    glowColor: '#fde68a',
+    paperColor: 'from-[#fefce8] via-[#fef9c3] to-[#fef08a]',
+    borderColor: 'border-yellow-300/30'
   },
   { 
     id: 6, 
@@ -101,12 +101,12 @@ Anjila 💕`,
 Prajol 🥂`,
     rotation: -3.1,
     size: 0.84,
-    pinPosition: 'tr',
     folded: true,
     depth: 2,
     floatIntensity: 0.8,
-    imperfection: '3px 7px 3px 7px',
-    glowColor: '#fca5a5'
+    glowColor: '#fca5a5',
+    paperColor: 'from-[#fef2f2] via-[#fee2e2] to-[#fecaca]',
+    borderColor: 'border-red-300/30'
   },
   { 
     id: 7, 
@@ -116,12 +116,12 @@ Prajol 🥂`,
 , Aditi 🦋`,
     rotation: 6.5,
     size: 0.87,
-    pinPosition: 'tl',
     folded: false,
     depth: 2,
     floatIntensity: 1.15,
-    imperfection: '7px 3px 7px 3px',
-    glowColor: '#c084fc'
+    glowColor: '#c084fc',
+    paperColor: 'from-[#faf5ff] via-[#f3e8ff] to-[#e9d5ff]',
+    borderColor: 'border-violet-300/30'
   },
 ];
 
@@ -225,6 +225,7 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
           const pos = positions[i];
           const xVal = isMobile ? pos.xMobile : pos.xDesktop;
           const yVal = isMobile ? pos.yMobile : pos.yDesktop;
+          const scaleVal = isMobile ? letter.size * 0.75 : letter.size * 0.9;
 
           gsap.set(ref, { 
             opacity: 0,
@@ -237,7 +238,7 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
 
           gsap.to(ref, { 
             opacity: 1, 
-            scale: isMobile ? letter.size * 0.85 : letter.size,
+            scale: scaleVal,
             x: xVal,
             y: yVal,
             rotation: letter.rotation,
@@ -261,11 +262,12 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
           const pos = positions[i];
           const xVal = isMobile ? pos.xMobile : pos.xDesktop;
           const yVal = isMobile ? pos.yMobile : pos.yDesktop;
+          const scaleVal = isMobile ? letter.size * 0.75 : letter.size * 0.9;
 
           gsap.to(ref, {
             x: xVal,
             y: yVal,
-            scale: isMobile ? letter.size * 0.85 : letter.size,
+            scale: scaleVal,
             duration: 0.8,
             ease: 'power2.out'
           });
@@ -293,23 +295,23 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
   const getLetterPositions = () => {
     // Better spacing for mobile to prevent overlap
     const desktopPositions = [
-      { xDesktop: '-22vw', yDesktop: '-18vh' },
-      { xDesktop: '24vw', yDesktop: '-15vh' },
-      { xDesktop: '-28vw', yDesktop: '10vh' },
-      { xDesktop: '26vw', yDesktop: '14vh' },
-      { xDesktop: '-14vw', yDesktop: '20vh' },
-      { xDesktop: '30vw', yDesktop: '-5vh' },
-      { xDesktop: '0vw', yDesktop: '-25vh' },
+      { xDesktop: '-28vw', yDesktop: '-15vh' },
+      { xDesktop: '26vw', yDesktop: '-12vh' },
+      { xDesktop: '-32vw', yDesktop: '14vh' },
+      { xDesktop: '28vw', yDesktop: '18vh' },
+      { xDesktop: '-18vw', yDesktop: '22vh' },
+      { xDesktop: '32vw', yDesktop: '-4vh' },
+      { xDesktop: '0vw', yDesktop: '-22vh' },
     ];
     
     const mobilePositions = [
-      { xMobile: '-32vw', yMobile: '-15vh' },
-      { xMobile: '28vw', yMobile: '-10vh' },
-      { xMobile: '-36vw', yMobile: '12vh' },
-      { xMobile: '30vw', yMobile: '18vh' },
-      { xMobile: '-18vw', yMobile: '22vh' },
-      { xMobile: '22vw', yMobile: '28vh' },
-      { xMobile: '-4vw', yMobile: '-22vh' },
+      { xMobile: '-40vw', yMobile: '-12vh' },
+      { xMobile: '36vw', yMobile: '-8vh' },
+      { xMobile: '-42vw', yMobile: '14vh' },
+      { xMobile: '38vw', yMobile: '20vh' },
+      { xMobile: '-24vw', yMobile: '24vh' },
+      { xMobile: '28vw', yMobile: '32vh' },
+      { xMobile: '0vw', yMobile: '-18vh' },
     ];
 
     return desktopPositions.map((pos, i) => ({
@@ -338,13 +340,14 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
 
     const letterIndex = letter.id - 1;
     const ref = lettersRef.current[letterIndex];
+    const scaleVal = isMobile ? letter.size * 1.05 : letter.size * 1.1;
     
     if (ref) {
       gsap.killTweensOf(ref);
 
       gsap.to(ref, {
-        scale: isMobile ? letter.size * 1.08 : letter.size * 1.15,
-        y: `-=${isMobile ? 12 : 18}`,
+        scale: scaleVal,
+        y: `-=${isMobile ? 10 : 15}`,
         rotation: letter.rotation + 2,
         z: 40,
         duration: 0.5,
@@ -352,9 +355,10 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
         onComplete: () => {
           setOpenedLetters(prev => [...prev, letter.id]);
           setTimeout(() => setSelectedLetter(letter), 180);
+          const returnScale = isMobile ? letter.size * 0.82 : letter.size * 0.88;
           gsap.to(ref, {
-            scale: isMobile ? letter.size * 0.9 : letter.size * 0.85,
-            y: `+=${isMobile ? 8 : 12}`,
+            scale: returnScale,
+            y: `+=${isMobile ? 6 : 10}`,
             rotation: letter.rotation,
             z: 0,
             duration: 0.4,
@@ -385,25 +389,6 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
     }
   };
 
-  const renderPin = (position: string) => {
-    return (
-      <div className={`absolute z-30 transition-all duration-500 group-hover:scale-110 ${
-        position === 'tl' ? '-top-2 -left-2' :
-        position === 'tr' ? '-top-2 -right-2' :
-        position === 'bl' ? '-bottom-2 -left-2' :
-        '-bottom-2 -right-2'
-      }`}>
-        <div className="absolute -inset-1 bg-black/20 blur-[1px] rounded-full" />
-        <div className="relative w-3.5 h-3.5 rounded-full bg-gradient-to-br from-gray-300 via-gray-400 to-gray-500 shadow-[inset_1px_1px_3px_rgba(255,255,255,0.7),inset_-1px_-1px_3px_rgba(0,0,0,0.3)] flex items-center justify-center">
-          <div className="w-1 h-1 bg-white/80 rounded-full" />
-        </div>
-        <div className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <Sparkles className="w-2 h-2 text-yellow-300/70" />
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div 
       ref={containerRef} 
@@ -418,25 +403,25 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
             backgroundImage: `url(${roomImage})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            filter: 'blur(10px) brightness(0.3)',
+            filter: 'blur(8px) brightness(0.35)',
             transform: `scale(1.05) translate3d(${mousePosition.x * 8}px, ${mousePosition.y * 8}px, 0)`
           }}
         />
         
-        {/* Graffiti Background */}
-        <div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center pointer-events-none opacity-10"
-          style={{ transform: `translate(-50%, -50%) rotate(-3deg) translate3d(${mousePosition.x * -15}px, ${mousePosition.y * -15}px, 0)` }}
-        >
-          <h1 className="font-graffiti text-7xl sm:text-9xl md:text-[10rem] text-white/20 blur-[1px] tracking-widest leading-tight">
-            Happy Birthday<br/>Afrah
-          </h1>
+        {/* Clean Background Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-400/10 via-transparent to-pink-400/10" />
+          <div 
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[80%]"
+            style={{
+              backgroundImage: `radial-gradient(circle at 30% 20%, rgba(255,255,255,0.05) 0%, transparent 70%)`,
+            }}
+          />
         </div>
         
         {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-b from-purple-950/40 via-transparent to-pink-950/60" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/20" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,rgba(0,0,0,0.5)_100%)]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-purple-950/40 via-transparent to-pink-950/50" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/30" />
         
         {/* Floating Lanterns */}
         <div className="absolute inset-0 pointer-events-none">
@@ -453,14 +438,11 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
               }}
             >
               <div className="relative w-full h-full">
-                {/* Lantern glow */}
                 <div 
                   className="absolute inset-0 rounded-full blur-md opacity-30"
                   style={{ background: `radial-gradient(circle at 30% 30%, #fde68a50, transparent 70%)` }}
                 />
-                {/* Lantern body */}
                 <div className="relative w-full h-full rounded-full bg-gradient-to-br from-yellow-200/40 via-orange-200/30 to-transparent backdrop-blur-sm border border-yellow-300/30" />
-                {/* Lantern tassel */}
                 <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0.5 h-6 bg-gradient-to-b from-yellow-400/50 to-transparent" />
               </div>
             </div>
@@ -472,24 +454,24 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
       <div className="relative z-20 text-center pt-6 sm:pt-10 px-4">
         <div className="inline-flex flex-col items-center space-y-2">
           <div className="flex items-center gap-2 sm:gap-3">
-            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300/80 animate-pulse" />
-            <h1 className="font-cursive text-2xl sm:text-3xl md:text-4xl text-white/95 tracking-widest drop-shadow-lg">
+            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300/90 animate-pulse" />
+            <h1 className="font-cursive text-2xl sm:text-3xl md:text-4xl text-white/95 tracking-widest drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
               Birthday Messages
             </h1>
-            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300/80 animate-pulse" />
+            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300/90 animate-pulse" />
           </div>
-          <p className="font-elegant text-xs sm:text-sm text-purple-200/70 max-w-md mx-auto">
+          <p className="font-elegant text-xs sm:text-sm text-purple-200/80 max-w-md mx-auto drop-shadow-[0_1px_3px_rgba(0,0,0,0.3)]">
             Letters from loved ones ✨
           </p>
-          <div className="h-px w-32 sm:w-48 bg-gradient-to-r from-transparent via-purple-400/40 to-transparent mt-2" />
+          <div className="h-px w-32 sm:w-48 bg-gradient-to-r from-transparent via-purple-400/50 to-transparent mt-2" />
         </div>
       </div>
 
       {/* Progress Counter */}
       <div className="relative z-20 text-center mt-3 sm:mt-4">
-        <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5">
-          <Heart className="w-3.5 h-3.5 text-pink-300/80 fill-pink-300/20" />
-          <span className="font-elegant text-xs text-white/90">
+        <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md rounded-full px-4 py-1.5 border border-white/20 shadow-lg">
+          <Heart className="w-3.5 h-3.5 text-pink-300/90 fill-pink-300/30" />
+          <span className="font-elegant text-xs text-white/95">
             {openedLetters.length}/{LETTERS.length} opened
           </span>
         </div>
@@ -498,18 +480,21 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
       {/* Main Content with better mobile spacing */}
       <div className="relative z-10 w-full h-[calc(100%-140px)] sm:h-[calc(100%-160px)] overflow-hidden perspective-1000">
         
-        {/* Hanging Strings - More subtle */}
+        {/* Clean Simple Strings */}
         <div className="absolute inset-0 pointer-events-none">
           {LETTERS.map((_, i) => {
             const positions = getLetterPositions();
+            const xVal = isMobile ? parseFloat(positions[i].xMobile) : parseFloat(positions[i].xDesktop);
+            const yVal = isMobile ? parseFloat(positions[i].yMobile) : parseFloat(positions[i].yDesktop);
+            
             return (
               <div
                 key={`string-${i}`}
-                className="absolute w-[0.3px] bg-gradient-to-b from-white/30 via-white/15 to-transparent"
+                className="absolute w-[0.2px] bg-gradient-to-b from-white/20 via-white/10 to-transparent"
                 style={{
-                  left: `calc(50% + ${isMobile ? parseFloat(positions[i].xMobile) / 2 : parseFloat(positions[i].xDesktop) / 2}vw)`,
-                  top: '-5%',
-                  height: '35%',
+                  left: `calc(50% + ${xVal / 2}vw)`,
+                  top: '-2%',
+                  height: `calc(50% + ${Math.abs(yVal) * 0.7}vh)`,
                   transformOrigin: 'top',
                 }}
               />
@@ -530,7 +515,7 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
                 key={letter.id}
                 ref={el => { lettersRef.current[index] = el; }}
                 onClick={() => openLetter(letter)}
-                className="absolute cursor-pointer transform-gpu will-change-transform group"
+                className="absolute cursor-pointer transform-gpu will-change-transform group touch-manipulation"
                 style={{
                   left: '50%',
                   top: '50%',
@@ -540,10 +525,10 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
               >
                 {/* Letter glow effect */}
                 {!isOpened && (
-                  <div className="absolute -inset-4 opacity-0 group-hover:opacity-40 transition-opacity duration-500">
+                  <div className="absolute -inset-2 opacity-0 group-hover:opacity-60 transition-opacity duration-500">
                     <div 
-                      className="absolute inset-0 rounded-lg blur-lg"
-                      style={{ background: `radial-gradient(circle at center, ${letter.glowColor}30, transparent 70%)` }}
+                      className="absolute inset-0 rounded-lg blur-md"
+                      style={{ background: `radial-gradient(circle at center, ${letter.glowColor}40, transparent 70%)` }}
                     />
                   </div>
                 )}
@@ -551,62 +536,56 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
                 {/* Paper Container */}
                 <div 
                   className={`relative transition-all duration-500 ease-out ${
-                    isMobile ? 'w-36 p-3' : 'w-40 sm:w-44 p-4'
-                  } ${isOpened ? 'opacity-90 saturate-80' : 'group-hover:-translate-y-1 group-hover:scale-105'}`}
+                    isMobile ? 'w-32 p-3' : 'w-36 sm:w-40 p-3.5'
+                  } ${isOpened ? 'opacity-90' : 'group-hover:-translate-y-1 group-hover:scale-105'} ${
+                    letter.borderColor
+                  }`}
                   style={{
                     boxShadow: `
-                      inset 0 1px 0 rgba(255,255,255,0.8),
-                      0 2px 4px rgba(0,0,0,0.1),
-                      0 8px 16px rgba(0,0,0,0.1),
-                      0 20px 40px rgba(0,0,0,0.15)
+                      inset 0 2px 4px rgba(255,255,255,0.9),
+                      0 4px 12px rgba(0,0,0,0.15),
+                      0 12px 24px rgba(0,0,0,0.2)
                     `,
                   }}
                 >
-                  {/* Paper with texture */}
+                  {/* Paper with bright gradient */}
                   <div 
-                    className="absolute inset-0 bg-gradient-to-br from-[#fefefe] via-[#faf5e9] to-[#fdf8f0]"
+                    className={`absolute inset-0 bg-gradient-to-br ${letter.paperColor} rounded-lg border-2`}
                     style={{
-                      borderRadius: letter.imperfection,
+                      borderImage: `linear-gradient(135deg, ${letter.glowColor}20, transparent 70%) 1`,
                       backgroundImage: `
-                        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E"),
-                        linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.3) 100%)
+                        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.4' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.02'/%3E%3C/svg%3E")
                       `,
                     }}
                   />
                   
-                  {/* Fold effect */}
+                  {/* Fold effect - Subtle */}
                   {letter.folded && (
-                    <div className="absolute -top-1 -right-1 w-6 h-8 bg-gradient-to-br from-black/10 to-transparent rounded-sm transform rotate-12" />
+                    <div className="absolute -top-0.5 -right-0.5 w-4 h-5 bg-gradient-to-br from-black/15 to-transparent rounded-sm transform rotate-12" />
                   )}
                   
-                  {/* Pin */}
-                  {renderPin(letter.pinPosition)}
-
-                  {/* Bottom edge shadow for paper weight */}
-                  <div className="absolute -bottom-1 left-2 right-2 h-1 bg-gradient-to-t from-black/20 to-transparent rounded-b-lg" />
-
                   {/* Content */}
                   <div className="relative z-10 flex flex-col items-center justify-center text-center">
-                    <span className={`font-cursive text-lg sm:text-xl text-gray-800 leading-tight mb-1 transition-colors duration-300 ${
-                      isOpened ? 'text-gray-600' : ''
+                    <span className={`font-cursive text-base sm:text-lg text-gray-900 leading-tight mb-1 transition-colors duration-300 ${
+                      isOpened ? 'text-gray-700' : ''
                     }`}>
                       {letter.from}
                     </span>
-                    <span className="font-elegant text-[11px] text-gray-600/80 tracking-widest uppercase mb-2">
+                    <span className="font-elegant text-[10px] text-gray-700/90 tracking-widest uppercase mb-2">
                       {letter.relation}
                     </span>
-                    <div className="h-px w-12 sm:w-16 bg-gradient-to-r from-transparent via-gray-300/60 to-transparent mb-2" />
+                    <div className="h-px w-10 sm:w-14 bg-gradient-to-r from-transparent via-gray-400/50 to-transparent mb-2" />
                     <div className={`transition-all duration-500 ${
                       isOpened ? 'opacity-0 h-0' : 'opacity-0 group-hover:opacity-100'
                     }`}>
-                      <span className="font-elegant text-[10px] text-gray-500 tracking-widest border-b border-gray-200 pb-0.5">
+                      <span className="font-elegant text-[9px] text-gray-600 tracking-widest border-b border-gray-300 pb-0.5">
                         TAP TO READ
                       </span>
                     </div>
                     {isOpened && (
                       <div className="flex items-center gap-1 mt-1">
-                        <Heart className="w-3.5 h-3.5 text-pink-400/80 fill-pink-400/30" />
-                        <Star className="w-3 h-3 text-yellow-400/60" />
+                        <Heart className="w-3.5 h-3.5 text-pink-500/90 fill-pink-500/30" />
+                        <Star className="w-3 h-3 text-yellow-500/70" />
                       </div>
                     )}
                   </div>
@@ -619,45 +598,46 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
 
       {/* Enhanced Modal */}
       {selectedLetter && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 touch-manipulation">
           <div 
-            className="absolute inset-0 bg-black/70 backdrop-blur-lg transition-opacity duration-500"
+            className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity duration-500"
             onClick={closeLetter}
           />
           <div className="letter-modal relative z-50 w-full max-w-sm sm:max-w-md md:max-w-lg animate-modal-in">
-            <div className="relative bg-gradient-to-br from-[#fefefe] via-[#faf5e9] to-[#fdf8f0] rounded-lg sm:rounded-xl shadow-2xl overflow-hidden">
+            <div className="relative bg-gradient-to-br from-[#fffefc] via-[#fffbf6] to-[#fff8ed] rounded-lg sm:rounded-xl shadow-2xl overflow-hidden">
               {/* Modal texture */}
-              <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48ZGVmcz48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjMiLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PC9maWx0ZXI+PC9kZWZzPjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wNiIvPjwvc3ZnPg==')]" />
+              <div className="absolute inset-0 opacity-[0.02] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48ZGVmcz48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjMiLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PC9maWx0ZXI+PC9kZWZzPjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wNiIvPjwvc3ZnPg==')]" />
               
-              <div className="relative z-10 p-6 sm:p-8 md:p-10">
+              <div className="relative z-10 p-5 sm:p-7 md:p-8">
                 {/* Close button */}
                 <button 
                   onClick={closeLetter}
-                  className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1.5 hover:bg-white/30 rounded-lg transition-colors duration-300"
+                  className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1.5 hover:bg-gray-100/50 rounded-lg transition-colors duration-300"
+                  aria-label="Close message"
                 >
-                  <X className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
+                  <X className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                 </button>
                 
                 {/* Header */}
-                <div className="text-center mb-6 sm:mb-8">
-                  <div className="font-cursive text-2xl sm:text-3xl text-gray-800 mb-1.5">
+                <div className="text-center mb-5 sm:mb-7">
+                  <div className="font-cursive text-xl sm:text-2xl text-gray-900 mb-1.5">
                     From {selectedLetter.from}
                   </div>
-                  <div className="font-elegant text-xs sm:text-sm text-gray-600/80 tracking-widest uppercase">
+                  <div className="font-elegant text-xs sm:text-sm text-gray-700/90 tracking-widest uppercase">
                     {selectedLetter.relation}
                   </div>
-                  <div className="w-16 sm:w-20 h-px bg-gradient-to-r from-transparent via-gray-300/60 to-transparent mx-auto mt-3" />
+                  <div className="w-14 sm:w-18 h-px bg-gradient-to-r from-transparent via-gray-400/60 to-transparent mx-auto mt-3" />
                 </div>
                 
                 {/* Content */}
-                <div className="font-elegant text-gray-700 text-center px-2 sm:px-4">
+                <div className="font-elegant text-gray-800 text-center px-2 sm:px-4">
                   {selectedLetter.content.split(',').map((line, i) => (
                     <p 
                       key={i} 
                       className={`leading-relaxed ${
                         i === 0 
-                          ? "text-base sm:text-lg mb-4 text-gray-800" 
-                          : "text-xl sm:text-2xl font-cursive text-gray-600 mt-4"
+                          ? "text-base sm:text-lg mb-3 text-gray-900" 
+                          : "text-xl sm:text-2xl font-cursive text-gray-700 mt-3"
                       }`}
                     >
                       {line}
@@ -666,17 +646,17 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
                 </div>
                 
                 {/* Footer */}
-                <div className="mt-8 sm:mt-10 pt-4 sm:pt-6 border-t border-gray-200/50">
-                  <div className="flex items-center justify-center gap-4">
-                    <div className="h-px w-8 sm:w-12 bg-gradient-to-r from-transparent via-gray-300/40 to-transparent" />
+                <div className="mt-6 sm:mt-8 pt-3 sm:pt-4 border-t border-gray-300/50">
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="h-px w-6 sm:w-8 bg-gradient-to-r from-transparent via-gray-400/40 to-transparent" />
                     <div className="flex items-center gap-2">
-                      <Heart className="w-3.5 h-3.5 text-pink-400/70 fill-pink-400/20" />
-                      <Star className="w-3 h-3 text-yellow-400/50" />
-                      <span className="font-elegant text-xs text-gray-500/70">
+                      <Heart className="w-3.5 h-3.5 text-pink-500/80 fill-pink-500/30" />
+                      <Star className="w-3 h-3 text-yellow-500/60" />
+                      <span className="font-elegant text-xs text-gray-600/80">
                         A cherished message
                       </span>
                     </div>
-                    <div className="h-px w-8 sm:w-12 bg-gradient-to-r from-transparent via-gray-300/40 to-transparent" />
+                    <div className="h-px w-6 sm:w-8 bg-gradient-to-r from-transparent via-gray-400/40 to-transparent" />
                   </div>
                 </div>
               </div>
@@ -689,7 +669,7 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
       <div className="absolute bottom-4 sm:bottom-6 left-0 right-0 z-20 px-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 max-w-4xl mx-auto">
           <div className="text-center sm:text-left">
-            <div className="font-elegant text-xs text-white/50">
+            <div className="font-elegant text-xs text-white/70">
               {openedLetters.length === LETTERS.length ? (
                 <span className="flex items-center gap-1.5 animate-pulse">
                   <Sparkles className="w-3 h-3 text-yellow-300" />
@@ -697,7 +677,7 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
                 </span>
               ) : (
                 <span className="flex items-center gap-1.5">
-                  <Star className="w-3 h-3 text-yellow-300/60" />
+                  <Star className="w-3 h-3 text-yellow-300/70" />
                   {LETTERS.length - openedLetters.length} remaining
                 </span>
               )}
@@ -706,10 +686,11 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
           
           <button
             onClick={handleClose}
-            className="group flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/20 rounded-full transition-all duration-300"
+            className="group flex items-center gap-2 px-4 py-2.5 bg-white/15 hover:bg-white/20 backdrop-blur-lg border border-white/30 rounded-full transition-all duration-300 shadow-lg"
+            aria-label="Return to room"
           >
-            <Home className="w-3.5 h-3.5 text-white/70 group-hover:text-white transition-colors" />
-            <span className="font-elegant text-xs text-white/80 group-hover:text-white transition-colors">
+            <Home className="w-4 h-4 text-white/90 group-hover:text-white transition-colors" />
+            <span className="font-elegant text-sm text-white/95 group-hover:text-white transition-colors">
               Return to Room
             </span>
           </button>
@@ -718,11 +699,11 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
 
       {/* Mobile Instruction */}
       {isMobile && !selectedLetter && openedLetters.length < LETTERS.length && (
-        <div className="absolute bottom-20 left-0 right-0 z-20 px-4">
+        <div className="absolute bottom-24 left-0 right-0 z-20 px-4">
           <div className="text-center">
-            <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 animate-pulse">
-              <Sparkles className="w-3 h-3 text-yellow-300/80" />
-              <span className="font-elegant text-[10px] text-white/80">
+            <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-lg rounded-full px-4 py-2 animate-pulse border border-white/20 shadow-lg">
+              <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
+              <span className="font-elegant text-xs text-white/95">
                 Tap letters to read messages
               </span>
             </div>
@@ -754,21 +735,32 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
           transform-style: preserve-3d;
         }
         
-        /* Graffiti font */
-        .font-graffiti {
-          font-family: 'Brush Script MT', cursive, sans-serif;
-          font-weight: bold;
-          letter-spacing: 1px;
+        .touch-manipulation {
+          touch-action: manipulation;
         }
         
-        /* Custom scrollbar */
-        .scrollbar-thin::-webkit-scrollbar {
-          width: 4px;
-        }
-        
-        .scrollbar-thumb-gray-300\/20::-webkit-scrollbar-thumb {
-          background-color: rgba(209, 213, 219, 0.2);
-          border-radius: 4px;
+        /* Mobile optimizations */
+        @media (max-width: 767px) {
+          .letter-modal {
+            max-width: 95%;
+            margin: 0 auto;
+            max-height: 85vh;
+            overflow-y: auto;
+          }
+          
+          /* Prevent text selection on mobile */
+          * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+          }
+          
+          /* Allow text selection in modal */
+          .letter-modal * {
+            -webkit-user-select: text;
+            user-select: text;
+          }
         }
         
         /* Prevent flickering */
@@ -776,14 +768,6 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
           backface-visibility: hidden;
-        }
-        
-        /* Mobile optimizations */
-        @media (max-width: 767px) {
-          .letter-modal {
-            max-width: 95%;
-            margin: 0 2.5%;
-          }
         }
       `}</style>
     </div>
