@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import gsap from 'gsap';
-import { X, CornerUpLeft, CornerUpRight, CornerDownLeft, CornerDownRight, Sparkles, Heart, Moon, Star, Music, Home } from 'lucide-react';
+import { X, CornerUpLeft, CornerUpRight, CornerDownLeft, CornerDownRight, Sparkles, Heart, Star, Home } from 'lucide-react';
 
 interface Letter {
   id: number;
@@ -14,6 +14,7 @@ interface Letter {
   depth: number;
   floatIntensity: number;
   relation: string;
+  imperfection?: 'worn-fold' | 'off-center' | 'extra-crooked' | 'frayed-edge';
 }
 
 const LETTERS: Letter[] = [
@@ -21,42 +22,58 @@ const LETTERS: Letter[] = [
     id: 1, 
     from: 'Maryam', 
     relation: 'Sissy',
-    content: `TBA,
+    content: `My dearest Afrah,
+
+As you turn twenty, I'm filled with memories of our laughter and secrets. 
+You've grown into someone so strong and beautiful. 
+
+Always here for you,
 Maryam 💫`,
-    rotation: -2.5,
-    size: 0.85,
+    rotation: -2.8,
+    size: 0.92,
     pinPosition: 'tl',
     glowColor: '#f0abfc',
     folded: false,
-    depth: 2,
-    floatIntensity: 1.1
+    depth: 4,
+    floatIntensity: 1.1,
+    imperfection: 'worn-fold'
   },
   { 
     id: 2, 
     from: 'Fatima', 
     relation: 'Long Distance Sissy',
-    content: `TBA,
+    content: `Afrah,
+
+Even miles apart, you feel close. Your spirit shines through everything.
+Can't wait to celebrate together soon.
+
+With love,
 Fatima 🌸`,
-    rotation: 3.2,
-    size: 0.88,
+    rotation: 3.5,
+    size: 0.95,
     pinPosition: 'tr',
     glowColor: '#c4b5fd',
     folded: true,
-    depth: 3,
+    depth: 2,
     floatIntensity: 0.9
   },
   { 
     id: 3, 
     from: 'Monira', 
     relation: 'Mufasa Mom',
-    content: `TBA,
+    content: `My beautiful Afrah,
+
+Watching you grow has been my greatest joy. You make us all proud.
+Remember, you can achieve anything.
+
+Always,
 Monira 🌟`,
-    rotation: 1.8,
-    size: 0.82,
+    rotation: 1.9,
+    size: 0.88,
     pinPosition: 'bl',
     glowColor: '#93c5fd',
     folded: false,
-    depth: 4,
+    depth: 5,
     floatIntensity: 1.3
   },
   { 
@@ -64,27 +81,34 @@ Monira 🌟`,
     from: 'Lil Bro', 
     relation: 'Bilsis heartbeat',
     content: `AALU,
+Best sister ever! Thanks for everything.
+
+Love you tons,
 Your Lil Bro 🎮`,
-    rotation: -1.2,
-    size: 0.9,
+    rotation: -1.8,
+    size: 1.0,
     pinPosition: 'br',
     glowColor: '#86efac',
     folded: true,
     depth: 1,
-    floatIntensity: 1.0
+    floatIntensity: 1.0,
+    imperfection: 'extra-crooked'
   },
   { 
     id: 5, 
     from: 'Anjila', 
     relation: 'Bilsi sissy',
     content: `please write,
+Missing you and our moments.
+
+Always,
 Anjila 💕`,
-    rotation: 2.7,
-    size: 0.86,
+    rotation: 2.3,
+    size: 0.89,
     pinPosition: 'tl',
     glowColor: '#fde68a',
     folded: false,
-    depth: 2,
+    depth: 3,
     floatIntensity: 1.2
   },
   { 
@@ -92,14 +116,38 @@ Anjila 💕`,
     from: 'Prajol', 
     relation: 'Bilsi bestie',
     content: `my goat philoshoper,
+Here's to deep talks and shared silences.
+
+Cheers,
 Prajol 🥂`,
-    rotation: -3.1,
-    size: 0.84,
+    rotation: -3.4,
+    size: 0.86,
     pinPosition: 'tr',
     glowColor: '#fca5a5',
     folded: true,
+    depth: 2,
+    floatIntensity: 0.8,
+    imperfection: 'frayed-edge'
+  },
+  { 
+    id: 7, 
+    from: 'Aditi', 
+    relation: 'Forever Friend',
+    content: `Dearest Afrah,
+
+Your kindness has always been your superpower.
+May this year bring you all the joy you spread.
+
+With admiration,
+Aditi 🌺`,
+    rotation: 0.7,
+    size: 0.94,
+    pinPosition: 'bl',
+    glowColor: '#c084fc',
+    folded: false,
     depth: 3,
-    floatIntensity: 0.8
+    floatIntensity: 1.0,
+    imperfection: 'off-center'
   },
 ];
 
@@ -117,9 +165,9 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const lettersRef = useRef<(HTMLDivElement | null)[]>([]);
   const animationRef = useRef<gsap.core.Tween[]>([]);
+  const lanternsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Check if mobile
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
@@ -143,8 +191,8 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
         { opacity: 0 },
         { 
           opacity: 1, 
-          duration: 1.5, 
-          ease: 'power4.out',
+          duration: 1.8, 
+          ease: 'power3.out',
           onStart: () => {
             if (containerRef.current) {
               containerRef.current.style.display = 'block';
@@ -153,7 +201,10 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
         }
       );
 
-      // Clear any existing animations
+      // Create floating lanterns
+      createFloatingLanterns();
+
+      // Clear existing animations
       animationRef.current.forEach(anim => anim.kill());
       animationRef.current = [];
 
@@ -175,21 +226,23 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
               scale: 0.3,
               x: isMobile ? pos.xMobile : pos.xDesktop,
               y: isMobile ? pos.yMobile : pos.yDesktop,
-              rotation: letter.rotation - 10,
-              z: -100
+              rotation: letter.rotation - 8,
+              z: -150,
+              filter: 'blur(10px)'
             },
             { 
               opacity: 1, 
-              scale: isMobile ? letter.size * 0.9 : letter.size, // Smaller on mobile
+              scale: isMobile ? letter.size * 0.85 : letter.size,
               x: isMobile ? pos.xMobile : pos.xDesktop,
               y: isMobile ? pos.yMobile : pos.yDesktop,
               rotation: letter.rotation,
               z: 0,
-              duration: 1.5, 
-              ease: 'back.out(2.5)',
-              delay: i * 0.2,
+              filter: 'blur(0px)',
+              duration: 1.8, 
+              ease: 'power3.out',
+              delay: i * 0.15,
               onComplete: () => {
-                startFloatingAnimation(ref, letter);
+                startGentleFloatingAnimation(ref, letter);
               }
             }
           );
@@ -201,43 +254,90 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('resize', checkMobile);
-      // Clean up animations
       animationRef.current.forEach(anim => anim.kill());
     };
   }, [isMobile]);
 
-  const startFloatingAnimation = (ref: HTMLDivElement, letter: Letter) => {
+  const createFloatingLanterns = () => {
+    if (!lanternsRef.current) return;
+    
+    const lanternCount = 3;
+    const colors = ['#f0abfc', '#c4b5fd', '#93c5fd'];
+    
+    for (let i = 0; i < lanternCount; i++) {
+      const lantern = document.createElement('div');
+      lantern.className = 'absolute pointer-events-none';
+      
+      const size = 20 + Math.random() * 30;
+      const left = 10 + (i * 25) + Math.random() * 10;
+      const top = 15 + Math.random() * 20;
+      const duration = 15 + Math.random() * 10;
+      const delay = i * 2;
+      
+      lantern.innerHTML = `
+        <div class="relative">
+          <div class="absolute inset-0 rounded-full blur-md opacity-20" style="background: ${colors[i]}"></div>
+          <div class="relative w-full h-full rounded-full" style="background: radial-gradient(circle at 30% 30%, ${colors[i]}40, transparent 70%)"></div>
+          <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-0.5 h-4" style="background: linear-gradient(to bottom, ${colors[i]}60, transparent)"></div>
+        </div>
+      `;
+      
+      lantern.style.width = `${size}px`;
+      lantern.style.height = `${size}px`;
+      lantern.style.left = `${left}%`;
+      lantern.style.top = `${top}%`;
+      lantern.style.filter = 'blur(0.5px)';
+      
+      lanternsRef.current.appendChild(lantern);
+      
+      const timeline = gsap.timeline({ repeat: -1, delay });
+      timeline
+        .to(lantern, {
+          y: -20,
+          duration: duration,
+          ease: "sine.inOut"
+        })
+        .to(lantern, {
+          y: 0,
+          duration: duration,
+          ease: "sine.inOut"
+        });
+    }
+  };
+
+  const startGentleFloatingAnimation = (ref: HTMLDivElement, letter: Letter) => {
     const floatAnim = gsap.to(ref, {
-      y: `+=${4 * letter.floatIntensity}`,
-      rotation: letter.rotation + (0.8 * letter.floatIntensity),
-      duration: 2.5 + letter.floatIntensity,
+      y: `+=${3 * letter.floatIntensity}`,
+      rotation: letter.rotation + (0.5 * letter.floatIntensity),
+      duration: 4 + letter.floatIntensity,
       ease: "sine.inOut",
       yoyo: true,
       repeat: -1,
-      repeatDelay: 0.3
+      repeatDelay: 0.5
     });
     animationRef.current.push(floatAnim);
   };
 
   const getLetterPositions = () => {
-    // Desktop positions - MOVED UPWARD even more
+    // More breathing room, asymmetrical placement
     const desktopPositions = [
-      { xDesktop: '-15vw', yDesktop: '-25vh' },   // Top left - moved up more
-      { xDesktop: '20vw', yDesktop: '-20vh' },    // Top right - moved up more
-      { xDesktop: '-25vw', yDesktop: '5vh' },     // Middle left - moved up significantly
-      { xDesktop: '30vw', yDesktop: '8vh' },      // Middle right - moved up significantly
-      { xDesktop: '-10vw', yDesktop: '15vh' },    // Bottom left - moved up
-      { xDesktop: '35vw', yDesktop: '-5vh' },     // Center right - moved up
+      { xDesktop: '-18vw', yDesktop: '-22vh' },   // Top left with space
+      { xDesktop: '24vw', yDesktop: '-18vh' },    // Top right
+      { xDesktop: '-30vw', yDesktop: '10vh' },    // Left middle - asymmetrical
+      { xDesktop: '32vw', yDesktop: '12vh' },     // Right middle
+      { xDesktop: '-12vw', yDesktop: '25vh' },    // Left bottom
+      { xDesktop: '38vw', yDesktop: '-2vh' },     // Top right offset
+      { xDesktop: '5vw', yDesktop: '30vh' },      // Center bottom - Aditi
     ];
     
-    // Mobile positions - MOVED UPWARD and made smaller
     const mobilePositions = [
-      { xMobile: '-22vw', yMobile: '-15vh' },     // Top left - moved up more
-      { xMobile: '18vw', yMobile: '-10vh' },      // Top right - moved up more
-      { xMobile: '-28vw', yMobile: '5vh' },       // Middle left - moved up
-      { xMobile: '22vw', yMobile: '10vh' },       // Middle right - moved up
-      { xMobile: '-8vw', yMobile: '15vh' },       // Bottom left - moved up
-      { xMobile: '12vw', yMobile: '20vh' },       // Bottom right - moved up
+      { xMobile: '-20vw', yMobile: '-12vh' },
+      { xMobile: '22vw', yMobile: '-8vh' },
+      { xMobile: '-32vw', yMobile: '8vh' },
+      { xMobile: '26vw', yMobile: '15vh' },
+      { xMobile: '-14vw', yMobile: '25vh' },
+      { xMobile: '18vw', yMobile: '5vh' },
+      { xMobile: '0vw', yMobile: '35vh' },        // Aditi at bottom center on mobile
     ];
 
     return desktopPositions.map((pos, i) => ({
@@ -249,14 +349,13 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
 
   const handleClose = () => {
     setIsClosing(true);
-    // Clean up animations before closing
     animationRef.current.forEach(anim => anim.kill());
     
     if (containerRef.current) {
       gsap.to(containerRef.current, {
         opacity: 0,
-        scale: 0.95,
-        duration: 0.8,
+        scale: 0.97,
+        duration: 1,
         ease: 'power3.inOut',
         onComplete: onClose
       });
@@ -275,26 +374,25 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
     const ref = lettersRef.current[letterIndex];
     
     if (ref) {
-      // Kill floating animation for this letter
       animationRef.current.forEach(anim => anim.kill());
       
       gsap.to(ref, {
-        scale: isMobile ? letter.size * 1.05 : letter.size * 1.1,
-        y: `-=${isMobile ? 15 : 15}`,
-        rotation: letter.rotation + 2,
-        z: 20,
-        duration: 0.5,
-        ease: 'elastic.out(1.4)',
+        scale: isMobile ? letter.size * 1.08 : letter.size * 1.12,
+        y: `-=${isMobile ? 12 : 15}`,
+        rotation: letter.rotation + 1.5,
+        z: 25,
+        duration: 0.6,
+        ease: 'power2.out',
         onComplete: () => {
           setOpenedLetters(prev => [...prev, letter.id]);
-          setTimeout(() => setSelectedLetter(letter), 200);
+          setTimeout(() => setSelectedLetter(letter), 250);
           gsap.to(ref, {
-            scale: isMobile ? letter.size * 0.95 : letter.size * 0.9,
-            y: `+=${isMobile ? 10 : 10}`,
+            scale: isMobile ? letter.size * 0.92 : letter.size * 0.88,
+            y: `+=${isMobile ? 8 : 10}`,
             rotation: letter.rotation,
             z: 0,
-            duration: 0.3,
-            ease: 'power2.out'
+            duration: 0.4,
+            ease: 'power2.inOut'
           });
         }
       });
@@ -307,9 +405,8 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
       if (modal) {
         gsap.to(modal, {
           opacity: 0,
-          scale: 0.9,
-          y: 20,
-          rotationX: 5,
+          scale: 0.96,
+          y: 15,
           duration: 0.4,
           ease: 'power2.in',
           onComplete: () => setSelectedLetter(null)
@@ -321,12 +418,36 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
   };
 
   const getPinIcon = (position: string) => {
-    switch(position) {
-      case 'tl': return <CornerUpLeft className="w-2.5 h-2.5" />;
-      case 'tr': return <CornerUpRight className="w-2.5 h-2.5" />;
-      case 'bl': return <CornerDownLeft className="w-2.5 h-2.5" />;
-      case 'br': return <CornerDownRight className="w-2.5 h-2.5" />;
-      default: return <CornerUpLeft className="w-2.5 h-2.5" />;
+    const icons = {
+      'tl': <CornerUpLeft className="w-3 h-3" />,
+      'tr': <CornerUpRight className="w-3 h-3" />,
+      'bl': <CornerDownLeft className="w-3 h-3" />,
+      'br': <CornerDownRight className="w-3 h-3" />
+    };
+    return icons[position as keyof typeof icons];
+  };
+
+  const renderImperfection = (letter: Letter) => {
+    switch(letter.imperfection) {
+      case 'worn-fold':
+        return (
+          <div className="absolute -top-1 -right-1 w-6 h-8 bg-gradient-to-br from-white/30 to-white/5 rounded-sm transform rotate-12 opacity-70" />
+        );
+      case 'extra-crooked':
+        return null; // Already handled by rotation
+      case 'frayed-edge':
+        return (
+          <>
+            <div className="absolute -bottom-1 left-2 w-8 h-0.5 bg-gradient-to-r from-transparent via-white/10 to-transparent transform rotate-1" />
+            <div className="absolute -bottom-0.5 right-3 w-5 h-0.5 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -rotate-1" />
+          </>
+        );
+      case 'off-center':
+        return (
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+        );
+      default:
+        return null;
     }
   };
 
@@ -341,7 +462,7 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
         opacity: 1 
       }}
     >
-      {/* Fixed background - prevents flickering */}
+      {/* Fixed background with vignette */}
       <div className="fixed inset-0">
         {/* Room scene backdrop */}
         <div 
@@ -351,77 +472,80 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundAttachment: 'fixed',
-            filter: 'blur(8px) brightness(0.7)',
-            opacity: 0.2,
-            transform: `translate3d(${mousePosition.x * 8}px, ${mousePosition.y * 8}px, 0)`
+            filter: 'blur(6px) brightness(0.75)',
+            opacity: 0.18,
           }}
         />
         
-        {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/50 via-purple-950/40 to-pink-950/60" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/20" />
-      </div>
-
-      {/* Title Section - Compact */}
-      <div className="relative z-20 text-center pt-4 sm:pt-8 px-3">
-        <div className="inline-flex flex-col items-center">
-          <div className="flex items-center gap-1.5 sm:gap-2 mb-2">
-            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-pink-300/80 animate-pulse" />
-            <h1 className="font-cursive text-xl sm:text-2xl md:text-3xl bg-gradient-to-r from-pink-200 via-purple-200 to-indigo-200 
-              bg-clip-text text-transparent tracking-wider">
-              Birthday Messages
-            </h1>
-            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-pink-300/80 animate-pulse" />
+        {/* Gradient overlays with center vignette */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/40 via-purple-950/35 to-pink-950/45" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-black/10" />
+        <div className="absolute inset-0" style={{
+          background: 'radial-gradient(circle at 50% 50%, transparent 30%, rgba(0, 0, 0, 0.15) 100%)'
+        }} />
+        
+        {/* Graffiti "Happy Birthday Afrah" */}
+        <div className="absolute inset-0 pointer-events-none opacity-10">
+          <div className="absolute top-10 left-1/2 -translate-x-1/2 transform -rotate-3">
+            <div className="font-graffiti text-6xl sm:text-7xl md:text-8xl text-white/5 tracking-wider">
+              Happy Birthday
+            </div>
+            <div className="font-graffiti text-5xl sm:text-6xl md:text-7xl text-white/5 tracking-wider mt-2 text-center">
+              Afrah
+            </div>
           </div>
-          <p className="font-elegant text-[10px] sm:text-xs text-purple-200/70 max-w-md mx-auto leading-tight">
-            ✨ Letters from the specials for your special day 🎈
-          </p>
-          <div className="h-px w-16 sm:w-32 bg-gradient-to-r from-transparent via-purple-400/40 to-transparent mt-1.5 sm:mt-2" />
         </div>
       </div>
 
-      {/* Counter - Compact */}
-      <div className="relative z-20 text-center mt-1.5 sm:mt-2">
-        <div className="inline-flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1 sm:px-3 sm:py-1.5">
-          <Heart className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-pink-300/80 fill-pink-300/30" />
-          <span className="font-elegant text-[10px] sm:text-xs text-purple-100/90">
-            {openedLetters.length}/{LETTERS.length}
+      {/* Floating lanterns container */}
+      <div ref={lanternsRef} className="absolute inset-0 pointer-events-none z-5" />
+
+      {/* Title Section - More refined */}
+      <div className="relative z-20 text-center pt-5 sm:pt-8 px-3">
+        <div className="inline-flex flex-col items-center space-y-1.5">
+          <h1 className="font-cursive text-2xl sm:text-3xl md:text-4xl text-white/95 tracking-wider">
+            Birthday Messages
+          </h1>
+          <div className="h-px w-20 sm:w-32 bg-gradient-to-r from-transparent via-purple-400/30 to-transparent" />
+          <p className="font-elegant text-xs sm:text-sm text-purple-200/60 max-w-md mx-auto leading-tight">
+            Letters from loved ones
+          </p>
+        </div>
+      </div>
+
+      {/* Counter - Subtle */}
+      <div className="relative z-20 text-center mt-2 sm:mt-3">
+        <div className="inline-flex items-center gap-1 bg-white/5 backdrop-blur-sm rounded-full px-3 py-1 sm:px-3.5 sm:py-1.5">
+          <Heart className="w-3 h-3 text-pink-300/60 fill-pink-300/20" />
+          <span className="font-elegant text-xs text-purple-100/70">
+            {openedLetters.length} of {LETTERS.length}
           </span>
         </div>
       </div>
 
-      {/* Main Content - More space at top */}
-      <div className="relative z-10 w-full h-[calc(100%-120px)] sm:h-[calc(100%-140px)] overflow-hidden perspective-1000">
-        {/* Hanging strings - shorter */}
-        <div className="absolute inset-0 pointer-events-none">
-          {LETTERS.map((_, i) => {
-            const positions = getLetterPositions();
-            const yOffset = isMobile ? -20 : -25; // Shorter strings
-            return (
-              <div
-                key={`string-${i}`}
-                className="absolute w-px bg-gradient-to-b from-white/15 via-white/10 to-transparent"
-                style={{
-                  left: `calc(50% + ${isMobile ? 
-                    parseFloat(positions[i].xMobile) / 2 : 
-                    parseFloat(positions[i].xDesktop) / 2}vw)`,
-                  top: `${20 + yOffset}%`,
-                  height: '12vh',
-                  transformOrigin: 'top'
-                }}
-              />
-            );
-          })}
-        </div>
-
+      {/* Main Content with breathing room */}
+      <div className="relative z-10 w-full h-[calc(100%-130px)] sm:h-[calc(100%-150px)] overflow-hidden perspective-1000">
         {/* Letters */}
         <div className="relative w-full h-full">
           {LETTERS.map((letter, index) => {
             const isOpened = openedLetters.includes(letter.id);
+            const isHovered = false; // We'll handle hover via CSS
             const positions = getLetterPositions();
             const xPos = isMobile ? positions[index].xMobile : positions[index].xDesktop;
             const yPos = isMobile ? positions[index].yMobile : positions[index].yDesktop;
             const cardSize = isMobile ? 'w-32 p-2.5' : 'w-36 sm:w-40 p-3 sm:p-4';
+            
+            // Depth-based styling
+            const depthStyles = {
+              1: { blur: '0px', saturation: '100%', shadow: '0 12px 24px rgba(0,0,0,0.25)' },
+              2: { blur: '0.3px', saturation: '95%', shadow: '0 10px 20px rgba(0,0,0,0.2)' },
+              3: { blur: '0.6px', saturation: '90%', shadow: '0 8px 16px rgba(0,0,0,0.15)' },
+              4: { blur: '0.9px', saturation: '85%', shadow: '0 6px 12px rgba(0,0,0,0.12)' },
+              5: { blur: '1.2px', saturation: '80%', shadow: '0 4px 8px rgba(0,0,0,0.1)' },
+            };
+            
+            const depthStyle = depthStyles[letter.depth as keyof typeof depthStyles] || depthStyles[3];
 
             return (
               <div
@@ -433,92 +557,119 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
                   }
                 }}
                 onClick={() => openLetter(letter)}
-                className="absolute cursor-pointer transform-gpu will-change-transform"
+                className="absolute cursor-pointer transform-gpu will-change-transform group"
                 style={{
                   left: '50%',
                   top: '50%',
-                  transform: `translate3d(${xPos}, ${yPos}, ${letter.depth * 10}px) rotate(${letter.rotation}deg)`,
+                  transform: `translate3d(${xPos}, ${yPos}, ${letter.depth * 20}px) rotate(${letter.rotation}deg)`,
                   zIndex: letter.depth,
+                  filter: `blur(${depthStyle.blur}) saturate(${depthStyle.saturation})`,
                 }}
               >
-                {/* Glow effect for unopened letters - smaller */}
-                {!isOpened && (
-                  <div className="absolute -inset-3">
-                    <div 
-                      className="absolute inset-0 rounded-md blur-sm opacity-50 animate-pulse"
-                      style={{ 
-                        background: `radial-gradient(circle at center, ${letter.glowColor}30, transparent 70%)` 
-                      }}
-                    />
-                  </div>
-                )}
+                {/* Paper shadow with gradient gravity */}
+                <div 
+                  className="absolute -inset-2 rounded-lg opacity-40"
+                  style={{
+                    background: `linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 60%)`,
+                    transform: `translate3d(${mousePosition.x * 1}px, ${mousePosition.y * 1 + 2}px, 0)`,
+                    filter: 'blur(6px)',
+                  }}
+                />
 
-                {/* Folded paper effect - smaller */}
+                {/* Folded paper effect */}
                 {letter.folded && !isOpened && (
                   <>
-                    <div className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-br from-white/40 to-white/10 rounded transform rotate-12" />
-                    <div className="absolute -bottom-1 -left-1 w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 bg-gradient-to-br from-white/30 to-white/5 rounded transform -rotate-6" />
+                    <div className="absolute -top-1 -right-1 w-5 h-7 bg-gradient-to-br from-white/25 to-white/5 rounded-sm transform rotate-12 opacity-60" />
+                    <div className="absolute -bottom-1 -left-1 w-4 h-5 bg-gradient-to-br from-white/20 to-white/3 rounded-sm transform -rotate-6 opacity-40" />
                   </>
                 )}
+
+                {/* Imperfection */}
+                {renderImperfection(letter)}
                 
-                {/* Pinned corner - smaller */}
-                <div className={`absolute z-30 text-white/90 transition-all duration-500 ${
-                  letter.pinPosition === 'tl' ? '-top-1.5 -left-1.5' :
-                  letter.pinPosition === 'tr' ? '-top-1.5 -right-1.5' :
-                  letter.pinPosition === 'bl' ? '-bottom-1.5 -left-1.5' :
-                  '-bottom-1.5 -right-1.5'
+                {/* Pin with physical weight */}
+                <div className={`absolute z-30 transition-all duration-700 group-hover:scale-110 ${
+                  letter.pinPosition === 'tl' ? '-top-2 -left-2' :
+                  letter.pinPosition === 'tr' ? '-top-2 -right-2' :
+                  letter.pinPosition === 'bl' ? '-bottom-2 -left-2' :
+                  '-bottom-2 -right-2'
                 }`}>
                   <div className="relative">
-                    <div className="absolute -inset-1 bg-white/20 rounded-full blur-[1px]" />
-                    {getPinIcon(letter.pinPosition)}
+                    {/* Pin shadow */}
+                    <div className="absolute -inset-1 opacity-20">
+                      <div className="absolute inset-0 bg-gradient-to-br from-black/30 to-transparent rounded-full blur-[1px] transform rotate-45" />
+                    </div>
+                    
+                    {/* Pin body with metallic gradient */}
+                    <div className="relative bg-gradient-to-br from-gray-200 via-gray-100 to-gray-300 p-1 rounded-full shadow-sm">
+                      <div className="text-gray-600/80">
+                        {getPinIcon(letter.pinPosition)}
+                      </div>
+                      {/* Pin head */}
+                      <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-gradient-to-br from-yellow-200 to-yellow-100 rounded-full blur-[0.5px]" />
+                    </div>
+                    
+                    {/* Sparkle only on hover */}
                     {!isOpened && (
-                      <Sparkles className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 text-yellow-300 animate-pulse" />
+                      <div className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                        <Sparkles className="w-2 h-2 text-yellow-300/70" />
+                      </div>
                     )}
                   </div>
                 </div>
                 
-                {/* Paper shadow - smaller */}
-                <div 
-                  className="absolute -inset-1.5 bg-black/25 rounded-md blur-sm"
-                  style={{
-                    transform: `translate3d(${mousePosition.x * 1.5}px, ${mousePosition.y * 1.5}px, 0)`
-                  }}
-                />
-                
-                {/* Paper card - EVEN SMALLER ON MOBILE */}
+                {/* Paper card */}
                 <div className={`relative ${cardSize}
-                  bg-gradient-to-br from-white/98 via-amber-50/97 to-white/98 
-                  rounded-md sm:rounded-lg shadow-[inset_0_1px_0_0_rgba(255,255,255,0.8),0_8px_16px_rgba(0,0,0,0.15)]
-                  border border-white/80 border-t-white/90 border-l-white/90 backdrop-blur-sm
-                  transition-all duration-250 hover:shadow-[0_12px_24px_-4px_rgba(168,85,247,0.4)] ${
-                  isOpened ? 'opacity-85' : 'hover:scale-102'
-                }`}>
+                  bg-gradient-to-br from-white/99 via-amber-50/98 to-white/98 
+                  rounded-md sm:rounded-lg shadow-sm
+                  border border-white/70 border-t-white/80 border-l-white/80
+                  backdrop-blur-sm
+                  transition-all duration-500 ease-out
+                  ${isOpened ? 'opacity-90 saturate-80' : 'group-hover:shadow-md group-hover:border-white/80'}`}
+                  style={{
+                    boxShadow: depthStyle.shadow,
+                  }}>
+                  
+                  {/* Bottom edge shading for gravity */}
+                  <div className="absolute -bottom-1 left-1 right-1 h-1 bg-gradient-to-t from-black/5 to-transparent rounded-b-md sm:rounded-b-lg" />
+                  
+                  {/* Uneven corner radii */}
+                  <div className="absolute top-0 right-0 w-3 h-3 overflow-hidden">
+                    <div className="absolute top-0 right-0 w-4 h-4 bg-white/30 rounded-bl-full transform translate-x-1 -translate-y-1" />
+                  </div>
                   
                   {/* Paper texture */}
-                  <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48ZGVmcz48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjQiLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PC9maWx0ZXI+PC9kZWZzPjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wOCIvPjwvc3ZnPg==')] rounded-md sm:rounded-lg" />
+                  <div className="absolute inset-0 opacity-5 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48ZGVmcz48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjMiLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PC9maWx0ZXI+PC9kZWZzPjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wMyIvPjwvc3ZnPg==')] rounded-md sm:rounded-lg" />
                   
-                  {/* Content - COMPACT BUT READABLE */}
+                  {/* Content with clear hierarchy */}
                   <div className="relative z-10">
-                    <div className={`font-cursive text-sm sm:text-base tracking-[0.1em] bg-gradient-to-r ${
-                      isOpened ? 'from-purple-600/70 via-pink-600/70 to-indigo-600/70' : 
-                      'from-purple-800 via-pink-800 to-indigo-800'} 
-                      bg-clip-text text-transparent mb-0.5 sm:mb-1 font-semibold truncate`}>
+                    {/* Sender's name - authority */}
+                    <div className={`font-cursive text-base sm:text-lg tracking-[0.08em] ${
+                      isOpened ? 'text-purple-700/70' : 'text-purple-900'
+                    } font-medium mb-0.5 truncate`}>
                       {letter.from}
                     </div>
-                    <div className="text-[9px] sm:text-[10px] font-elegant text-purple-700/70 mb-0.5 font-medium truncate">
+                    
+                    {/* Relation - contextual softness */}
+                    <div className="text-[10px] sm:text-[11px] font-elegant text-purple-600/50 mb-1 font-normal">
                       {letter.relation}
                     </div>
-                    <div className="h-px w-8 sm:w-10 bg-gradient-to-r from-purple-300/50 via-pink-300/50 to-transparent mb-0.5 sm:mb-1" />
-                    <div className={`text-[9px] sm:text-[10px] font-elegant tracking-wide leading-tight ${
-                      isOpened ? 'text-purple-500/60 italic' : 
-                      'bg-gradient-to-r from-purple-700/80 via-pink-700/80 to-indigo-700/80 bg-clip-text text-transparent font-medium'
-                    }`}>
-                      {isOpened ? '💖' : isMobile ? 'Tap' : 'Tap to read'}
+                    
+                    {/* Divider */}
+                    <div className="h-px w-10 sm:w-12 bg-gradient-to-r from-purple-200/30 via-pink-200/30 to-transparent mb-1" />
+                    
+                    {/* Hint - whispering */}
+                    <div className={`text-[10px] sm:text-[11px] font-elegant tracking-wide ${
+                      isOpened ? 'text-purple-500/40 italic' : 'text-purple-600/40'
+                    } leading-tight`}>
+                      {isOpened ? 'cherished' : 'touch to read'}
                     </div>
+                    
+                    {/* Opened indicator */}
                     {isOpened && (
-                      <div className="absolute bottom-0.5 right-0.5 flex gap-0.5">
-                        <Heart className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-pink-400/70 fill-pink-400/30" />
-                        <Star className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-yellow-400/60" />
+                      <div className="absolute bottom-1 right-1 flex gap-0.5">
+                        <Heart className="w-2.5 h-2.5 text-pink-400/50 fill-pink-400/20" />
+                        <Star className="w-2.5 h-2.5 text-yellow-400/30" />
                       </div>
                     )}
                   </div>
@@ -529,37 +680,36 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
         </div>
       </div>
 
-      {/* Letter Modal - Compact for mobile */}
+      {/* Letter Modal - Refined */}
       {selectedLetter && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-3">
           <div 
-            className="absolute inset-0 bg-gradient-to-br from-black/80 via-purple-950/90 to-black/80 backdrop-blur-xl"
+            className="absolute inset-0 bg-gradient-to-br from-black/60 via-purple-950/70 to-black/60 backdrop-blur-xl"
             onClick={closeLetter}
           />
           
-          <div className="letter-modal relative z-50 w-full max-w-xs sm:max-w-sm md:max-w-lg animate-modal-in">
+          <div className="letter-modal relative z-50 w-full max-w-xs sm:max-w-sm md:max-w-lg">
             {/* Modal paper */}
             <div className="relative bg-gradient-to-br from-white/99 via-amber-50/98 to-white/99 
-              rounded-lg sm:rounded-xl md:rounded-2xl shadow-[0_15px_30px_-8px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.9)]
-              border border-white/90 border-t-white/95 border-l-white/95
+              rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg
+              border border-white/80 border-t-white/90 border-l-white/90
               backdrop-blur-xl overflow-hidden transform-gpu mx-auto">
               
               <div className="relative z-10 p-3 sm:p-4 md:p-6">
-                {/* Header - Compact */}
-                <div className="mb-3 sm:mb-4 md:mb-6">
+                {/* Header */}
+                <div className="mb-4 sm:mb-5 md:mb-6">
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-1.5 sm:gap-2">
+                    <div className="flex items-center gap-2 sm:gap-2.5">
                       <div className="relative">
-                        <div className="p-1.5 sm:p-2 rounded-md sm:rounded-lg bg-gradient-to-br from-purple-100/80 to-pink-100/80 shadow-sm">
+                        <div className="p-1.5 sm:p-2 rounded-md sm:rounded-lg bg-gradient-to-br from-gray-100 to-gray-50 shadow-sm">
                           {getPinIcon(selectedLetter.pinPosition)}
                         </div>
                       </div>
                       <div className="min-w-0">
-                        <div className="font-cursive text-lg sm:text-xl md:text-2xl tracking-[0.08em] bg-gradient-to-r from-purple-900 via-pink-900 to-indigo-900 
-                          bg-clip-text text-transparent font-semibold truncate">
+                        <div className="font-cursive text-lg sm:text-xl md:text-2xl text-purple-900 font-medium truncate">
                           From {selectedLetter.from}
                         </div>
-                        <div className="text-xs font-elegant text-purple-600/70 mt-0.5 font-medium truncate">
+                        <div className="text-xs font-elegant text-purple-600/60 mt-0.5 truncate">
                           {selectedLetter.relation}
                         </div>
                       </div>
@@ -568,22 +718,22 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
                       onClick={closeLetter}
                       className="p-1 hover:bg-white/40 rounded-md transition-all duration-300 group flex-shrink-0"
                     >
-                      <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-700/80 group-hover:text-purple-900 transition-all duration-300" />
+                      <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-600/70 group-hover:text-purple-800 transition-all duration-300" />
                     </button>
                   </div>
-                  <div className="h-px w-16 sm:w-20 bg-gradient-to-r from-purple-300/60 via-pink-300/60 to-indigo-300/60" />
+                  <div className="h-px w-16 sm:w-20 bg-gradient-to-r from-purple-200/40 via-pink-200/40 to-transparent" />
                 </div>
                 
-                {/* Letter content - Compact */}
+                {/* Letter content */}
                 <div className="relative">
-                  <div className="font-elegant text-purple-900/95 leading-relaxed tracking-wide whitespace-pre-wrap text-sm sm:text-base 
+                  <div className="font-elegant text-purple-900/90 leading-relaxed tracking-wide whitespace-pre-wrap text-sm sm:text-base 
                     max-h-[40vh] sm:max-h-[45vh] overflow-y-auto pr-1 sm:pr-2 
-                    scrollbar-thin scrollbar-thumb-purple-300/40 scrollbar-track-transparent">
+                    scrollbar-thin scrollbar-thumb-purple-300/20 scrollbar-track-transparent">
                     <div className="text-center py-2 sm:py-3 md:py-4">
-                      <div className="text-xl sm:text-2xl font-cursive mb-2 sm:mb-3 bg-gradient-to-r from-purple-700 via-pink-700 to-indigo-700 bg-clip-text text-transparent">
+                      <div className="text-xl sm:text-2xl font-cursive mb-3 sm:mb-4 text-purple-800">
                         {selectedLetter.content.split(',')[0]}
                       </div>
-                      <div className="text-base sm:text-lg font-elegant text-purple-800/90">
+                      <div className="text-base sm:text-lg font-elegant text-purple-700/80">
                         {selectedLetter.content.split(',')[1]}
                       </div>
                     </div>
@@ -593,18 +743,17 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
                   <div className="absolute bottom-0 left-0 right-0 h-4 sm:h-6 bg-gradient-to-t from-white/98 to-transparent pointer-events-none" />
                 </div>
                 
-                {/* Footer - Compact */}
-                <div className="mt-3 sm:mt-4 md:mt-5 pt-2 sm:pt-3 border-t border-purple-200/30">
+                {/* Footer */}
+                <div className="mt-3 sm:mt-4 md:mt-5 pt-2 sm:pt-3 border-t border-purple-200/20">
                   <div className="flex items-center justify-center gap-1.5 sm:gap-2">
-                    <div className="h-px w-4 sm:w-8 bg-gradient-to-r from-transparent via-purple-300/40 to-transparent" />
+                    <div className="h-px w-4 sm:w-8 bg-gradient-to-r from-transparent via-purple-200/30 to-transparent" />
                     <div className="flex items-center gap-1 sm:gap-1.5">
-                      <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-400/80 animate-pulse" />
-                      <Heart className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-pink-400/80 fill-pink-400/30" />
-                      <span className="font-elegant text-[10px] sm:text-xs text-purple-600/60 font-medium">
-                        URTHEBEST
+                      <Heart className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-pink-400/60 fill-pink-400/20" />
+                      <span className="font-elegant text-[10px] sm:text-xs text-purple-600/40">
+                        a cherished message
                       </span>
                     </div>
-                    <div className="h-px w-4 sm:w-8 bg-gradient-to-r from-transparent via-pink-300/40 to-transparent" />
+                    <div className="h-px w-4 sm:w-8 bg-gradient-to-r from-transparent via-pink-200/30 to-transparent" />
                   </div>
                 </div>
               </div>
@@ -613,43 +762,35 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
         </div>
       )}
 
-      {/* Bottom Navigation - Compact */}
+      {/* Bottom Navigation */}
       <div className="absolute bottom-2 sm:bottom-3 left-0 right-0 z-20 px-2 sm:px-3">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-1.5 sm:gap-2 max-w-4xl mx-auto">
           <div className="text-center sm:text-left">
-            <div className="font-elegant text-[10px] sm:text-xs text-purple-200/70">
-              🎈🎈🎈
+            <div className="font-elegant text-xs text-purple-200/50">
+              made with love
             </div>
           </div>
           
           <div className="flex items-center gap-1.5">
             <button
               onClick={handleClose}
-              className="flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md 
+              className="flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-white/5 hover:bg-white/10 backdrop-blur-md 
                 rounded-md sm:rounded-lg transition-all duration-300 group"
             >
-              <Home className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white/80 group-hover:text-white" />
-              <span className="font-elegant text-[10px] sm:text-xs text-white/90">Return</span>
+              <Home className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white/60 group-hover:text-white/80" />
+              <span className="font-elegant text-xs text-white/70 group-hover:text-white/90">return</span>
             </button>
-            
-            <div className="hidden sm:flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1">
-              <Star className="w-2 h-2 text-yellow-300/80" />
-              <span className="font-elegant text-[10px] text-purple-200/70">
-                Subhanallah!!
-              </span>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Mobile Instructions - Compact */}
+      {/* Mobile Instructions - More subtle */}
       {isMobile && !selectedLetter && (
-        <div className="absolute bottom-14 left-0 right-0 z-20 px-2 animate-bounce">
+        <div className="absolute bottom-14 left-0 right-0 z-20 px-2 animate-pulse" style={{ animationDuration: '4s' }}>
           <div className="text-center">
-            <div className="inline-flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-2 py-1">
-              <Sparkles className="w-2 h-2 text-yellow-300" />
-              <span className="font-elegant text-[9px] text-purple-100">
-                Tap letters!
+            <div className="inline-flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2 py-1">
+              <span className="font-elegant text-[10px] text-purple-100/70">
+                touch letters
               </span>
             </div>
           </div>
@@ -660,7 +801,7 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
         @keyframes modal-in {
           0% { 
             opacity: 0; 
-            transform: translateY(20px) scale(0.95); 
+            transform: translateY(15px) scale(0.98); 
           }
           100% { 
             opacity: 1; 
@@ -668,8 +809,8 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
           }
         }
         
-        .animate-modal-in {
-          animation: modal-in 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+        .letter-modal {
+          animation: modal-in 0.5s cubic-bezier(0.19, 1, 0.22, 1);
         }
         
         .perspective-1000 {
@@ -680,17 +821,20 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
           transform-style: preserve-3d;
         }
         
-        .hover-scale-102:hover {
-          transform: scale(1.02);
+        /* Graffiti font */
+        .font-graffiti {
+          font-family: 'Brush Script MT', cursive, sans-serif;
+          font-weight: bold;
+          text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
         
-        /* Enhanced scrollbar */
+        /* Scrollbar */
         .scrollbar-thin::-webkit-scrollbar {
           width: 3px;
         }
         
-        .scrollbar-thumb-purple-300\/40::-webkit-scrollbar-thumb {
-          background-color: rgba(196, 181, 253, 0.4);
+        .scrollbar-thumb-purple-300\/20::-webkit-scrollbar-thumb {
+          background-color: rgba(196, 181, 253, 0.2);
           border-radius: 3px;
         }
         
@@ -703,13 +847,6 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
           backface-visibility: hidden;
-        }
-        
-        /* Truncate text utility */
-        .truncate {
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
         }
       `}</style>
     </div>
