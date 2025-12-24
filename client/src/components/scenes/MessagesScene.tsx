@@ -1,20 +1,19 @@
 import { useState, useRef, useEffect } from 'react';
 import gsap from 'gsap';
-import { X, CornerUpLeft, CornerUpRight, CornerDownLeft, CornerDownRight, Sparkles, Heart, Star, Home } from 'lucide-react';
+import { X, CornerUpLeft, CornerUpRight, CornerDownLeft, CornerDownRight, Sparkles, Heart, Star, Home, Music } from 'lucide-react';
 
 interface Letter {
   id: number;
   from: string;
+  relation: string;
   content: string;
   rotation: number;
   size: number;
   pinPosition: 'tl' | 'tr' | 'bl' | 'br';
-  glowColor: string;
   folded: boolean;
   depth: number;
   floatIntensity: number;
-  relation: string;
-  imperfection?: 'worn-fold' | 'off-center' | 'extra-crooked' | 'frayed-edge';
+  imperfection: string; // CSS border-radius variance for paper realism
 }
 
 const LETTERS: Letter[] = [
@@ -22,132 +21,99 @@ const LETTERS: Letter[] = [
     id: 1, 
     from: 'Maryam', 
     relation: 'Sissy',
-    content: `My dearest Afrah,
-
-As you turn twenty, I'm filled with memories of our laughter and secrets. 
-You've grown into someone so strong and beautiful. 
-
-Always here for you,
+    content: `TBA,
 Maryam 💫`,
-    rotation: -2.8,
-    size: 0.92,
+    rotation: -2.5,
+    size: 0.85,
     pinPosition: 'tl',
-    glowColor: '#f0abfc',
     folded: false,
-    depth: 4,
+    depth: 2,
     floatIntensity: 1.1,
-    imperfection: 'worn-fold'
+    imperfection: '2px 4px 2px 255px' // Slight curl
   },
   { 
     id: 2, 
     from: 'Fatima', 
     relation: 'Long Distance Sissy',
-    content: `Afrah,
-
-Even miles apart, you feel close. Your spirit shines through everything.
-Can't wait to celebrate together soon.
-
-With love,
+    content: `TBA,
 Fatima 🌸`,
-    rotation: 3.5,
-    size: 0.95,
+    rotation: 3.2,
+    size: 0.88,
     pinPosition: 'tr',
-    glowColor: '#c4b5fd',
     folded: true,
-    depth: 2,
-    floatIntensity: 0.9
+    depth: 3,
+    floatIntensity: 0.9,
+    imperfection: '255px 15px 225px 15px/15px 225px 15px 255px' // Organic shape
   },
   { 
     id: 3, 
     from: 'Monira', 
     relation: 'Mufasa Mom',
-    content: `My beautiful Afrah,
-
-Watching you grow has been my greatest joy. You make us all proud.
-Remember, you can achieve anything.
-
-Always,
+    content: `TBA,
 Monira 🌟`,
-    rotation: 1.9,
-    size: 0.88,
+    rotation: 1.8,
+    size: 0.82,
     pinPosition: 'bl',
-    glowColor: '#93c5fd',
     folded: false,
-    depth: 5,
-    floatIntensity: 1.3
+    depth: 4,
+    floatIntensity: 1.3,
+    imperfection: '3px 3px 3px 3px'
   },
   { 
     id: 4, 
     from: 'Lil Bro', 
     relation: 'Bilsis heartbeat',
     content: `AALU,
-Best sister ever! Thanks for everything.
-
-Love you tons,
 Your Lil Bro 🎮`,
-    rotation: -1.8,
-    size: 1.0,
+    rotation: -4.2, // Imperfection: More crooked
+    size: 0.9,
     pinPosition: 'br',
-    glowColor: '#86efac',
     folded: true,
     depth: 1,
     floatIntensity: 1.0,
-    imperfection: 'extra-crooked'
+    imperfection: '2px 2px 25px 2px' // Dog ear
   },
   { 
     id: 5, 
     from: 'Anjila', 
     relation: 'Bilsi sissy',
     content: `please write,
-Missing you and our moments.
-
-Always,
 Anjila 💕`,
-    rotation: 2.3,
-    size: 0.89,
+    rotation: 2.7,
+    size: 0.86,
     pinPosition: 'tl',
-    glowColor: '#fde68a',
     folded: false,
-    depth: 3,
-    floatIntensity: 1.2
+    depth: 2,
+    floatIntensity: 1.2,
+    imperfection: '1px 1px 1px 1px'
   },
   { 
     id: 6, 
     from: 'Prajol', 
     relation: 'Bilsi bestie',
     content: `my goat philoshoper,
-Here's to deep talks and shared silences.
-
-Cheers,
 Prajol 🥂`,
-    rotation: -3.4,
-    size: 0.86,
+    rotation: -3.1,
+    size: 0.84,
     pinPosition: 'tr',
-    glowColor: '#fca5a5',
     folded: true,
-    depth: 2,
+    depth: 3,
     floatIntensity: 0.8,
-    imperfection: 'frayed-edge'
+    imperfection: '2px 10px 2px 5px'
   },
   { 
     id: 7, 
     from: 'Aditi', 
-    relation: 'Forever Friend',
-    content: `Dearest Afrah,
-
-Your kindness has always been your superpower.
-May this year bring you all the joy you spread.
-
-With admiration,
-Aditi 🌺`,
-    rotation: 0.7,
-    size: 0.94,
-    pinPosition: 'bl',
-    glowColor: '#c084fc',
+    relation: 'Partner in Crime',
+    content: `Happy Birthday Afrah!
+Love, Aditi 🦋`,
+    rotation: 6.5, // Deliberate imperfection: Very tilted
+    size: 0.87,
+    pinPosition: 'tl',
     folded: false,
-    depth: 3,
-    floatIntensity: 1.0,
-    imperfection: 'off-center'
+    depth: 2,
+    floatIntensity: 1.15,
+    imperfection: '5px 2px 8px 2px'
   },
 ];
 
@@ -165,7 +131,6 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const lettersRef = useRef<(HTMLDivElement | null)[]>([]);
   const animationRef = useRef<gsap.core.Tween[]>([]);
-  const lanternsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -175,15 +140,18 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
     window.addEventListener('resize', checkMobile);
 
     const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ 
-        x: (e.clientX / window.innerWidth) * 2 - 1,
-        y: (e.clientY / window.innerHeight) * 2 - 1
-      });
+      // Damped mouse movement for calmer effect
+      const targetX = (e.clientX / window.innerWidth) * 2 - 1;
+      const targetY = (e.clientY / window.innerHeight) * 2 - 1;
+      
+      setMousePosition(prev => ({ 
+        x: prev.x + (targetX - prev.x) * 0.1,
+        y: prev.y + (targetY - prev.y) * 0.1
+      }));
     };
 
     window.addEventListener('mousemove', handleMouseMove);
 
-    // Initialize with GSAP
     if (containerRef.current) {
       gsap.set(containerRef.current, { opacity: 1 });
       
@@ -191,8 +159,8 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
         { opacity: 0 },
         { 
           opacity: 1, 
-          duration: 1.8, 
-          ease: 'power3.out',
+          duration: 2, 
+          ease: 'power2.inOut', // Softer entrance
           onStart: () => {
             if (containerRef.current) {
               containerRef.current.style.display = 'block';
@@ -201,10 +169,6 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
         }
       );
 
-      // Create floating lanterns
-      createFloatingLanterns();
-
-      // Clear existing animations
       animationRef.current.forEach(anim => anim.kill());
       animationRef.current = [];
 
@@ -214,11 +178,7 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
           const positions = getLetterPositions();
           const pos = positions[i];
           
-          // Set initial state
-          gsap.set(ref, {
-            opacity: 1,
-            display: 'block'
-          });
+          gsap.set(ref, { opacity: 1, display: 'block' });
           
           const anim = gsap.fromTo(ref,
             { 
@@ -226,23 +186,21 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
               scale: 0.3,
               x: isMobile ? pos.xMobile : pos.xDesktop,
               y: isMobile ? pos.yMobile : pos.yDesktop,
-              rotation: letter.rotation - 8,
-              z: -150,
-              filter: 'blur(10px)'
+              rotation: letter.rotation + (Math.random() * 20 - 10), // More random entrance
+              z: -100
             },
             { 
               opacity: 1, 
-              scale: isMobile ? letter.size * 0.85 : letter.size,
+              scale: isMobile ? letter.size * 0.9 : letter.size,
               x: isMobile ? pos.xMobile : pos.xDesktop,
               y: isMobile ? pos.yMobile : pos.yDesktop,
               rotation: letter.rotation,
               z: 0,
-              filter: 'blur(0px)',
-              duration: 1.8, 
-              ease: 'power3.out',
+              duration: 2, 
+              ease: 'power3.out', // Smooth gentle stop
               delay: i * 0.15,
               onComplete: () => {
-                startGentleFloatingAnimation(ref, letter);
+                startFloatingAnimation(ref, letter);
               }
             }
           );
@@ -258,92 +216,45 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
     };
   }, [isMobile]);
 
-  const createFloatingLanterns = () => {
-    if (!lanternsRef.current) return;
-    
-    const lanternCount = 3;
-    const colors = ['#f0abfc', '#c4b5fd', '#93c5fd'];
-    
-    for (let i = 0; i < lanternCount; i++) {
-      const lantern = document.createElement('div');
-      lantern.className = 'absolute pointer-events-none';
-      
-      const size = 20 + Math.random() * 30;
-      const left = 10 + (i * 25) + Math.random() * 10;
-      const top = 15 + Math.random() * 20;
-      const duration = 15 + Math.random() * 10;
-      const delay = i * 2;
-      
-      lantern.innerHTML = `
-        <div class="relative">
-          <div class="absolute inset-0 rounded-full blur-md opacity-20" style="background: ${colors[i]}"></div>
-          <div class="relative w-full h-full rounded-full" style="background: radial-gradient(circle at 30% 30%, ${colors[i]}40, transparent 70%)"></div>
-          <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-0.5 h-4" style="background: linear-gradient(to bottom, ${colors[i]}60, transparent)"></div>
-        </div>
-      `;
-      
-      lantern.style.width = `${size}px`;
-      lantern.style.height = `${size}px`;
-      lantern.style.left = `${left}%`;
-      lantern.style.top = `${top}%`;
-      lantern.style.filter = 'blur(0.5px)';
-      
-      lanternsRef.current.appendChild(lantern);
-      
-      const timeline = gsap.timeline({ repeat: -1, delay });
-      timeline
-        .to(lantern, {
-          y: -20,
-          duration: duration,
-          ease: "sine.inOut"
-        })
-        .to(lantern, {
-          y: 0,
-          duration: duration,
-          ease: "sine.inOut"
-        });
-    }
-  };
-
-  const startGentleFloatingAnimation = (ref: HTMLDivElement, letter: Letter) => {
+  const startFloatingAnimation = (ref: HTMLDivElement, letter: Letter) => {
+    // Slower, more rhythmic breathing motion
     const floatAnim = gsap.to(ref, {
       y: `+=${3 * letter.floatIntensity}`,
       rotation: letter.rotation + (0.5 * letter.floatIntensity),
-      duration: 4 + letter.floatIntensity,
+      duration: 3 + letter.floatIntensity, // Slower duration
       ease: "sine.inOut",
       yoyo: true,
       repeat: -1,
-      repeatDelay: 0.5
+      repeatDelay: 0
     });
     animationRef.current.push(floatAnim);
   };
 
   const getLetterPositions = () => {
-    // More breathing room, asymmetrical placement
     const desktopPositions = [
-      { xDesktop: '-18vw', yDesktop: '-22vh' },   // Top left with space
-      { xDesktop: '24vw', yDesktop: '-18vh' },    // Top right
-      { xDesktop: '-30vw', yDesktop: '10vh' },    // Left middle - asymmetrical
-      { xDesktop: '32vw', yDesktop: '12vh' },     // Right middle
-      { xDesktop: '-12vw', yDesktop: '25vh' },    // Left bottom
-      { xDesktop: '38vw', yDesktop: '-2vh' },     // Top right offset
-      { xDesktop: '5vw', yDesktop: '30vh' },      // Center bottom - Aditi
+      { xDesktop: '-18vw', yDesktop: '-22vh' },   // Maryam (TL)
+      { xDesktop: '22vw', yDesktop: '-18vh' },    // Fatima (TR)
+      { xDesktop: '-28vw', yDesktop: '8vh' },     // Monira (ML)
+      { xDesktop: '28vw', yDesktop: '12vh' },     // Lil Bro (MR)
+      { xDesktop: '-12vw', yDesktop: '18vh' },    // Anjila (BL)
+      { xDesktop: '32vw', yDesktop: '-2vh' },     // Prajol (CR)
+      { xDesktop: '2vw', yDesktop: '-28vh' },     // Aditi (Top Center - Asymmetric)
     ];
     
     const mobilePositions = [
-      { xMobile: '-20vw', yMobile: '-12vh' },
-      { xMobile: '22vw', yMobile: '-8vh' },
-      { xMobile: '-32vw', yMobile: '8vh' },
-      { xMobile: '26vw', yMobile: '15vh' },
-      { xMobile: '-14vw', yMobile: '25vh' },
-      { xMobile: '18vw', yMobile: '5vh' },
-      { xMobile: '0vw', yMobile: '35vh' },        // Aditi at bottom center on mobile
+      { xMobile: '-25vw', yMobile: '-18vh' },
+      { xMobile: '20vw', yMobile: '-12vh' },
+      { xMobile: '-28vw', yMobile: '8vh' },
+      { xMobile: '25vw', yMobile: '15vh' },
+      { xMobile: '-10vw', yMobile: '18vh' },
+      { xMobile: '15vw', yMobile: '24vh' },
+      { xMobile: '-5vw', yMobile: '-28vh' },      // Aditi Mobile
     ];
 
     return desktopPositions.map((pos, i) => ({
       ...pos,
-      xMobile: mobilePositions[i].xMobile,
-      yMobile: mobilePositions[i].yMobile
+      xMobile: mobilePositions[i] ? mobilePositions[i].xMobile : '0vw',
+      yMobile: mobilePositions[i] ? mobilePositions[i].yMobile : '0vh'
     }));
   };
 
@@ -354,9 +265,9 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
     if (containerRef.current) {
       gsap.to(containerRef.current, {
         opacity: 0,
-        scale: 0.97,
+        scale: 0.98, // Subtle shrink
         duration: 1,
-        ease: 'power3.inOut',
+        ease: 'power2.inOut',
         onComplete: onClose
       });
     } else {
@@ -377,22 +288,22 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
       animationRef.current.forEach(anim => anim.kill());
       
       gsap.to(ref, {
-        scale: isMobile ? letter.size * 1.08 : letter.size * 1.12,
-        y: `-=${isMobile ? 12 : 15}`,
-        rotation: letter.rotation + 1.5,
-        z: 25,
+        scale: isMobile ? letter.size * 1.05 : letter.size * 1.1,
+        y: `-=${isMobile ? 15 : 15}`,
+        rotation: letter.rotation + 1,
+        z: 30,
         duration: 0.6,
-        ease: 'power2.out',
+        ease: 'power3.out', // Less bouncy, more elegant
         onComplete: () => {
           setOpenedLetters(prev => [...prev, letter.id]);
-          setTimeout(() => setSelectedLetter(letter), 250);
+          setTimeout(() => setSelectedLetter(letter), 150);
           gsap.to(ref, {
-            scale: isMobile ? letter.size * 0.92 : letter.size * 0.88,
-            y: `+=${isMobile ? 8 : 10}`,
+            scale: isMobile ? letter.size * 0.95 : letter.size * 0.9,
+            y: `+=${isMobile ? 10 : 10}`,
             rotation: letter.rotation,
             z: 0,
             duration: 0.4,
-            ease: 'power2.inOut'
+            ease: 'power2.out'
           });
         }
       });
@@ -405,9 +316,9 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
       if (modal) {
         gsap.to(modal, {
           opacity: 0,
-          scale: 0.96,
-          y: 15,
-          duration: 0.4,
+          scale: 0.95,
+          y: 10,
+          duration: 0.3,
           ease: 'power2.in',
           onComplete: () => setSelectedLetter(null)
         });
@@ -417,54 +328,45 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
     }
   };
 
-  const getPinIcon = (position: string) => {
-    const icons = {
-      'tl': <CornerUpLeft className="w-3 h-3" />,
-      'tr': <CornerUpRight className="w-3 h-3" />,
-      'bl': <CornerDownLeft className="w-3 h-3" />,
-      'br': <CornerDownRight className="w-3 h-3" />
+  // Realistic Pin Component
+  const renderPin = (position: string) => {
+    const getRotation = () => {
+        switch(position) {
+            case 'tl': return '-rotate-45';
+            case 'tr': return 'rotate-45';
+            case 'bl': return '-rotate-135';
+            case 'br': return 'rotate-135';
+            default: return 'rotate-0';
+        }
     };
-    return icons[position as keyof typeof icons];
-  };
 
-  const renderImperfection = (letter: Letter) => {
-    switch(letter.imperfection) {
-      case 'worn-fold':
-        return (
-          <div className="absolute -top-1 -right-1 w-6 h-8 bg-gradient-to-br from-white/30 to-white/5 rounded-sm transform rotate-12 opacity-70" />
-        );
-      case 'extra-crooked':
-        return null; // Already handled by rotation
-      case 'frayed-edge':
-        return (
-          <>
-            <div className="absolute -bottom-1 left-2 w-8 h-0.5 bg-gradient-to-r from-transparent via-white/10 to-transparent transform rotate-1" />
-            <div className="absolute -bottom-0.5 right-3 w-5 h-0.5 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -rotate-1" />
-          </>
-        );
-      case 'off-center':
-        return (
-          <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-        );
-      default:
-        return null;
-    }
+    return (
+        <div className={`absolute z-30 transition-all duration-500 ${
+            position === 'tl' ? '-top-2 -left-1' :
+            position === 'tr' ? '-top-2 -right-1' :
+            position === 'bl' ? '-bottom-2 -left-1' :
+            '-bottom-2 -right-1'
+        }`}>
+            {/* Shadow of the pin on the paper/wall */}
+            <div className="absolute top-1.5 left-0.5 w-3 h-3 bg-black/40 blur-[2px] rounded-full" />
+            
+            {/* The Physical Pin Head */}
+            <div className={`relative w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-gradient-to-br from-slate-200 via-slate-400 to-slate-500 shadow-[inset_1px_1px_2px_rgba(255,255,255,0.7),inset_-1px_-1px_2px_rgba(0,0,0,0.3)] flex items-center justify-center`}>
+                <div className="w-1 h-1 bg-slate-100/50 rounded-full blur-[0.5px]" />
+            </div>
+        </div>
+    );
   };
-
-  const allOpened = openedLetters.length === LETTERS.length;
 
   return (
     <div 
       ref={containerRef} 
       className={`fixed inset-0 ${isClosing ? 'pointer-events-none' : ''}`}
-      style={{ 
-        display: 'block',
-        opacity: 1 
-      }}
+      style={{ display: 'block', opacity: 1 }}
     >
-      {/* Fixed background with vignette */}
+      {/* Background Layer */}
       <div className="fixed inset-0">
-        {/* Room scene backdrop */}
+        {/* Room Image - Darker & Blurry */}
         <div 
           className="absolute inset-0 transition-opacity duration-1000"
           style={{
@@ -472,205 +374,128 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundAttachment: 'fixed',
-            filter: 'blur(6px) brightness(0.75)',
-            opacity: 0.18,
+            filter: 'blur(12px) brightness(0.4)', // Deeper blur for depth
+            transform: `scale(1.1) translate3d(${mousePosition.x * 5}px, ${mousePosition.y * 5}px, 0)`
           }}
         />
         
-        {/* Gradient overlays with center vignette */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/40 via-purple-950/35 to-pink-950/45" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-black/20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-black/10" />
-        <div className="absolute inset-0" style={{
-          background: 'radial-gradient(circle at 50% 50%, transparent 30%, rgba(0, 0, 0, 0.15) 100%)'
-        }} />
+        {/* The Graffiti - Blended into the wall */}
+        <div 
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center pointer-events-none opacity-20 mix-blend-overlay rotate-[-5deg] z-0"
+            style={{ transform: `translate(-50%, -50%) rotate(-5deg) translate3d(${mousePosition.x * -10}px, ${mousePosition.y * -10}px, 0)` }}
+        >
+            <h1 className="font-cursive text-6xl sm:text-8xl md:text-9xl text-pink-200/60 blur-[2px] tracking-widest">
+                Happy Birthday Afrah
+            </h1>
+        </div>
         
-        {/* Graffiti "Happy Birthday Afrah" */}
-        <div className="absolute inset-0 pointer-events-none opacity-10">
-          <div className="absolute top-10 left-1/2 -translate-x-1/2 transform -rotate-3">
-            <div className="font-graffiti text-6xl sm:text-7xl md:text-8xl text-white/5 tracking-wider">
-              Happy Birthday
-            </div>
-            <div className="font-graffiti text-5xl sm:text-6xl md:text-7xl text-white/5 tracking-wider mt-2 text-center">
-              Afrah
-            </div>
-          </div>
-        </div>
+        {/* Atmosphere overlays */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.6)_100%)] pointer-events-none" /> {/* Vignette */}
       </div>
 
-      {/* Floating lanterns container */}
-      <div ref={lanternsRef} className="absolute inset-0 pointer-events-none z-5" />
-
-      {/* Title Section - More refined */}
-      <div className="relative z-20 text-center pt-5 sm:pt-8 px-3">
-        <div className="inline-flex flex-col items-center space-y-1.5">
-          <h1 className="font-cursive text-2xl sm:text-3xl md:text-4xl text-white/95 tracking-wider">
-            Birthday Messages
+      {/* Header - Subtle */}
+      <div className="relative z-20 text-center pt-8 sm:pt-10 px-4">
+        <div className="inline-flex flex-col items-center">
+          <h1 className="font-cursive text-2xl sm:text-3xl text-white/90 tracking-widest drop-shadow-lg">
+            Messages
           </h1>
-          <div className="h-px w-20 sm:w-32 bg-gradient-to-r from-transparent via-purple-400/30 to-transparent" />
-          <p className="font-elegant text-xs sm:text-sm text-purple-200/60 max-w-md mx-auto leading-tight">
-            Letters from loved ones
-          </p>
+          <div className="h-px w-24 bg-gradient-to-r from-transparent via-white/30 to-transparent mt-3" />
         </div>
       </div>
 
-      {/* Counter - Subtle */}
-      <div className="relative z-20 text-center mt-2 sm:mt-3">
-        <div className="inline-flex items-center gap-1 bg-white/5 backdrop-blur-sm rounded-full px-3 py-1 sm:px-3.5 sm:py-1.5">
-          <Heart className="w-3 h-3 text-pink-300/60 fill-pink-300/20" />
-          <span className="font-elegant text-xs text-purple-100/70">
-            {openedLetters.length} of {LETTERS.length}
-          </span>
+      {/* Main Interactions */}
+      <div className="relative z-10 w-full h-[calc(100%-120px)] overflow-hidden perspective-1000">
+        
+        {/* Strings - Very faint */}
+        <div className="absolute inset-0 pointer-events-none">
+          {LETTERS.map((_, i) => {
+            const positions = getLetterPositions();
+            return (
+              <div
+                key={`string-${i}`}
+                className="absolute w-[0.5px] bg-white/20"
+                style={{
+                  left: `calc(50% + ${isMobile ? parseFloat(positions[i].xMobile) / 2 : parseFloat(positions[i].xDesktop) / 2}vw)`,
+                  top: '-10%',
+                  height: '40%', // Disappears behind the letter
+                  transformOrigin: 'top',
+                  maskImage: 'linear-gradient(to bottom, black, transparent)'
+                }}
+              />
+            );
+          })}
         </div>
-      </div>
 
-      {/* Main Content with breathing room */}
-      <div className="relative z-10 w-full h-[calc(100%-130px)] sm:h-[calc(100%-150px)] overflow-hidden perspective-1000">
         {/* Letters */}
         <div className="relative w-full h-full">
           {LETTERS.map((letter, index) => {
             const isOpened = openedLetters.includes(letter.id);
-            const isHovered = false; // We'll handle hover via CSS
             const positions = getLetterPositions();
             const xPos = isMobile ? positions[index].xMobile : positions[index].xDesktop;
             const yPos = isMobile ? positions[index].yMobile : positions[index].yDesktop;
-            const cardSize = isMobile ? 'w-32 p-2.5' : 'w-36 sm:w-40 p-3 sm:p-4';
             
-            // Depth-based styling
-            const depthStyles = {
-              1: { blur: '0px', saturation: '100%', shadow: '0 12px 24px rgba(0,0,0,0.25)' },
-              2: { blur: '0.3px', saturation: '95%', shadow: '0 10px 20px rgba(0,0,0,0.2)' },
-              3: { blur: '0.6px', saturation: '90%', shadow: '0 8px 16px rgba(0,0,0,0.15)' },
-              4: { blur: '0.9px', saturation: '85%', shadow: '0 6px 12px rgba(0,0,0,0.12)' },
-              5: { blur: '1.2px', saturation: '80%', shadow: '0 4px 8px rgba(0,0,0,0.1)' },
-            };
-            
-            const depthStyle = depthStyles[letter.depth as keyof typeof depthStyles] || depthStyles[3];
-
             return (
               <div
                 key={letter.id}
-                ref={el => {
-                  lettersRef.current[index] = el;
-                  if (el) {
-                    gsap.set(el, { opacity: 1, display: 'block' });
-                  }
-                }}
+                ref={el => { lettersRef.current[index] = el; }}
                 onClick={() => openLetter(letter)}
                 className="absolute cursor-pointer transform-gpu will-change-transform group"
                 style={{
                   left: '50%',
                   top: '50%',
-                  transform: `translate3d(${xPos}, ${yPos}, ${letter.depth * 20}px) rotate(${letter.rotation}deg)`,
+                  transform: `translate3d(${xPos}, ${yPos}, ${letter.depth * 10}px) rotate(${letter.rotation}deg)`,
                   zIndex: letter.depth,
-                  filter: `blur(${depthStyle.blur}) saturate(${depthStyle.saturation})`,
                 }}
               >
-                {/* Paper shadow with gradient gravity */}
+                {/* Physical Card */}
                 <div 
-                  className="absolute -inset-2 rounded-lg opacity-40"
+                  className={`relative w-32 sm:w-40 p-4 transition-all duration-500 ease-out ${isOpened ? 'opacity-90 grayscale-[0.2]' : 'hover:-translate-y-1'}`}
                   style={{
-                    background: `linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 60%)`,
-                    transform: `translate3d(${mousePosition.x * 1}px, ${mousePosition.y * 1 + 2}px, 0)`,
-                    filter: 'blur(6px)',
+                     // The "Paper" Feel - complex shadow for curvature
+                     boxShadow: `
+                        1px 2px 2px rgba(0,0,0,0.1), 
+                        2px 4px 8px rgba(0,0,0,0.1), 
+                        0 10px 20px rgba(0,0,0,0.15)
+                     `,
                   }}
-                />
+                >
+                  {/* Paper Background */}
+                  <div 
+                    className="absolute inset-0 bg-[#fdfbf7]"
+                    style={{
+                        borderRadius: letter.imperfection || '2px', // Imperfect corners
+                        // Subtle noise texture
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E")`,
+                    }}
+                  />
 
-                {/* Folded paper effect */}
-                {letter.folded && !isOpened && (
-                  <>
-                    <div className="absolute -top-1 -right-1 w-5 h-7 bg-gradient-to-br from-white/25 to-white/5 rounded-sm transform rotate-12 opacity-60" />
-                    <div className="absolute -bottom-1 -left-1 w-4 h-5 bg-gradient-to-br from-white/20 to-white/3 rounded-sm transform -rotate-6 opacity-40" />
-                  </>
-                )}
+                  {/* Gentle gradient overlay for fold suggestion */}
+                  {letter.folded && (
+                     <div className="absolute bottom-0 right-0 w-8 h-8 bg-gradient-to-tl from-black/5 to-transparent pointer-events-none rounded-br-sm" />
+                  )}
 
-                {/* Imperfection */}
-                {renderImperfection(letter)}
-                
-                {/* Pin with physical weight */}
-                <div className={`absolute z-30 transition-all duration-700 group-hover:scale-110 ${
-                  letter.pinPosition === 'tl' ? '-top-2 -left-2' :
-                  letter.pinPosition === 'tr' ? '-top-2 -right-2' :
-                  letter.pinPosition === 'bl' ? '-bottom-2 -left-2' :
-                  '-bottom-2 -right-2'
-                }`}>
-                  <div className="relative">
-                    {/* Pin shadow */}
-                    <div className="absolute -inset-1 opacity-20">
-                      <div className="absolute inset-0 bg-gradient-to-br from-black/30 to-transparent rounded-full blur-[1px] transform rotate-45" />
-                    </div>
-                    
-                    {/* Pin body with metallic gradient */}
-                    <div className="relative bg-gradient-to-br from-gray-200 via-gray-100 to-gray-300 p-1 rounded-full shadow-sm">
-                      <div className="text-gray-600/80">
-                        {getPinIcon(letter.pinPosition)}
-                      </div>
-                      {/* Pin head */}
-                      <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-gradient-to-br from-yellow-200 to-yellow-100 rounded-full blur-[0.5px]" />
-                    </div>
-                    
-                    {/* Sparkle only on hover */}
-                    {!isOpened && (
-                      <div className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                        <Sparkles className="w-2 h-2 text-yellow-300/70" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Paper card */}
-                <div className={`relative ${cardSize}
-                  bg-gradient-to-br from-white/99 via-amber-50/98 to-white/98 
-                  rounded-md sm:rounded-lg shadow-sm
-                  border border-white/70 border-t-white/80 border-l-white/80
-                  backdrop-blur-sm
-                  transition-all duration-500 ease-out
-                  ${isOpened ? 'opacity-90 saturate-80' : 'group-hover:shadow-md group-hover:border-white/80'}`}
-                  style={{
-                    boxShadow: depthStyle.shadow,
-                  }}>
-                  
-                  {/* Bottom edge shading for gravity */}
-                  <div className="absolute -bottom-1 left-1 right-1 h-1 bg-gradient-to-t from-black/5 to-transparent rounded-b-md sm:rounded-b-lg" />
-                  
-                  {/* Uneven corner radii */}
-                  <div className="absolute top-0 right-0 w-3 h-3 overflow-hidden">
-                    <div className="absolute top-0 right-0 w-4 h-4 bg-white/30 rounded-bl-full transform translate-x-1 -translate-y-1" />
-                  </div>
-                  
-                  {/* Paper texture */}
-                  <div className="absolute inset-0 opacity-5 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48ZGVmcz48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjMiLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PC9maWx0ZXI+PC9kZWZzPjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wMyIvPjwvc3ZnPg==')] rounded-md sm:rounded-lg" />
-                  
-                  {/* Content with clear hierarchy */}
-                  <div className="relative z-10">
-                    {/* Sender's name - authority */}
-                    <div className={`font-cursive text-base sm:text-lg tracking-[0.08em] ${
-                      isOpened ? 'text-purple-700/70' : 'text-purple-900'
-                    } font-medium mb-0.5 truncate`}>
+                  {/* Pin */}
+                  {renderPin(letter.pinPosition)}
+
+                  {/* Content */}
+                  <div className="relative z-10 flex flex-col items-center justify-center min-h-[5rem] text-center">
+                    <span className={`font-cursive text-lg text-slate-800 leading-none mb-1 transition-colors duration-300 ${isOpened ? 'text-slate-600' : ''}`}>
                       {letter.from}
-                    </div>
+                    </span>
                     
-                    {/* Relation - contextual softness */}
-                    <div className="text-[10px] sm:text-[11px] font-elegant text-purple-600/50 mb-1 font-normal">
+                    <span className="font-elegant text-[10px] text-slate-500 tracking-wider uppercase opacity-80 mb-2">
                       {letter.relation}
+                    </span>
+
+                    <div className={`transition-all duration-500 ${isOpened ? 'opacity-0 h-0' : 'opacity-0 group-hover:opacity-100'}`}>
+                        <span className="font-elegant text-[9px] text-slate-400 tracking-widest border-b border-slate-200 pb-0.5">
+                            TAP TO READ
+                        </span>
                     </div>
-                    
-                    {/* Divider */}
-                    <div className="h-px w-10 sm:w-12 bg-gradient-to-r from-purple-200/30 via-pink-200/30 to-transparent mb-1" />
-                    
-                    {/* Hint - whispering */}
-                    <div className={`text-[10px] sm:text-[11px] font-elegant tracking-wide ${
-                      isOpened ? 'text-purple-500/40 italic' : 'text-purple-600/40'
-                    } leading-tight`}>
-                      {isOpened ? 'cherished' : 'touch to read'}
-                    </div>
-                    
-                    {/* Opened indicator */}
+
                     {isOpened && (
-                      <div className="absolute bottom-1 right-1 flex gap-0.5">
-                        <Heart className="w-2.5 h-2.5 text-pink-400/50 fill-pink-400/20" />
-                        <Star className="w-2.5 h-2.5 text-yellow-400/30" />
-                      </div>
+                         <Heart className="w-3 h-3 text-rose-300/80 fill-rose-100 mt-1" />
                     )}
                   </div>
                 </div>
@@ -680,173 +505,82 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
         </div>
       </div>
 
-      {/* Letter Modal - Refined */}
+      {/* Modal - Elegant & Clean */}
       {selectedLetter && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div 
-            className="absolute inset-0 bg-gradient-to-br from-black/60 via-purple-950/70 to-black/60 backdrop-blur-xl"
+            className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity duration-500"
             onClick={closeLetter}
           />
           
-          <div className="letter-modal relative z-50 w-full max-w-xs sm:max-w-sm md:max-w-lg">
-            {/* Modal paper */}
-            <div className="relative bg-gradient-to-br from-white/99 via-amber-50/98 to-white/99 
-              rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg
-              border border-white/80 border-t-white/90 border-l-white/90
-              backdrop-blur-xl overflow-hidden transform-gpu mx-auto">
-              
-              <div className="relative z-10 p-3 sm:p-4 md:p-6">
-                {/* Header */}
-                <div className="mb-4 sm:mb-5 md:mb-6">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-2 sm:gap-2.5">
-                      <div className="relative">
-                        <div className="p-1.5 sm:p-2 rounded-md sm:rounded-lg bg-gradient-to-br from-gray-100 to-gray-50 shadow-sm">
-                          {getPinIcon(selectedLetter.pinPosition)}
-                        </div>
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-cursive text-lg sm:text-xl md:text-2xl text-purple-900 font-medium truncate">
-                          From {selectedLetter.from}
-                        </div>
-                        <div className="text-xs font-elegant text-purple-600/60 mt-0.5 truncate">
-                          {selectedLetter.relation}
-                        </div>
-                      </div>
-                    </div>
-                    <button
-                      onClick={closeLetter}
-                      className="p-1 hover:bg-white/40 rounded-md transition-all duration-300 group flex-shrink-0"
+          <div className="letter-modal relative z-50 w-full max-w-md animate-modal-in perspective-1000">
+            <div className="relative bg-[#fdfbf7] rounded-sm sm:rounded-md shadow-2xl overflow-hidden transform-gpu rotate-1">
+                {/* Paper texture for modal too */}
+                <div className="absolute inset-0 opacity-[0.07] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48ZGVmcz48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjQiLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PC9maWx0ZXI+PC9kZWZzPjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wOCIvPjwvc3ZnPg==')]" />
+                
+                <div className="relative z-10 p-8 sm:p-10">
+                    <button 
+                        onClick={closeLetter}
+                        className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"
                     >
-                      <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-600/70 group-hover:text-purple-800 transition-all duration-300" />
+                        <X className="w-5 h-5" />
                     </button>
-                  </div>
-                  <div className="h-px w-16 sm:w-20 bg-gradient-to-r from-purple-200/40 via-pink-200/40 to-transparent" />
-                </div>
-                
-                {/* Letter content */}
-                <div className="relative">
-                  <div className="font-elegant text-purple-900/90 leading-relaxed tracking-wide whitespace-pre-wrap text-sm sm:text-base 
-                    max-h-[40vh] sm:max-h-[45vh] overflow-y-auto pr-1 sm:pr-2 
-                    scrollbar-thin scrollbar-thumb-purple-300/20 scrollbar-track-transparent">
-                    <div className="text-center py-2 sm:py-3 md:py-4">
-                      <div className="text-xl sm:text-2xl font-cursive mb-3 sm:mb-4 text-purple-800">
-                        {selectedLetter.content.split(',')[0]}
-                      </div>
-                      <div className="text-base sm:text-lg font-elegant text-purple-700/80">
-                        {selectedLetter.content.split(',')[1]}
-                      </div>
+
+                    <div className="text-center mb-8">
+                        <div className="font-cursive text-3xl text-slate-800 mb-2">{selectedLetter.from}</div>
+                        <div className="font-elegant text-xs text-slate-500 uppercase tracking-widest">{selectedLetter.relation}</div>
+                        <div className="w-12 h-px bg-slate-200 mx-auto mt-4" />
                     </div>
-                  </div>
-                  
-                  {/* Fade effect */}
-                  <div className="absolute bottom-0 left-0 right-0 h-4 sm:h-6 bg-gradient-to-t from-white/98 to-transparent pointer-events-none" />
-                </div>
-                
-                {/* Footer */}
-                <div className="mt-3 sm:mt-4 md:mt-5 pt-2 sm:pt-3 border-t border-purple-200/20">
-                  <div className="flex items-center justify-center gap-1.5 sm:gap-2">
-                    <div className="h-px w-4 sm:w-8 bg-gradient-to-r from-transparent via-purple-200/30 to-transparent" />
-                    <div className="flex items-center gap-1 sm:gap-1.5">
-                      <Heart className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-pink-400/60 fill-pink-400/20" />
-                      <span className="font-elegant text-[10px] sm:text-xs text-purple-600/40">
-                        a cherished message
-                      </span>
+
+                    <div className="font-elegant text-slate-700 text-base leading-loose text-center px-4">
+                        {selectedLetter.content.split(',').map((line, i) => (
+                             <p key={i} className={i === 0 ? "mb-6 italic" : "font-cursive text-xl text-slate-600"}>
+                                {line}
+                             </p>
+                        ))}
                     </div>
-                    <div className="h-px w-4 sm:w-8 bg-gradient-to-r from-transparent via-pink-200/30 to-transparent" />
-                  </div>
+
+                    <div className="mt-10 flex justify-center">
+                        <Heart className="w-4 h-4 text-rose-300 fill-rose-50" />
+                    </div>
                 </div>
-              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Bottom Navigation */}
-      <div className="absolute bottom-2 sm:bottom-3 left-0 right-0 z-20 px-2 sm:px-3">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-1.5 sm:gap-2 max-w-4xl mx-auto">
-          <div className="text-center sm:text-left">
-            <div className="font-elegant text-xs text-purple-200/50">
-              made with love
-            </div>
-          </div>
+      {/* Navigation - Minimal */}
+      <div className="absolute bottom-6 left-0 right-0 z-20 px-6">
+        <div className="flex items-center justify-between max-w-4xl mx-auto">
+           <div className="flex gap-2">
+                {openedLetters.length === LETTERS.length && (
+                    <span className="font-elegant text-xs text-white/50 animate-pulse">All letters collected</span>
+                )}
+           </div>
           
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={handleClose}
-              className="flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-white/5 hover:bg-white/10 backdrop-blur-md 
-                rounded-md sm:rounded-lg transition-all duration-300 group"
-            >
-              <Home className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white/60 group-hover:text-white/80" />
-              <span className="font-elegant text-xs text-white/70 group-hover:text-white/90">return</span>
-            </button>
-          </div>
+           <button
+             onClick={handleClose}
+             className="group flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 rounded-full transition-all duration-500"
+           >
+             <Home className="w-3.5 h-3.5 text-white/70 group-hover:text-white transition-colors" />
+             <span className="font-elegant text-xs text-white/70 group-hover:text-white transition-colors tracking-wide">RETURN</span>
+           </button>
         </div>
       </div>
 
-      {/* Mobile Instructions - More subtle */}
-      {isMobile && !selectedLetter && (
-        <div className="absolute bottom-14 left-0 right-0 z-20 px-2 animate-pulse" style={{ animationDuration: '4s' }}>
-          <div className="text-center">
-            <div className="inline-flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2 py-1">
-              <span className="font-elegant text-[10px] text-purple-100/70">
-                touch letters
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-
       <style>{`
         @keyframes modal-in {
-          0% { 
-            opacity: 0; 
-            transform: translateY(15px) scale(0.98); 
-          }
-          100% { 
-            opacity: 1; 
-            transform: translateY(0) scale(1); 
-          }
+          0% { opacity: 0; transform: translateY(20px) rotateX(10deg); }
+          100% { opacity: 1; transform: translateY(0) rotateX(0); }
         }
-        
-        .letter-modal {
-          animation: modal-in 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+        .animate-modal-in {
+          animation: modal-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
-        
         .perspective-1000 {
-          perspective: 1000px;
+          perspective: 1200px;
         }
-        
         .transform-gpu {
           transform-style: preserve-3d;
-        }
-        
-        /* Graffiti font */
-        .font-graffiti {
-          font-family: 'Brush Script MT', cursive, sans-serif;
-          font-weight: bold;
-          text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        /* Scrollbar */
-        .scrollbar-thin::-webkit-scrollbar {
-          width: 3px;
-        }
-        
-        .scrollbar-thumb-purple-300\/20::-webkit-scrollbar-thumb {
-          background-color: rgba(196, 181, 253, 0.2);
-          border-radius: 3px;
-        }
-        
-        .scrollbar-track-transparent::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        
-        /* Prevent flickering */
-        * {
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-          backface-visibility: hidden;
         }
       `}</style>
     </div>
