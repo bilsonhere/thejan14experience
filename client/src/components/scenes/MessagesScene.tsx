@@ -137,7 +137,6 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
 
     // Initialize with GSAP
     if (containerRef.current) {
-      // FIX: Set initial opacity to prevent flickering
       gsap.set(containerRef.current, { opacity: 1 });
       
       gsap.fromTo(containerRef.current,
@@ -147,7 +146,6 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
           duration: 1.5, 
           ease: 'power4.out',
           onStart: () => {
-            // Ensure no flickering by setting display
             if (containerRef.current) {
               containerRef.current.style.display = 'block';
             }
@@ -182,7 +180,7 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
             },
             { 
               opacity: 1, 
-              scale: letter.size,
+              scale: isMobile ? letter.size * 0.9 : letter.size, // Smaller on mobile
               x: isMobile ? pos.xMobile : pos.xDesktop,
               y: isMobile ? pos.yMobile : pos.yDesktop,
               rotation: letter.rotation,
@@ -210,8 +208,8 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
 
   const startFloatingAnimation = (ref: HTMLDivElement, letter: Letter) => {
     const floatAnim = gsap.to(ref, {
-      y: `+=${6 * letter.floatIntensity}`,
-      rotation: letter.rotation + (1 * letter.floatIntensity),
+      y: `+=${4 * letter.floatIntensity}`,
+      rotation: letter.rotation + (0.8 * letter.floatIntensity),
       duration: 2.5 + letter.floatIntensity,
       ease: "sine.inOut",
       yoyo: true,
@@ -222,24 +220,24 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
   };
 
   const getLetterPositions = () => {
-    // Desktop positions - MOVED UPWARD significantly
+    // Desktop positions - MOVED UPWARD even more
     const desktopPositions = [
-      { xDesktop: '-15vw', yDesktop: '-15vh' },   // Top left - moved up
-      { xDesktop: '20vw', yDesktop: '-10vh' },    // Top right - moved up
-      { xDesktop: '-25vw', yDesktop: '15vh' },    // Middle left - moved up
-      { xDesktop: '30vw', yDesktop: '18vh' },     // Middle right - moved up
-      { xDesktop: '-10vw', yDesktop: '25vh' },    // Bottom left - moved up
-      { xDesktop: '35vw', yDesktop: '5vh' },      // Center right - moved up
+      { xDesktop: '-15vw', yDesktop: '-25vh' },   // Top left - moved up more
+      { xDesktop: '20vw', yDesktop: '-20vh' },    // Top right - moved up more
+      { xDesktop: '-25vw', yDesktop: '5vh' },     // Middle left - moved up significantly
+      { xDesktop: '30vw', yDesktop: '8vh' },      // Middle right - moved up significantly
+      { xDesktop: '-10vw', yDesktop: '15vh' },    // Bottom left - moved up
+      { xDesktop: '35vw', yDesktop: '-5vh' },     // Center right - moved up
     ];
     
-    // Mobile positions - ADJUSTED for better visibility
+    // Mobile positions - MOVED UPWARD and made smaller
     const mobilePositions = [
-      { xMobile: '-25vw', yMobile: '-5vh' },      // Top left
-      { xMobile: '20vw', yMobile: '0vh' },        // Top right
-      { xMobile: '-30vw', yMobile: '15vh' },      // Middle left
-      { xMobile: '25vw', yMobile: '20vh' },       // Middle right
-      { xMobile: '-10vw', yMobile: '25vh' },      // Bottom left
-      { xMobile: '15vw', yMobile: '30vh' },       // Bottom right
+      { xMobile: '-22vw', yMobile: '-15vh' },     // Top left - moved up more
+      { xMobile: '18vw', yMobile: '-10vh' },      // Top right - moved up more
+      { xMobile: '-28vw', yMobile: '5vh' },       // Middle left - moved up
+      { xMobile: '22vw', yMobile: '10vh' },       // Middle right - moved up
+      { xMobile: '-8vw', yMobile: '15vh' },       // Bottom left - moved up
+      { xMobile: '12vw', yMobile: '20vh' },       // Bottom right - moved up
     ];
 
     return desktopPositions.map((pos, i) => ({
@@ -281,21 +279,21 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
       animationRef.current.forEach(anim => anim.kill());
       
       gsap.to(ref, {
-        scale: letter.size * (isMobile ? 1.15 : 1.1),
-        y: `-=${isMobile ? 20 : 15}`,
-        rotation: letter.rotation + 3,
-        z: 30,
-        duration: 0.6,
-        ease: 'elastic.out(1.6)',
+        scale: isMobile ? letter.size * 1.05 : letter.size * 1.1,
+        y: `-=${isMobile ? 15 : 15}`,
+        rotation: letter.rotation + 2,
+        z: 20,
+        duration: 0.5,
+        ease: 'elastic.out(1.4)',
         onComplete: () => {
           setOpenedLetters(prev => [...prev, letter.id]);
-          setTimeout(() => setSelectedLetter(letter), 250);
+          setTimeout(() => setSelectedLetter(letter), 200);
           gsap.to(ref, {
-            scale: letter.size * (isMobile ? 1.05 : 0.9),
-            y: `+=${isMobile ? 15 : 10}`,
+            scale: isMobile ? letter.size * 0.95 : letter.size * 0.9,
+            y: `+=${isMobile ? 10 : 10}`,
             rotation: letter.rotation,
             z: 0,
-            duration: 0.4,
+            duration: 0.3,
             ease: 'power2.out'
           });
         }
@@ -324,11 +322,11 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
 
   const getPinIcon = (position: string) => {
     switch(position) {
-      case 'tl': return <CornerUpLeft className="w-3 h-3" />;
-      case 'tr': return <CornerUpRight className="w-3 h-3" />;
-      case 'bl': return <CornerDownLeft className="w-3 h-3" />;
-      case 'br': return <CornerDownRight className="w-3 h-3" />;
-      default: return <CornerUpLeft className="w-3 h-3" />;
+      case 'tl': return <CornerUpLeft className="w-2.5 h-2.5" />;
+      case 'tr': return <CornerUpRight className="w-2.5 h-2.5" />;
+      case 'bl': return <CornerDownLeft className="w-2.5 h-2.5" />;
+      case 'br': return <CornerDownRight className="w-2.5 h-2.5" />;
+      default: return <CornerUpLeft className="w-2.5 h-2.5" />;
     }
   };
 
@@ -353,9 +351,9 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundAttachment: 'fixed',
-            filter: 'blur(10px) brightness(0.7)',
+            filter: 'blur(8px) brightness(0.7)',
             opacity: 0.2,
-            transform: `translate3d(${mousePosition.x * 10}px, ${mousePosition.y * 10}px, 0)`
+            transform: `translate3d(${mousePosition.x * 8}px, ${mousePosition.y * 8}px, 0)`
           }}
         />
         
@@ -364,41 +362,41 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/20" />
       </div>
 
-      {/* Title Section */}
-      <div className="relative z-20 text-center pt-6 sm:pt-10 md:pt-12 px-4">
+      {/* Title Section - Compact */}
+      <div className="relative z-20 text-center pt-4 sm:pt-8 px-3">
         <div className="inline-flex flex-col items-center">
-          <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-pink-300/80 animate-pulse" />
-            <h1 className="font-cursive text-2xl sm:text-3xl md:text-4xl bg-gradient-to-r from-pink-200 via-purple-200 to-indigo-200 
+          <div className="flex items-center gap-1.5 sm:gap-2 mb-2">
+            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-pink-300/80 animate-pulse" />
+            <h1 className="font-cursive text-xl sm:text-2xl md:text-3xl bg-gradient-to-r from-pink-200 via-purple-200 to-indigo-200 
               bg-clip-text text-transparent tracking-wider">
               Birthday Messages
             </h1>
-            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-pink-300/80 animate-pulse" />
+            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-pink-300/80 animate-pulse" />
           </div>
-          <p className="font-elegant text-xs sm:text-sm text-purple-200/70 max-w-xl mx-auto leading-relaxed">
+          <p className="font-elegant text-[10px] sm:text-xs text-purple-200/70 max-w-md mx-auto leading-tight">
             ✨ Letters from the specials for your special day 🎈
           </p>
-          <div className="h-px w-24 sm:w-40 bg-gradient-to-r from-transparent via-purple-400/40 to-transparent mt-2 sm:mt-3" />
+          <div className="h-px w-16 sm:w-32 bg-gradient-to-r from-transparent via-purple-400/40 to-transparent mt-1.5 sm:mt-2" />
         </div>
       </div>
 
-      {/* Counter - Smaller and positioned better */}
-      <div className="relative z-20 text-center mt-2 sm:mt-3">
-        <div className="inline-flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1 sm:px-4 sm:py-2">
-          <Heart className="w-3 h-3 sm:w-4 sm:h-4 text-pink-300/80 fill-pink-300/30" />
-          <span className="font-elegant text-xs sm:text-sm text-purple-100/90">
-            {openedLetters.length}/{LETTERS.length} opened
+      {/* Counter - Compact */}
+      <div className="relative z-20 text-center mt-1.5 sm:mt-2">
+        <div className="inline-flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1 sm:px-3 sm:py-1.5">
+          <Heart className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-pink-300/80 fill-pink-300/30" />
+          <span className="font-elegant text-[10px] sm:text-xs text-purple-100/90">
+            {openedLetters.length}/{LETTERS.length}
           </span>
         </div>
       </div>
 
-      {/* Main Content - Adjusted height for upward shift */}
-      <div className="relative z-10 w-full h-[calc(100%-140px)] sm:h-[calc(100%-160px)] overflow-hidden perspective-1000">
-        {/* Hanging strings - shorter since letters moved up */}
+      {/* Main Content - More space at top */}
+      <div className="relative z-10 w-full h-[calc(100%-120px)] sm:h-[calc(100%-140px)] overflow-hidden perspective-1000">
+        {/* Hanging strings - shorter */}
         <div className="absolute inset-0 pointer-events-none">
           {LETTERS.map((_, i) => {
             const positions = getLetterPositions();
-            const yOffset = isMobile ? -15 : -20; // Shorter strings
+            const yOffset = isMobile ? -20 : -25; // Shorter strings
             return (
               <div
                 key={`string-${i}`}
@@ -407,8 +405,8 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
                   left: `calc(50% + ${isMobile ? 
                     parseFloat(positions[i].xMobile) / 2 : 
                     parseFloat(positions[i].xDesktop) / 2}vw)`,
-                  top: `${15 + yOffset}%`,
-                  height: '15vh',
+                  top: `${20 + yOffset}%`,
+                  height: '12vh',
                   transformOrigin: 'top'
                 }}
               />
@@ -423,6 +421,7 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
             const positions = getLetterPositions();
             const xPos = isMobile ? positions[index].xMobile : positions[index].xDesktop;
             const yPos = isMobile ? positions[index].yMobile : positions[index].yDesktop;
+            const cardSize = isMobile ? 'w-32 p-2.5' : 'w-36 sm:w-40 p-3 sm:p-4';
 
             return (
               <div
@@ -438,15 +437,15 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
                 style={{
                   left: '50%',
                   top: '50%',
-                  transform: `translate3d(${xPos}, ${yPos}, ${letter.depth * 10}px) rotate(${letter.rotation}deg) scale(${letter.size})`,
+                  transform: `translate3d(${xPos}, ${yPos}, ${letter.depth * 10}px) rotate(${letter.rotation}deg)`,
                   zIndex: letter.depth,
                 }}
               >
                 {/* Glow effect for unopened letters - smaller */}
                 {!isOpened && (
-                  <div className="absolute -inset-4">
+                  <div className="absolute -inset-3">
                     <div 
-                      className="absolute inset-0 rounded-lg blur-md opacity-50 animate-pulse"
+                      className="absolute inset-0 rounded-md blur-sm opacity-50 animate-pulse"
                       style={{ 
                         background: `radial-gradient(circle at center, ${letter.glowColor}30, transparent 70%)` 
                       }}
@@ -457,20 +456,20 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
                 {/* Folded paper effect - smaller */}
                 {letter.folded && !isOpened && (
                   <>
-                    <div className="absolute -top-1 -right-1 w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-white/40 to-white/10 rounded transform rotate-12" />
-                    <div className="absolute -bottom-1 -left-1 w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-br from-white/30 to-white/5 rounded transform -rotate-6" />
+                    <div className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-br from-white/40 to-white/10 rounded transform rotate-12" />
+                    <div className="absolute -bottom-1 -left-1 w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 bg-gradient-to-br from-white/30 to-white/5 rounded transform -rotate-6" />
                   </>
                 )}
                 
                 {/* Pinned corner - smaller */}
                 <div className={`absolute z-30 text-white/90 transition-all duration-500 ${
-                  letter.pinPosition === 'tl' ? '-top-2 -left-2' :
-                  letter.pinPosition === 'tr' ? '-top-2 -right-2' :
-                  letter.pinPosition === 'bl' ? '-bottom-2 -left-2' :
-                  '-bottom-2 -right-2'
+                  letter.pinPosition === 'tl' ? '-top-1.5 -left-1.5' :
+                  letter.pinPosition === 'tr' ? '-top-1.5 -right-1.5' :
+                  letter.pinPosition === 'bl' ? '-bottom-1.5 -left-1.5' :
+                  '-bottom-1.5 -right-1.5'
                 }`}>
                   <div className="relative">
-                    <div className="absolute -inset-1 bg-white/20 rounded-full blur-xs" />
+                    <div className="absolute -inset-1 bg-white/20 rounded-full blur-[1px]" />
                     {getPinIcon(letter.pinPosition)}
                     {!isOpened && (
                       <Sparkles className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 text-yellow-300 animate-pulse" />
@@ -480,46 +479,46 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
                 
                 {/* Paper shadow - smaller */}
                 <div 
-                  className="absolute -inset-2 bg-black/25 rounded-lg blur-md"
+                  className="absolute -inset-1.5 bg-black/25 rounded-md blur-sm"
                   style={{
-                    transform: `translate3d(${mousePosition.x * 2}px, ${mousePosition.y * 2}px, 0)`
+                    transform: `translate3d(${mousePosition.x * 1.5}px, ${mousePosition.y * 1.5}px, 0)`
                   }}
                 />
                 
-                {/* Paper card - SMALLER OUTER CARD */}
-                <div className={`relative w-36 sm:w-44 md:w-48 p-3 sm:p-4 
+                {/* Paper card - EVEN SMALLER ON MOBILE */}
+                <div className={`relative ${cardSize}
                   bg-gradient-to-br from-white/98 via-amber-50/97 to-white/98 
-                  rounded-lg shadow-[inset_0_1px_0_0_rgba(255,255,255,0.8),0_10px_20px_rgba(0,0,0,0.15)]
+                  rounded-md sm:rounded-lg shadow-[inset_0_1px_0_0_rgba(255,255,255,0.8),0_8px_16px_rgba(0,0,0,0.15)]
                   border border-white/80 border-t-white/90 border-l-white/90 backdrop-blur-sm
-                  transition-all duration-300 hover:shadow-[0_15px_30px_-6px_rgba(168,85,247,0.4)] ${
-                  isOpened ? 'opacity-80' : 'hover:scale-102'
+                  transition-all duration-250 hover:shadow-[0_12px_24px_-4px_rgba(168,85,247,0.4)] ${
+                  isOpened ? 'opacity-85' : 'hover:scale-102'
                 }`}>
                   
                   {/* Paper texture */}
-                  <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48ZGVmcz48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjQiLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PC9maWx0ZXI+PC9kZWZzPjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wOCIvPjwvc3ZnPg==')] rounded-lg" />
+                  <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48ZGVmcz48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjQiLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+PC9maWx0ZXI+PC9kZWZzPjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wOCIvPjwvc3ZnPg==')] rounded-md sm:rounded-lg" />
                   
-                  {/* Content - IMPROVED READABILITY */}
+                  {/* Content - COMPACT BUT READABLE */}
                   <div className="relative z-10">
-                    <div className={`font-cursive text-base sm:text-lg tracking-[0.12em] bg-gradient-to-r ${
+                    <div className={`font-cursive text-sm sm:text-base tracking-[0.1em] bg-gradient-to-r ${
                       isOpened ? 'from-purple-600/70 via-pink-600/70 to-indigo-600/70' : 
                       'from-purple-800 via-pink-800 to-indigo-800'} 
-                      bg-clip-text text-transparent mb-1 sm:mb-2 font-semibold`}>
+                      bg-clip-text text-transparent mb-0.5 sm:mb-1 font-semibold truncate`}>
                       {letter.from}
                     </div>
-                    <div className="text-[10px] sm:text-xs font-elegant text-purple-700/70 mb-1 font-medium">
+                    <div className="text-[9px] sm:text-[10px] font-elegant text-purple-700/70 mb-0.5 font-medium truncate">
                       {letter.relation}
                     </div>
-                    <div className="h-px w-12 sm:w-16 bg-gradient-to-r from-purple-300/50 via-pink-300/50 to-transparent mb-1 sm:mb-2" />
-                    <div className={`text-[10px] sm:text-xs font-elegant tracking-wide leading-tight ${
+                    <div className="h-px w-8 sm:w-10 bg-gradient-to-r from-purple-300/50 via-pink-300/50 to-transparent mb-0.5 sm:mb-1" />
+                    <div className={`text-[9px] sm:text-[10px] font-elegant tracking-wide leading-tight ${
                       isOpened ? 'text-purple-500/60 italic' : 
                       'bg-gradient-to-r from-purple-700/80 via-pink-700/80 to-indigo-700/80 bg-clip-text text-transparent font-medium'
                     }`}>
-                      {isOpened ? '💖' : 'Tap to read'}
+                      {isOpened ? '💖' : isMobile ? 'Tap' : 'Tap to read'}
                     </div>
                     {isOpened && (
-                      <div className="absolute bottom-1 right-1 flex gap-0.5">
-                        <Heart className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-pink-400/70 fill-pink-400/30" />
-                        <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-400/60" />
+                      <div className="absolute bottom-0.5 right-0.5 flex gap-0.5">
+                        <Heart className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-pink-400/70 fill-pink-400/30" />
+                        <Star className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-yellow-400/60" />
                       </div>
                     )}
                   </div>
@@ -530,83 +529,82 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
         </div>
       </div>
 
-      {/* Letter Modal - IMPROVED READABILITY */}
+      {/* Letter Modal - Compact for mobile */}
       {selectedLetter && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-3">
           <div 
-            className="absolute inset-0 bg-gradient-to-br from-black/75 via-purple-950/85 to-black/75 backdrop-blur-xl"
+            className="absolute inset-0 bg-gradient-to-br from-black/80 via-purple-950/90 to-black/80 backdrop-blur-xl"
             onClick={closeLetter}
           />
           
-          <div className="letter-modal relative z-50 w-full max-w-lg sm:max-w-xl md:max-w-2xl animate-modal-in">
+          <div className="letter-modal relative z-50 w-full max-w-xs sm:max-w-sm md:max-w-lg animate-modal-in">
             {/* Modal paper */}
             <div className="relative bg-gradient-to-br from-white/99 via-amber-50/98 to-white/99 
-              rounded-xl sm:rounded-2xl md:rounded-3xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.4),inset_0_2px_0_0_rgba(255,255,255,0.9)]
+              rounded-lg sm:rounded-xl md:rounded-2xl shadow-[0_15px_30px_-8px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.9)]
               border border-white/90 border-t-white/95 border-l-white/95
-              backdrop-blur-2xl overflow-hidden transform-gpu mx-auto">
+              backdrop-blur-xl overflow-hidden transform-gpu mx-auto">
               
-              <div className="relative z-10 p-4 sm:p-6 md:p-8">
-                {/* Header */}
-                <div className="mb-4 sm:mb-6 md:mb-8">
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
-                    <div className="flex items-center gap-2 sm:gap-3">
+              <div className="relative z-10 p-3 sm:p-4 md:p-6">
+                {/* Header - Compact */}
+                <div className="mb-3 sm:mb-4 md:mb-6">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
                       <div className="relative">
-                        <div className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-100/80 to-pink-100/80 shadow-md">
+                        <div className="p-1.5 sm:p-2 rounded-md sm:rounded-lg bg-gradient-to-br from-purple-100/80 to-pink-100/80 shadow-sm">
                           {getPinIcon(selectedLetter.pinPosition)}
                         </div>
                       </div>
-                      <div>
-                        <div className="font-cursive text-xl sm:text-2xl md:text-3xl tracking-[0.1em] bg-gradient-to-r from-purple-900 via-pink-900 to-indigo-900 
-                          bg-clip-text text-transparent font-semibold">
+                      <div className="min-w-0">
+                        <div className="font-cursive text-lg sm:text-xl md:text-2xl tracking-[0.08em] bg-gradient-to-r from-purple-900 via-pink-900 to-indigo-900 
+                          bg-clip-text text-transparent font-semibold truncate">
                           From {selectedLetter.from}
                         </div>
-                        <div className="text-xs sm:text-sm font-elegant text-purple-600/70 mt-0.5 font-medium">
+                        <div className="text-xs font-elegant text-purple-600/70 mt-0.5 font-medium truncate">
                           {selectedLetter.relation}
                         </div>
                       </div>
                     </div>
                     <button
                       onClick={closeLetter}
-                      className="p-1.5 sm:p-2 self-start sm:self-center hover:bg-white/40 rounded-lg transition-all duration-300 group"
+                      className="p-1 hover:bg-white/40 rounded-md transition-all duration-300 group flex-shrink-0"
                     >
-                      <X className="w-4 h-4 sm:w-5 sm:h-5 text-purple-700/80 group-hover:text-purple-900 transition-all duration-300" />
+                      <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-700/80 group-hover:text-purple-900 transition-all duration-300" />
                     </button>
                   </div>
-                  <div className="h-px w-20 sm:w-28 bg-gradient-to-r from-purple-300/60 via-pink-300/60 to-indigo-300/60" />
+                  <div className="h-px w-16 sm:w-20 bg-gradient-to-r from-purple-300/60 via-pink-300/60 to-indigo-300/60" />
                 </div>
                 
-                {/* Letter content - IMPROVED READABILITY */}
+                {/* Letter content - Compact */}
                 <div className="relative">
-                  <div className="font-elegant text-purple-900/95 leading-relaxed tracking-wide whitespace-pre-wrap text-base sm:text-lg 
-                    max-h-[50vh] sm:max-h-[55vh] overflow-y-auto pr-2 sm:pr-4 
-                    scrollbar-thin scrollbar-thumb-purple-300/40 scrollbar-track-transparent
-                    bg-gradient-to-b from-white/80 to-transparent bg-clip-text">
-                    <div className="text-center py-4 sm:py-6">
-                      <div className="text-2xl sm:text-3xl font-cursive mb-3 sm:mb-4 bg-gradient-to-r from-purple-700 via-pink-700 to-indigo-700 bg-clip-text text-transparent">
+                  <div className="font-elegant text-purple-900/95 leading-relaxed tracking-wide whitespace-pre-wrap text-sm sm:text-base 
+                    max-h-[40vh] sm:max-h-[45vh] overflow-y-auto pr-1 sm:pr-2 
+                    scrollbar-thin scrollbar-thumb-purple-300/40 scrollbar-track-transparent">
+                    <div className="text-center py-2 sm:py-3 md:py-4">
+                      <div className="text-xl sm:text-2xl font-cursive mb-2 sm:mb-3 bg-gradient-to-r from-purple-700 via-pink-700 to-indigo-700 bg-clip-text text-transparent">
                         {selectedLetter.content.split(',')[0]}
                       </div>
-                      <div className="text-lg sm:text-xl font-elegant text-purple-800/90">
+                      <div className="text-base sm:text-lg font-elegant text-purple-800/90">
                         {selectedLetter.content.split(',')[1]}
                       </div>
                     </div>
                   </div>
                   
                   {/* Fade effect */}
-                  <div className="absolute bottom-0 left-0 right-0 h-6 sm:h-8 bg-gradient-to-t from-white/98 to-transparent pointer-events-none" />
+                  <div className="absolute bottom-0 left-0 right-0 h-4 sm:h-6 bg-gradient-to-t from-white/98 to-transparent pointer-events-none" />
                 </div>
                 
-                {/* Footer */}
-                <div className="mt-4 sm:mt-6 md:mt-8 pt-3 sm:pt-4 border-t border-purple-200/30">
-                  <div className="flex items-center justify-center gap-2 sm:gap-4">
-                    <div className="h-px w-6 sm:w-12 bg-gradient-to-r from-transparent via-purple-300/40 to-transparent" />
-                    <div className="flex items-center gap-1.5 sm:gap-2">
-                      <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-purple-400/80 animate-pulse" />
-                      <Heart className="w-3 h-3 sm:w-4 sm:h-4 text-pink-400/80 fill-pink-400/30" />
-                      <span className="font-elegant text-xs sm:text-sm text-purple-600/60 font-medium">
+                {/* Footer - Compact */}
+                <div className="mt-3 sm:mt-4 md:mt-5 pt-2 sm:pt-3 border-t border-purple-200/30">
+                  <div className="flex items-center justify-center gap-1.5 sm:gap-2">
+                    <div className="h-px w-4 sm:w-8 bg-gradient-to-r from-transparent via-purple-300/40 to-transparent" />
+                    <div className="flex items-center gap-1 sm:gap-1.5">
+                      <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-400/80 animate-pulse" />
+                      <Heart className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-pink-400/80 fill-pink-400/30" />
+                      <span className="font-elegant text-[10px] sm:text-xs text-purple-600/60 font-medium">
                         URTHEBEST
                       </span>
                     </div>
-                    <div className="h-px w-6 sm:w-12 bg-gradient-to-r from-transparent via-pink-300/40 to-transparent" />
+                    <div className="h-px w-4 sm:w-8 bg-gradient-to-r from-transparent via-pink-300/40 to-transparent" />
                   </div>
                 </div>
               </div>
@@ -615,43 +613,43 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
         </div>
       )}
 
-      {/* Bottom Navigation - Adjusted position */}
-      <div className="absolute bottom-3 sm:bottom-4 left-0 right-0 z-20 px-3 sm:px-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3 max-w-4xl mx-auto">
+      {/* Bottom Navigation - Compact */}
+      <div className="absolute bottom-2 sm:bottom-3 left-0 right-0 z-20 px-2 sm:px-3">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-1.5 sm:gap-2 max-w-4xl mx-auto">
           <div className="text-center sm:text-left">
-            <div className="font-elegant text-xs sm:text-sm text-purple-200/70">
+            <div className="font-elegant text-[10px] sm:text-xs text-purple-200/70">
               🎈🎈🎈
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               onClick={handleClose}
-              className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md 
-                rounded-lg sm:rounded-xl transition-all duration-300 group"
+              className="flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md 
+                rounded-md sm:rounded-lg transition-all duration-300 group"
             >
-              <Home className="w-3 h-3 sm:w-4 sm:h-4 text-white/80 group-hover:text-white" />
-              <span className="font-elegant text-xs sm:text-sm text-white/90">Return to Room</span>
+              <Home className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white/80 group-hover:text-white" />
+              <span className="font-elegant text-[10px] sm:text-xs text-white/90">Return</span>
             </button>
             
-            <div className="hidden sm:flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-xl px-2.5 py-1.5">
-              <Star className="w-2.5 h-2.5 text-yellow-300/80" />
-              <span className="font-elegant text-xs text-purple-200/70">
-                Subhanallah!
+            <div className="hidden sm:flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1">
+              <Star className="w-2 h-2 text-yellow-300/80" />
+              <span className="font-elegant text-[10px] text-purple-200/70">
+                Subhanallah<3
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Mobile Instructions - Adjusted position */}
+      {/* Mobile Instructions - Compact */}
       {isMobile && !selectedLetter && (
-        <div className="absolute bottom-16 left-0 right-0 z-20 px-3 animate-bounce">
+        <div className="absolute bottom-14 left-0 right-0 z-20 px-2 animate-bounce">
           <div className="text-center">
-            <div className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5">
-              <Sparkles className="w-2.5 h-2.5 text-yellow-300" />
-              <span className="font-elegant text-[10px] text-purple-100">
-                Tap letters to read!
+            <div className="inline-flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-2 py-1">
+              <Sparkles className="w-2 h-2 text-yellow-300" />
+              <span className="font-elegant text-[9px] text-purple-100">
+                Tap letters!
               </span>
             </div>
           </div>
@@ -662,7 +660,7 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
         @keyframes modal-in {
           0% { 
             opacity: 0; 
-            transform: translateY(30px) scale(0.95); 
+            transform: translateY(20px) scale(0.95); 
           }
           100% { 
             opacity: 1; 
@@ -671,7 +669,7 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
         }
         
         .animate-modal-in {
-          animation: modal-in 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+          animation: modal-in 0.3s cubic-bezier(0.19, 1, 0.22, 1);
         }
         
         .perspective-1000 {
@@ -688,12 +686,12 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
         
         /* Enhanced scrollbar */
         .scrollbar-thin::-webkit-scrollbar {
-          width: 4px;
+          width: 3px;
         }
         
         .scrollbar-thumb-purple-300\/40::-webkit-scrollbar-thumb {
           background-color: rgba(196, 181, 253, 0.4);
-          border-radius: 4px;
+          border-radius: 3px;
         }
         
         .scrollbar-track-transparent::-webkit-scrollbar-track {
@@ -707,9 +705,11 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
           backface-visibility: hidden;
         }
         
-        /* Small blur utility */
-        .blur-xs {
-          filter: blur(2px);
+        /* Truncate text utility */
+        .truncate {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
       `}</style>
     </div>
