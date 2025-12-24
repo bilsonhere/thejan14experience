@@ -111,9 +111,9 @@ Prajol 🥂`,
   { 
     id: 7, 
     from: 'Aditi', 
-    relation: 'Partner in Crime',
+    relation: 'Bilsi frand',
     content: `Happy Birthday Afrah!
-Love, Aditi 🦋`,
+, Aditi 🦋`,
     rotation: 6.5,
     size: 0.87,
     pinPosition: 'tl',
