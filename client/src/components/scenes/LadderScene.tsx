@@ -581,7 +581,7 @@ export function LadderScene() {
                   Level {currentMilestone}!
                 </div>
                 <div className="text-sm text-cyan-300">
-                  {currentMilestone === 20 ? 'Summit Reached!' : 'Milestone Achieved'}
+                  {currentMilestone === 20 ? 'YOU MADE IT' : 'Milestone Achieved'}
                 </div>
               </div>
             </div>
@@ -608,12 +608,12 @@ export function LadderScene() {
             {progress >= MAX_PROGRESS ? (
               <span className="flex items-center justify-center gap-2">
                 <Trophy className="w-5 h-5 sm:w-6 sm:h-6" />
-                Summit Reached! 🎉
+                YOU MADE ITTT! 🎉
               </span>
             ) : (
               <span className="flex items-center justify-center gap-2">
                 <ChevronUp className="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-y-[-2px] transition-transform" />
-                Gentle Climb Step
+                Climb with peace:)
               </span>
             )}
             {/* Button shine effect */}
@@ -666,9 +666,9 @@ export function LadderScene() {
                               blur-2xl rounded-full" />
                 <div className="relative text-5xl sm:text-6xl mb-4">🏆✨</div>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">Celestial Summit Reached!</h2>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">YOUUUU MADE IT SO FARRR!</h2>
               <p className="text-cyan-200/90 text-sm sm:text-base mb-6">
-                You've gracefully ascended all 20 steps to the dream summit
+                 Everyone is proud of you! Your journey has been inspiring. Alhumdulillah💕
               </p>
               <div className="text-3xl animate-bounce">🎉</div>
             </div>
