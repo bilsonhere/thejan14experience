@@ -253,7 +253,7 @@ export function GiftsScene() {
     setAudioError(false);
     
     try {
-      audioRef.current = new Audio('/assets/gifts/audio/Hbd.wav');
+      audioRef.current = new Audio('/assets/gifts/audio/Hbd.mp3');
       
       audioRef.current.addEventListener('canplaythrough', () => {
         setIsAudioLoading(false);
