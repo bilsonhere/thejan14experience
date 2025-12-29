@@ -21,7 +21,7 @@ const LETTERS: Letter[] = [
   { id: 3, from: 'Monira', relation: 'Mufasa Mom', content: `TBA,\nMonira 🌟`, rotation: -2, size: 0.88, pinPosition: 'bl', folded: false, depth: 4, color: '#fffdf5' },
   { id: 4, from: 'Lil Bro', relation: 'Bilsis heartbeat', content: `AALU,\nYour Lil Bro 🎮`, rotation: 6, size: 0.95, pinPosition: 'br', folded: true, depth: 1, color: '#f8f9fa' },
   { id: 5, from: 'Anjila', relation: 'Bilsi sissy', content: `please write,\nAnjila 💕`, rotation: -7, size: 0.86, pinPosition: 'tl', folded: false, depth: 2, color: '#fff0f5' },
-  { id: 6, from: 'Prajol', relation: 'Bilsi bestie', content: `my goat philoshoper,\nPrajol 🥂`, rotation: 3, size: 0.84, pinPosition: 'tr', folded: true, depth: 3, color: '#fdfbf7' },
+  { id: 6, from: 'Prajol', relation: 'Bilsi bestie', content: `Hey happy birthday. I am Bilson's bestfriend. Thank you for making him a better person and I hope this message finds you well. If i have to say a piece of advice is this "Now we all have a great need for acceptance, but you must trust that your beliefs are unique.” Again happy birthday from my side, enjoy the day💕\nPrajol 🥂`, rotation: 3, size: 0.84, pinPosition: 'tr', folded: true, depth: 3, color: '#fdfbf7' },
   { id: 7, from: 'Aditi', relation: 'Partner in Crime', content: `Happy Birthday Afrah!\nLove, Aditi 🦋`, rotation: -3, size: 0.9, pinPosition: 'tl', folded: false, depth: 2, color: '#fcfcfc' },
 ];
 
