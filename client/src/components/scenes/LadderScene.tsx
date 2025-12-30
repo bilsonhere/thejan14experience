@@ -5,52 +5,63 @@ import { Button } from '../ui/button';
 import { AdaptiveParticleSystem } from '../AdaptiveParticleSystem';
 import gsap from 'gsap';
 import Confetti from 'react-confetti';
-import { ChevronUp, Trophy, Sparkles, Cloud, Sun, Castle, Crown, Heart, Zap, BookOpen, GraduationCap } from 'lucide-react';
+import { 
+  ChevronUp, Trophy, Sparkles, Cloud, Sun, Castle, Crown, Heart, Zap, 
+  BookOpen, GraduationCap, Plane, HeartCrack, Mountain, Cat, Music 
+} from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
-/* GAME DATA: THE JOURNEY OF GROWTH */
+/* GAME DATA: THE JOURNEY OF AFRAH */
 /* ------------------------------------------------------------------ */
 
-// Represents the flavor text for specific ages (steps)
+// Achievements & Happy Moments (These happen automatically as she climbs)
 const AGE_FLAVOR = {
-  1: "Learning to walk! 👶",
+  1: "First steps! 👶",
   5: "Kindergarten starts! 🎒",
   10: "Double digits! 🔟",
-  13: "Official teenager! 🤳",
-  16: "Sweet Sixteen! 🚗",
-  18: "Legal adult! 🗳️",
-  19: "One year left... ⏳",
-  20: "THE QUEEN ARRIVES! 👑"
+  11: "Aapi's Wedding! 💍",
+  13: "Trip to Jebel Jais! 🏔️",
+  14: "Billie wins Grammy! 🎵", 
+  15: "99/100 in English! 📝",
+  16: "MESSI WINS WORLD CUP! 🐐",
+  18: "Luna & Simba Home 🐱",
+  20: "QUEEN AFRAH! 👑"
 };
 
-// Represents "Boss Battles" or Struggles at specific ages
-// The game pauses here until the user clicks the "Action" button
+// "Boss Battles" - Life Obstacles that stop the auto-climb
 const CHALLENGES: Record<number, { title: string, description: string, action: string, icon: any, color: string }> = {
   4: { 
     title: "First Day of School", 
-    description: "It's scary to leave home...", 
+    description: "Big bag, new shoes, scary world...", 
     action: "Be Brave! 🦁", 
     icon: BookOpen,
     color: "bg-blue-500"
   },
-  12: { 
-    title: "Awkward Phase", 
-    description: "Braces, glasses, and growing pains!", 
-    action: "Love Yourself! 💖", 
-    icon: Heart,
-    color: "bg-pink-500"
+  14: { 
+    title: "Leaving Birth Country", 
+    description: "Saying goodbye to childhood home...", 
+    action: "Embrace Change ✈️", 
+    icon: Plane,
+    color: "bg-teal-500"
   },
   15: { 
-    title: "High School Drama", 
-    description: "Fake friends and tough exams.", 
-    action: "Stay Focused! 🎯", 
-    icon: Zap,
-    color: "bg-purple-500"
+    title: "The Heartbreak", 
+    description: "Messi leaves Barcelona...", 
+    action: "Stay Loyal 💔", 
+    icon: HeartCrack,
+    color: "bg-red-500"
   },
-  18: { 
-    title: "Big Life Decisions", 
-    description: "Choosing a path for the future.", 
-    action: "Trust Your Gut! 🧭", 
+  17: { 
+    title: "Competitive Exams", 
+    description: "The grind. The stress. The books.", 
+    action: "Lock In! 🧠", 
+    icon: Zap,
+    color: "bg-purple-600"
+  },
+  19: { 
+    title: "Moving Out", 
+    description: "College life begins. Adulting time.", 
+    action: "Spread Wings 🦅", 
     icon: GraduationCap,
     color: "bg-orange-500"
   }
@@ -184,7 +195,7 @@ export function LadderScene() {
     progressRef.current = nextAge;
     setSide(nextSide);
 
-    // Update flavor text
+    // Update flavor text (Achievements)
     if (AGE_FLAVOR[nextAge as keyof typeof AGE_FLAVOR]) {
         setQuote(AGE_FLAVOR[nextAge as keyof typeof AGE_FLAVOR]);
         setShowLevelUp(true);
@@ -247,7 +258,13 @@ export function LadderScene() {
     setProgress(nextAge);
     progressRef.current = nextAge;
     setSide(nextSide);
-    setQuote(`Overcame: ${CHALLENGES[nextAge].title}! 💪`);
+
+    // If there is an achievement at the same age as a challenge, show it!
+    if (AGE_FLAVOR[nextAge as keyof typeof AGE_FLAVOR]) {
+        setQuote(AGE_FLAVOR[nextAge as keyof typeof AGE_FLAVOR]);
+    } else {
+        setQuote(`Overcame: ${CHALLENGES[nextAge].title}! 💪`);
+    }
 
     // Animate move
     if (!settings.reducedMotion && characterRef.current) {
@@ -304,8 +321,8 @@ export function LadderScene() {
 
   return (
     <div className={`relative w-full h-full flex flex-col items-center justify-center overflow-hidden 
-                     bg-gradient-to-b from-indigo-300 via-purple-300 to-pink-300
-                     transition-transform duration-100 ${shake ? 'translate-x-1 rotate-1' : ''}`}>
+                      bg-gradient-to-b from-indigo-300 via-purple-300 to-pink-300
+                      transition-transform duration-100 ${shake ? 'translate-x-1 rotate-1' : ''}`}>
       
       {/* --- BACKGROUND --- */}
       <div className="absolute inset-0 z-0">
@@ -333,7 +350,7 @@ export function LadderScene() {
         {/* HEADER */}
         <div className="flex-none text-center mb-2">
             <h1 className="text-3xl sm:text-5xl font-display font-black text-white drop-shadow-md stroke-pink-700">
-                PRINCESS JOURNEY
+                AFRAH'S JOURNEY
             </h1>
             <div className="inline-block mt-2 bg-white/30 backdrop-blur-md px-6 py-2 rounded-full border border-white/50 shadow-lg">
                 <span className="text-pink-900 font-bold flex items-center gap-2">
@@ -380,7 +397,7 @@ export function LadderScene() {
                             <div className="flex justify-center mb-2">
                                 <currentChallengeData.icon className={`w-12 h-12 ${currentChallengeData.color.replace('bg-', 'text-')}`} />
                             </div>
-                            <h3 className="font-black text-xl uppercase mb-1">{currentChallengeData.title}</h3>
+                            <h3 className="font-black text-xl uppercase mb-1 leading-tight">{currentChallengeData.title}</h3>
                             <p className="text-xs text-gray-500 mb-4 font-medium">{currentChallengeData.description}</p>
                             
                             <Button 
@@ -456,15 +473,15 @@ export function LadderScene() {
            <div className="bg-gradient-to-br from-pink-400 via-purple-400 to-indigo-400 p-1.5 rounded-[2rem] w-full max-w-sm shadow-2xl animate-bounce-in">
               <div className="bg-white rounded-[1.8rem] p-8 text-center border-4 border-pink-200">
                   <div className="text-7xl mb-4 animate-bounce">🎂</div>
-                  <h2 className="text-3xl font-black text-pink-600 mb-2">HAPPY 20TH BIRTHDAY!</h2>
+                  <h2 className="text-3xl font-black text-pink-600 mb-2">HAPPY 20TH AFRAH!</h2>
                   <p className="text-gray-600 font-medium mb-6 leading-relaxed">
-                      You've overcome 20 years of obstacles to become the Queen you are today. The castle is yours!
+                      From Jebel Jais to moving out, from heartbreak to finding Luna & Simba. You made it to 20!
                   </p>
                   <div className="bg-pink-50 p-4 rounded-xl mb-6">
                       <p className="text-sm text-pink-800 font-bold">"Every step was worth it. Alhumdulillah" 💖</p>
                   </div>
                   <Button onClick={() => window.location.reload()} className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl py-4 text-lg shadow-lg">
-                      Replay Journey 🔄
+                      Replay The Journey 🔄
                   </Button>
               </div>
            </div>
