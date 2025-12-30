@@ -385,7 +385,8 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
                     {selectedLetter.from}
                 </h2>
                 
-                <div className="font-serif text-lg text-slate-700 leading-relaxed min-h-[100px] flex flex-col justify-center">
+                <div className="font-garamond text-lg text-slate-700 leading-relaxed min-h-[100px] flex flex-col justify-center">
+
                     {selectedLetter.content.split('\n').map((line, i) => (
                         <p key={i} className={i === 0 ? "mb-4" : "font-bold text-slate-500 text-sm uppercase tracking-wide"}>
                             {line}
@@ -413,6 +414,12 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
       </div>
 
       <style>{`
+      @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
+
+.font-garamond {
+  font-family: 'EB Garamond', serif;
+}
+
         @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Playfair+Display:ital@0;1&display=swap');
         .font-cursive { font-family: 'Dancing Script', cursive; }
         .font-serif { font-family: 'Playfair Display', serif; }
