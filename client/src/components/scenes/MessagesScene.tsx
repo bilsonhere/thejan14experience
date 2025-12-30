@@ -385,14 +385,32 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
                     {selectedLetter.from}
                 </h2>
                 
-                <div className="font-garamond text-lg text-slate-700 leading-relaxed min-h-[100px] flex flex-col justify-center">
+                <div className="font-garamond text-[19px] leading-[1.75] text-slate-700 min-h-[120px] flex flex-col justify-center">
+  {selectedLetter.content.split('\n').map((line, i, arr) => {
+    const isFirst = i === 0;
+    const isLast = i === arr.length - 1;
+    const isSignature =
+      isLast &&
+      (line.includes('—') ||
+        line.toLowerCase().includes('love') ||
+        line.toLowerCase().includes('from') ||
+        line.length < 22);
 
-                    {selectedLetter.content.split('\n').map((line, i) => (
-                        <p key={i} className={i === 0 ? "mb-4" : "font-bold text-slate-500 text-sm uppercase tracking-wide"}>
-                            {line}
-                        </p>
-                    ))}
-                </div>
+    return (
+      <p
+        key={i}
+        className={`
+          ${isFirst ? 'mb-4 text-[20px]' : 'mb-2'}
+          ${isSignature ? 'mt-6 italic text-slate-600 text-right' : ''}
+          whitespace-pre-wrap
+        `}
+      >
+        {line}
+      </p>
+    );
+  })}
+</div>
+
 
                 <div className="pt-4">
                     <Heart className="w-5 h-5 mx-auto text-red-300 fill-red-100" />
