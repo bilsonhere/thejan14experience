@@ -1,69 +1,129 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, useMemo } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useSceneStore } from '../../lib/stores/useSceneStore';
 import { audioManager } from '../../lib/audioManager';
 import { Button } from '../ui/button';
-import { AdaptiveParticleSystem } from '../AdaptiveParticleSystem';
 import gsap from 'gsap';
 import Confetti from 'react-confetti';
 import { 
-  ChevronUp, Trophy, Sparkles, Cloud, Sun, Castle, Crown, Heart, Zap, 
-  BookOpen, GraduationCap, Plane, HeartCrack, Mountain, Cat, Music 
+  Trophy, Cloud, Sun, Castle, Crown, Heart, Zap, 
+  BookOpen, GraduationCap, Plane, HeartCrack, Mountain, 
+  Cat, Music, Star, Gift, PartyPopper 
 } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
-/* GAME DATA: THE JOURNEY OF AFRAH */
+/* 1. CONFIGURATION: EASY TO EDIT */
 /* ------------------------------------------------------------------ */
 
-// Achievements & Happy Moments (These happen automatically as she climbs)
-const AGE_FLAVOR = {
+// TEXT THAT APPEARS AT THE TOP (The "Vibe" of that age)
+const AGE_FLAVOR: Record<number, string> = {
   1: "First steps! 👶",
   5: "Kindergarten starts! 🎒",
   10: "Double digits! 🔟",
-  11: "Aapi's Wedding! 💍",
-  13: "Trip to Jebel Jais! 🏔️",
-  14: "Billie wins Grammy! 🎵", 
-  15: "99/100 in English! 📝",
-  16: "MESSI WINS WORLD CUP! 🐐",
-  18: "Luna & Simba Home 🐱",
-  20: "QUEEN AFRAH! 👑"
+  14: "New Country, New Challenges ✈️",
+  15: "High School Drama 🎭",
+  16: "JEETARD MODE ON 📚",
+  17: "The Grind Never Stops ✍️",
+  18: "Freedom? Maybe? 🦋",
+  19: "College Life / Adulting 🧺",
+  20: "THE QUEEN ARRIVES! 👑"
 };
 
-// "Boss Battles" - Life Obstacles that stop the auto-climb
-const CHALLENGES: Record<number, { title: string, description: string, action: string, icon: any, color: string }> = {
+// COMBINED LIST OF CHALLENGES (Obstacles) AND MEMORIES (Good Moments)
+// Type: 'OBSTACLE' (Stops you, red color, hard) OR 'MEMORY' (Stops you, gold color, celebration)
+const LIFE_EVENTS: Record<number, { 
+    type: 'OBSTACLE' | 'MEMORY', 
+    title: string, 
+    description: string, 
+    buttonText: string, 
+    icon: any, 
+    color: string 
+}> = {
+  // --- CHILDHOOD ---
   4: { 
+    type: 'OBSTACLE',
     title: "First Day of School", 
-    description: "Big bag, new shoes, scary world...", 
-    action: "Be Brave! 🦁", 
+    description: "Big bag, new shoes, crying at the gate...", 
+    buttonText: "Be Brave! 🦁", 
     icon: BookOpen,
     color: "bg-blue-500"
   },
-  14: { 
-    title: "Leaving Birth Country", 
-    description: "Saying goodbye to childhood home...", 
-    action: "Embrace Change ✈️", 
-    icon: Plane,
+  11: { 
+    type: 'MEMORY',
+    title: "Aapi's Destination Wedding", 
+    description: "Dressing up, henna, and pure vibes! 💍", 
+    buttonText: "Best Memories! 📸", 
+    icon: Heart,
+    color: "bg-pink-500"
+  },
+  13: { 
+    type: 'MEMORY',
+    title: "Trip to Jebel Jais", 
+    description: "The mountains, the cold, the road trip! 🏔️", 
+    buttonText: "What a view! 🌄", 
+    icon: Mountain,
     color: "bg-teal-500"
   },
-  15: { 
+  
+  // --- THE TEENAGE SHIFT ---
+  14: { 
+    type: 'OBSTACLE',
+    title: "Leaving Birth Country", 
+    description: "Saying goodbye to childhood home & friends...", 
+    buttonText: "Embrace Change ✈️", 
+    icon: Plane,
+    color: "bg-indigo-600"
+  },
+  15: {
+    type: 'MEMORY',
+    title: "Billie Eilish Grammy!",
+    description: "She won! Fan girl moment of the century! 🎵",
+    buttonText: "Slay! 💅",
+    icon: Music,
+    color: "bg-green-500"
+  },
+  
+  // --- HIGH SCHOOL HIGHS & LOWS ---
+  16: { 
+    type: 'OBSTACLE',
     title: "The Heartbreak", 
-    description: "Messi leaves Barcelona...", 
-    action: "Stay Loyal 💔", 
+    description: "Messi leaves Barcelona... I can't.", 
+    buttonText: "Stay Loyal 💔", 
     icon: HeartCrack,
     color: "bg-red-500"
   },
-  17: { 
-    title: "Competitive Exams", 
-    description: "The grind. The stress. The books.", 
-    action: "Lock In! 🧠", 
-    icon: Zap,
-    color: "bg-purple-600"
+  17: {
+    type: 'MEMORY',
+    title: "Academic Weapon",
+    description: "99/100 in English?! Who is she?! 📝",
+    buttonText: "Smarty Pants! 🧠",
+    icon: Star,
+    color: "bg-yellow-500"
   },
-  19: { 
-    title: "Moving Out", 
-    description: "College life begins. Adulting time.", 
-    action: "Spread Wings 🦅", 
-    icon: GraduationCap,
-    color: "bg-orange-500"
+  18: { 
+    type: 'OBSTACLE',
+    title: "Competitive Exams", 
+    description: "The stress. The books. The pressure.", 
+    buttonText: "Lock In! 🎯", 
+    icon: Zap,
+    color: "bg-purple-700"
+  },
+  
+  // --- RECENT WINS ---
+  19: {
+    type: 'MEMORY',
+    title: "Messi Wins World Cup",
+    description: "THE GOAT COMPLETED FOOTBALL! 🏆",
+    buttonText: "VAMOS! 🇦🇷",
+    icon: Trophy,
+    color: "bg-sky-500" // Argentina blue
+  },
+  20: { // Technically happens right before 20 in game logic
+    type: 'MEMORY',
+    title: "Luna & Simba",
+    description: "Adopted the cutest babies ever! 🐱",
+    buttonText: "Meow! 🐾",
+    icon: Cat,
+    color: "bg-orange-400"
   }
 };
 
@@ -103,21 +163,23 @@ export function LadderScene() {
   /* ------------------------------------------------------------------ */
   const [progress, setProgress] = useState(0); // Age 0-20
   const [isClimbing, setIsClimbing] = useState(false);
-  const [activeChallenge, setActiveChallenge] = useState<number | null>(null);
+  
+  // The current event (Obstacle OR Memory) blocking the screen
+  const [activeEvent, setActiveEvent] = useState<number | null>(null);
+  
   const [side, setSide] = useState<'left' | 'right'>('left');
   
   // Visual states
   const [shake, setShake] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
   const [showLevelUp, setShowLevelUp] = useState(false);
-  const [autoClimb, setAutoClimb] = useState(false);
+  const [showMemoryConfetti, setShowMemoryConfetti] = useState(false); // Mini confetti for memory popups
   const [quote, setQuote] = useState("Journey to 20 Begins! ✨");
 
   // Refs
   const characterRef = useRef<HTMLDivElement>(null);
   const ladderRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef(0);
-  const autoClimbInterval = useRef<NodeJS.Timeout | null>(null);
 
   /* ------------------------------------------------------------------ */
   /* SETUP */
@@ -157,7 +219,6 @@ export function LadderScene() {
     progressRef.current = 0;
     setShowCompletion(false);
     updateProgress({ ladderProgress: 0, unlockedGifts: false });
-    return () => stopAutoClimb();
   }, [updateProgress]);
 
   /* ------------------------------------------------------------------ */
@@ -171,19 +232,26 @@ export function LadderScene() {
 
   const climb = useCallback(() => {
     // 1. Check constraints
-    if (isClimbing || activeChallenge || progressRef.current >= MAX_PROGRESS) return;
+    if (isClimbing || activeEvent || progressRef.current >= MAX_PROGRESS) return;
 
     // 2. Determine Next Step
     const currentAge = progressRef.current;
     const nextAge = currentAge + 1;
 
-    // 3. Check for Obstacles (Life Struggles)
-    if (CHALLENGES[nextAge]) {
-      // Pause! We hit a struggle.
-      stopAutoClimb(); // Force player to interact
-      setActiveChallenge(nextAge);
-      triggerShake();
-      if (settings.soundEnabled) audioManager.play('hit'); // Or an 'alert' sound
+    // 3. Check for LIFE EVENTS (Obstacles OR Memories)
+    if (LIFE_EVENTS[nextAge]) {
+      // Pause! We hit an event.
+      setActiveEvent(nextAge);
+      
+      // Different sound/effect based on type
+      if (LIFE_EVENTS[nextAge].type === 'OBSTACLE') {
+        triggerShake();
+        if (settings.soundEnabled) audioManager.play('hit'); 
+      } else {
+        // Memory
+        if (settings.soundEnabled) audioManager.play('success');
+        setShowMemoryConfetti(true);
+      }
       return;
     }
 
@@ -195,9 +263,9 @@ export function LadderScene() {
     progressRef.current = nextAge;
     setSide(nextSide);
 
-    // Update flavor text (Achievements)
-    if (AGE_FLAVOR[nextAge as keyof typeof AGE_FLAVOR]) {
-        setQuote(AGE_FLAVOR[nextAge as keyof typeof AGE_FLAVOR]);
+    // Update flavor text (The vibe of the age)
+    if (AGE_FLAVOR[nextAge]) {
+        setQuote(AGE_FLAVOR[nextAge]);
         setShowLevelUp(true);
         setTimeout(() => setShowLevelUp(false), 1000);
     }
@@ -231,39 +299,47 @@ export function LadderScene() {
         setTimeout(() => setShowCompletion(true), 800);
     }
 
-  }, [isClimbing, activeChallenge, side, settings, getTranslateForProgress, updateProgress]);
+  }, [isClimbing, activeEvent, side, settings, getTranslateForProgress, updateProgress]);
 
-  // Logic to overcome a challenge
-  const overcomeChallenge = () => {
-    if (!activeChallenge) return;
+  // Logic to handle clicking the button on a Pop-up (Memory or Obstacle)
+  const handleEventAction = () => {
+    if (!activeEvent) return;
     
-    // Play success sound/visual
+    const eventData = LIFE_EVENTS[activeEvent];
+
+    // Sound
     if (settings.soundEnabled) audioManager.play('success');
     
     // Visual "Power Up"
     if (characterRef.current) {
         gsap.fromTo(characterRef.current, 
-            { scale: 1.5, filter: 'brightness(2)' }, 
+            { scale: 1.5, filter: 'brightness(1.5)' }, 
             { scale: 1, filter: 'brightness(1)', duration: 0.5 }
         );
     }
 
     // Resume climbing logic for that specific step
-    const nextAge = activeChallenge;
+    const nextAge = activeEvent;
     
     setIsClimbing(true);
     const nextSide = side === 'left' ? 'right' : 'left';
     
-    setActiveChallenge(null); // Clear obstacle
+    setActiveEvent(null); // Clear popup
+    setShowMemoryConfetti(false); // Stop mini confetti
     setProgress(nextAge);
     progressRef.current = nextAge;
     setSide(nextSide);
 
-    // If there is an achievement at the same age as a challenge, show it!
-    if (AGE_FLAVOR[nextAge as keyof typeof AGE_FLAVOR]) {
-        setQuote(AGE_FLAVOR[nextAge as keyof typeof AGE_FLAVOR]);
+    // Set Quote based on what just happened
+    if (eventData.type === 'OBSTACLE') {
+       setQuote(`Overcame: ${eventData.title}! 💪`);
     } else {
-        setQuote(`Overcame: ${CHALLENGES[nextAge].title}! 💪`);
+       setQuote(`Memory Unlocked: ${eventData.title} ✨`);
+    }
+
+    // Check if there is specific flavor text for this age to overwrite the "Overcame" text
+    if (AGE_FLAVOR[nextAge]) {
+        setTimeout(() => setQuote(AGE_FLAVOR[nextAge]), 1500);
     }
 
     // Animate move
@@ -280,44 +356,22 @@ export function LadderScene() {
     }
   };
 
-  /* ------------------------------------------------------------------ */
-  /* AUTO CLIMB */
-  /* ------------------------------------------------------------------ */
-  const startAutoClimb = () => {
-    if (activeChallenge) return; // Can't auto climb through struggles
-    if (autoClimbInterval.current) clearInterval(autoClimbInterval.current);
-    setAutoClimb(true);
-    autoClimbInterval.current = setInterval(() => {
-      if (progressRef.current >= MAX_PROGRESS || CHALLENGES[progressRef.current + 1]) {
-        // Stop if done OR if next step is a challenge
-        stopAutoClimb();
-        return;
-      }
-      climb();
-    }, 700);
-  };
-
-  const stopAutoClimb = () => {
-    if (autoClimbInterval.current) clearInterval(autoClimbInterval.current);
-    setAutoClimb(false);
-  };
-
-  // Keyboard
+  // Keyboard support
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-        if (activeChallenge) return; // Prevent key spam during challenge
+        if (activeEvent) return; // Prevent key spam during popup
         if (e.key === ' ' || e.key === 'ArrowUp') { e.preventDefault(); climb(); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [climb, activeChallenge]);
+  }, [climb, activeEvent]);
 
   /* ------------------------------------------------------------------ */
   /* RENDER */
   /* ------------------------------------------------------------------ */
   
-  // Current Challenge Data
-  const currentChallengeData = activeChallenge ? CHALLENGES[activeChallenge] : null;
+  // Current Event Data
+  const currentEventData = activeEvent ? LIFE_EVENTS[activeEvent] : null;
 
   return (
     <div className={`relative w-full h-full flex flex-col items-center justify-center overflow-hidden 
@@ -337,7 +391,12 @@ export function LadderScene() {
         <div className="absolute inset-0 opacity-30 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IndoaXRlIi8+PC9zdmc+')] animate-pan-bg"></div>
       </div>
 
-      {/* --- CONFETTI ON WIN --- */}
+      {/* --- CONFETTI ON WIN OR MEMORY --- */}
+      {showMemoryConfetti && (
+         <div className="absolute inset-0 pointer-events-none z-50">
+           <Confetti recycle={false} numberOfPieces={100} gravity={0.3} colors={['#FFD700', '#FFFFFF']} />
+         </div>
+      )}
       {progress >= MAX_PROGRESS && (
          <div className="absolute inset-0 pointer-events-none z-50">
            <Confetti recycle={true} numberOfPieces={200} colors={['#FFD700', '#FF69B4', '#FFFFFF']} />
@@ -389,22 +448,37 @@ export function LadderScene() {
                 ))}
             </div>
 
-            {/* OBSTACLE OVERLAY (Appears on the ladder) */}
-            {activeChallenge && currentChallengeData && (
-                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 w-64 animate-bounce-in">
-                    <div className={`${currentChallengeData.color} text-white p-1 rounded-3xl shadow-2xl rotate-3`}>
-                        <div className="bg-white text-gray-800 rounded-[20px] p-4 text-center border-4 border-dashed border-white/50">
-                            <div className="flex justify-center mb-2">
-                                <currentChallengeData.icon className={`w-12 h-12 ${currentChallengeData.color.replace('bg-', 'text-')}`} />
-                            </div>
-                            <h3 className="font-black text-xl uppercase mb-1 leading-tight">{currentChallengeData.title}</h3>
-                            <p className="text-xs text-gray-500 mb-4 font-medium">{currentChallengeData.description}</p>
+            {/* --- POP-UP OVERLAY (OBSTACLES & MEMORIES) --- */}
+            {activeEvent && currentEventData && (
+                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 w-72 animate-bounce-in">
+                    {/* Rotate different directions for fun */}
+                    <div className={`${currentEventData.color} text-white p-1.5 rounded-3xl shadow-2xl ${currentEventData.type === 'OBSTACLE' ? '-rotate-2' : 'rotate-2'}`}>
+                        <div className="bg-white text-gray-800 rounded-[20px] p-5 text-center border-4 border-dashed border-white/50">
                             
+                            {/* Icon Bubble */}
+                            <div className="flex justify-center mb-3">
+                                <div className={`p-3 rounded-full ${currentEventData.color} bg-opacity-20`}>
+                                    <currentEventData.icon className={`w-10 h-10 ${currentEventData.color.replace('bg-', 'text-')}`} />
+                                </div>
+                            </div>
+
+                            {/* Title */}
+                            <h3 className={`font-black text-xl uppercase mb-1 leading-tight ${currentEventData.type === 'OBSTACLE' ? 'text-red-600' : 'text-purple-600'}`}>
+                                {currentEventData.type === 'MEMORY' && <span className="block text-xs text-yellow-500 mb-1">✨ SPECIAL MEMORY ✨</span>}
+                                {currentEventData.title}
+                            </h3>
+                            
+                            {/* Description */}
+                            <p className="text-sm text-gray-600 mb-5 font-medium leading-snug">
+                                {currentEventData.description}
+                            </p>
+                            
+                            {/* Action Button */}
                             <Button 
-                                onClick={overcomeChallenge}
-                                className={`w-full ${currentChallengeData.color} hover:brightness-110 text-white font-bold py-6 rounded-xl text-lg animate-pulse`}
+                                onClick={handleEventAction}
+                                className={`w-full ${currentEventData.color} hover:brightness-110 text-white font-bold py-6 rounded-xl text-lg animate-pulse shadow-md transition-transform hover:scale-105 active:scale-95`}
                             >
-                                {currentChallengeData.action}
+                                {currentEventData.buttonText}
                             </Button>
                         </div>
                     </div>
@@ -418,7 +492,7 @@ export function LadderScene() {
                     <div className="absolute -top-6 left-1/2 -translate-x-1/2 animate-float-slow">
                         <Crown className="w-8 h-8 text-yellow-400 fill-yellow-200 drop-shadow-md" />
                     </div>
-                    {/* The Princess Emoji/Graphic */}
+                    {/* The Princess Emoji */}
                     <div className="w-full h-full flex items-center justify-center text-6xl drop-shadow-2xl filter hover:brightness-110">
                         👸
                     </div>
@@ -439,30 +513,21 @@ export function LadderScene() {
              {/* Main Button */}
              <Button
                 onClick={climb}
-                disabled={isClimbing || !!activeChallenge || progress >= MAX_PROGRESS}
+                disabled={isClimbing || !!activeEvent || progress >= MAX_PROGRESS}
                 className={`w-full max-w-sm mx-auto h-auto py-5 rounded-3xl text-xl font-black tracking-wide shadow-xl transition-all
-                           ${activeChallenge 
+                           ${activeEvent 
                                ? 'bg-gray-400 cursor-not-allowed opacity-50' 
                                : 'bg-gradient-to-r from-pink-500 via-rose-500 to-pink-500 hover:scale-[1.02] border-b-4 border-pink-800 active:border-b-0 active:translate-y-1'
                            } text-white`}
              >
                 {progress >= MAX_PROGRESS ? (
                     <span className="flex items-center gap-2"><Trophy /> HAPPY 20TH!</span>
-                ) : activeChallenge ? (
-                    <span className="flex items-center gap-2 animate-pulse">⚠️ OBSTACLE AHEAD!</span>
+                ) : activeEvent ? (
+                    <span className="flex items-center gap-2">LOCKED 🔒</span>
                 ) : (
-                    <span>{autoClimb ? 'GROWING UP...' : 'GROW UP! (Click)'}</span>
+                    <span>GROW UP! (Click)</span>
                 )}
              </Button>
-             
-             {/* Helper text */}
-             {!activeChallenge && progress < MAX_PROGRESS && (
-                 <div className="flex justify-center gap-4 text-xs font-bold text-white/80 uppercase tracking-widest">
-                    <button onClick={autoClimb ? stopAutoClimb : startAutoClimb} className="hover:text-white underline decoration-2 underline-offset-2">
-                        {autoClimb ? '[ Stop Auto ]' : '[ Auto Climb ]'}
-                    </button>
-                 </div>
-             )}
         </div>
 
       </div>
