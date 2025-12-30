@@ -383,6 +383,7 @@ export function LadderScene() {
   const characterRef = useRef<HTMLDivElement>(null);
   const ladderRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef(0);
+  const eventQueueRef = useRef<LifeEvent[]>([]);
 
   /* ------------------------------------------------------------------ */
   /* SETUP */
@@ -422,21 +423,21 @@ export function LadderScene() {
     progressRef.current = 0;
     setShowCompletion(false);
     setEventQueue([]);
+    eventQueueRef.current = [];
     setCurrentEvent(null);
     setQuote(AGE_FLAVOR[0] || "Journey to 20 Begins! ✨");
     updateProgress({ ladderProgress: 0, unlockedGifts: false });
   }, [updateProgress]);
 
   /* ------------------------------------------------------------------ */
-  /* EVENT QUEUE SYSTEM */
+  /* EVENT QUEUE SYSTEM - FIXED */
   /* ------------------------------------------------------------------ */
 
   const processEventQueue = useCallback(() => {
-    if (currentEvent || eventQueue.length === 0) return;
+    if (currentEvent || eventQueueRef.current.length === 0) return;
     
-    const nextEvent = eventQueue[0];
+    const nextEvent = eventQueueRef.current[0];
     setCurrentEvent(nextEvent);
-    setEventQueue(prev => prev.slice(1));
     
     // Play appropriate sound
     if (settings.soundEnabled) {
@@ -451,7 +452,7 @@ export function LadderScene() {
     if (nextEvent.type === 'OBSTACLE') {
       triggerShake();
     }
-  }, [currentEvent, eventQueue, settings.soundEnabled]);
+  }, [currentEvent, settings.soundEnabled]);
 
   const completeCurrentEvent = useCallback(() => {
     if (!currentEvent) return;
@@ -474,22 +475,31 @@ export function LadderScene() {
       setQuote(`Celebrating: ${currentEvent.title}! ✨`);
     }
     
-    // Clear event and check queue
+    // Remove the completed event from queue
+    eventQueueRef.current = eventQueueRef.current.slice(1);
+    setEventQueue(eventQueueRef.current);
+    
+    // Clear current event
     setCurrentEvent(null);
     
     // After a delay, show age flavor if no more events
     setTimeout(() => {
-      if (eventQueue.length === 0 && AGE_FLAVOR[progressRef.current]) {
+      if (eventQueueRef.current.length === 0 && AGE_FLAVOR[progressRef.current]) {
         setQuote(AGE_FLAVOR[progressRef.current]);
       }
     }, 1500);
     
     // Process next event in queue
     setTimeout(processEventQueue, 100);
-  }, [currentEvent, eventQueue.length, processEventQueue, settings.soundEnabled]);
+  }, [currentEvent, processEventQueue, settings.soundEnabled]);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    eventQueueRef.current = eventQueue;
+  }, [eventQueue]);
 
   /* ------------------------------------------------------------------ */
-  /* GAME LOGIC */
+  /* GAME LOGIC - FIXED */
   /* ------------------------------------------------------------------ */
 
   const triggerShake = () => {
@@ -505,23 +515,18 @@ export function LadderScene() {
     const currentAge = progressRef.current;
     const nextAge = currentAge + 1;
 
-    // 3. Update progress
-    setIsClimbing(true);
-    const nextSide = side === 'left' ? 'right' : 'left';
-    
+    // 3. Update progress immediately
     setProgress(nextAge);
     progressRef.current = nextAge;
-    setSide(nextSide);
 
     // 4. Check for events at this age
     const eventsAtAge = getEventsForAge(nextAge);
     if (eventsAtAge.length > 0) {
       // Add events to queue
-      setEventQueue(prev => [...prev, ...eventsAtAge]);
-      // Process queue after animation
-      setTimeout(processEventQueue, 600);
+      eventQueueRef.current = [...eventQueueRef.current, ...eventsAtAge];
+      setEventQueue(eventQueueRef.current);
     } else {
-      // No events, show age flavor
+      // No events, show age flavor immediately
       if (AGE_FLAVOR[nextAge]) {
         setQuote(AGE_FLAVOR[nextAge]);
         setShowLevelUp(true);
@@ -529,10 +534,15 @@ export function LadderScene() {
       }
     }
 
-    // 5. Play climb sound
+    // 5. Start climbing animation
+    setIsClimbing(true);
+    const nextSide = side === 'left' ? 'right' : 'left';
+    setSide(nextSide);
+
+    // 6. Play climb sound
     if (settings.soundEnabled) audioManager.play('hit');
 
-    // 6. Animation
+    // 7. Animation
     if (!settings.reducedMotion && characterRef.current) {
       // Jump Arc
       gsap.to(characterRef.current, {
@@ -541,7 +551,13 @@ export function LadderScene() {
         rotation: (nextSide === 'left' ? -5 : 5),
         duration: 0.5,
         ease: 'back.out(1.4)',
-        onComplete: () => setIsClimbing(false)
+        onComplete: () => {
+          setIsClimbing(false);
+          // Process event queue AFTER animation completes
+          if (eventsAtAge.length > 0) {
+            setTimeout(processEventQueue, 100);
+          }
+        }
       });
       
       // Avatar Squish
@@ -551,14 +567,25 @@ export function LadderScene() {
       );
     } else {
       setIsClimbing(false);
+      // Process event queue immediately for reduced motion
+      if (eventsAtAge.length > 0) {
+        setTimeout(processEventQueue, 100);
+      }
     }
 
-    // 7. Win Condition
+    // 8. Win Condition
     if (nextAge >= MAX_PROGRESS) {
       updateProgress({ unlockedGifts: true, ladderProgress: MAX_PROGRESS });
       setTimeout(() => setShowCompletion(true), 800);
     }
   }, [isClimbing, currentEvent, side, settings, getTranslateForProgress, updateProgress, processEventQueue]);
+
+  // Process event queue when it changes
+  useEffect(() => {
+    if (!currentEvent && eventQueue.length > 0) {
+      processEventQueue();
+    }
+  }, [eventQueue, currentEvent, processEventQueue]);
 
   // Keyboard support
   useEffect(() => {
@@ -700,7 +727,9 @@ export function LadderScene() {
             className={`w-full max-w-sm mx-auto h-auto py-5 rounded-3xl text-xl font-black tracking-wide shadow-xl transition-all
                        ${currentEvent 
                            ? 'bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500' 
-                           : 'bg-gradient-to-r from-pink-500 via-rose-500 to-pink-500 hover:scale-[1.02] border-b-4 border-pink-800 active:border-b-0 active:translate-y-1'
+                           : isClimbing
+                             ? 'bg-gray-400 cursor-not-allowed opacity-50'
+                             : 'bg-gradient-to-r from-pink-500 via-rose-500 to-pink-500 hover:scale-[1.02] border-b-4 border-pink-800 active:border-b-0 active:translate-y-1'
                        } text-white`}
           >
             {progress >= MAX_PROGRESS ? (
@@ -709,15 +738,17 @@ export function LadderScene() {
               <span className="flex items-center gap-2">
                 {currentEvent.type === 'OBSTACLE' ? '💪 OVERCOME!' : '✨ CELEBRATE!'}
               </span>
+            ) : isClimbing ? (
+              <span>Climbing... 🧗‍♀️</span>
             ) : (
               <span>GROW UP! (Click or Space)</span>
             )}
           </Button>
           
           {/* Queue Info */}
-          {eventQueue.length > 0 && (
-            <div className="text-center text-sm text-white/80 font-medium">
-              {eventQueue.length} more event{eventQueue.length !== 1 ? 's' : ''} coming up at age {progress + 1}
+          {eventQueue.length > 0 && !currentEvent && (
+            <div className="text-center text-sm text-white/80 font-medium animate-pulse">
+              {eventQueue.length} event{eventQueue.length !== 1 ? 's' : ''} queued at age {progress}
             </div>
           )}
         </div>
