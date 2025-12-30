@@ -7,127 +7,260 @@ import Confetti from 'react-confetti';
 import { 
   Trophy, Cloud, Sun, Castle, Crown, Heart, Zap, 
   BookOpen, GraduationCap, Plane, HeartCrack, Mountain, 
-  Cat, Music, Star, Gift, PartyPopper 
+  Cat, Music, Star, Gift, PartyPopper, School, Home,
+  Award, Coffee, Users, Book
 } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
-/* 1. CONFIGURATION: EASY TO EDIT */
+/* 1. REDESIGNED EVENT SYSTEM */
 /* ------------------------------------------------------------------ */
 
-// TEXT THAT APPEARS AT THE TOP (The "Vibe" of that age)
+// AGE FLAVOR - Background vibe text, only shown when no events are active
 const AGE_FLAVOR: Record<number, string> = {
-  1: "First steps! 👶",
-  5: "Kindergarten starts! 🎒",
-  10: "Double digits! 🔟",
-  14: "New Country, New Challenges ✈️",
-  15: "High School Drama 🎭",
-  16: "JEETARD MODE ON 📚",
-  17: "The Grind Never Stops ✍️",
-  18: "Freedom? Maybe? 🦋",
-  19: "College Life / Adulting 🧺",
-  20: "THE QUEEN ARRIVES! 👑"
+  0: "Welcome to the world! 👶",
+  1: "Learning to walk! 🚶‍♀️",
+  2: "Tiny human with big opinions 👑",
+  3: "Preschool era begins 🎨",
+  4: "Kindergarten, here I come! 🎒",
+  5: "All about friends & snacks 🍎",
+  6: "First grade boss energy 📚",
+  7: "Level 7 unlocked! 🎮",
+  8: "Reading, writing, vibing 📖",
+  9: "Almost double digits! ✨",
+  10: "DOUBLE DIGITS CLUB! 🔟",
+  11: "Tween life activated 💅",
+  12: "Middle school mode 🏫",
+  13: "New country energy! ✈️",
+  14: "High school freshman 🎭",
+  15: "Sophomore slump? Nope! 📈",
+  16: "Junior year grind 📚",
+  17: "Senioritis incoming 🎓",
+  18: "ADULTING?! 🧺",
+  19: "College life begins 🏛️",
+  20: "LEVEL 20 ACHIEVED! 👑"
 };
 
-// COMBINED LIST OF CHALLENGES (Obstacles) AND MEMORIES (Good Moments)
-// Type: 'OBSTACLE' (Stops you, red color, hard) OR 'MEMORY' (Stops you, gold color, celebration)
-const LIFE_EVENTS: Record<number, { 
-    type: 'OBSTACLE' | 'MEMORY', 
-    title: string, 
-    description: string, 
-    buttonText: string, 
-    icon: any, 
-    color: string 
-}> = {
-  // --- CHILDHOOD ---
-  4: { 
+// EVENT TYPES
+interface LifeEvent {
+  id: string;
+  type: 'OBSTACLE' | 'MEMORY';
+  title: string;
+  description: string;
+  buttonText: string;
+  icon: any;
+  color: string;
+  age: number;
+  priority: number; // Higher number = appears first at same age
+  tags: string[];
+}
+
+// EVENT DATABASE - All events organized by age, with priority
+const LIFE_EVENTS_DB: LifeEvent[] = [
+  // --- CHILDHOOD (0-12) ---
+  {
+    id: 'first-day-school',
     type: 'OBSTACLE',
-    title: "First Day of School", 
-    description: "Big bag, new shoes, crying at the gate...", 
-    buttonText: "Be Brave! 🦁", 
+    title: "First Day of School",
+    description: "Crying at the gate with a backpack bigger than me...",
+    buttonText: "Be Brave! 🦁",
     icon: BookOpen,
-    color: "bg-blue-500"
+    color: "bg-blue-500",
+    age: 4,
+    priority: 1,
+    tags: ['school', 'milestone']
   },
-  11: { 
+  {
+    id: 'preschool-graduation',
     type: 'MEMORY',
-    title: "Aapi's Destination Wedding", 
-    description: "Dressing up, henna, and pure vibes! 💍", 
-    buttonText: "Best Memories! 📸", 
+    title: "Preschool Graduation",
+    description: "Cap, gown, and the proudest smile ever! 📸",
+    buttonText: "So Grown Up! 🎓",
+    icon: GraduationCap,
+    color: "bg-purple-400",
+    age: 5,
+    priority: 1,
+    tags: ['achievement', 'school']
+  },
+  {
+    id: 'aapi-wedding',
+    type: 'MEMORY',
+    title: "Aapi's Destination Wedding",
+    description: "Henna, sparkles, and all the family vibes! 💍",
+    buttonText: "Best Week Ever! ✨",
     icon: Heart,
-    color: "bg-pink-500"
+    color: "bg-pink-500",
+    age: 11,
+    priority: 1,
+    tags: ['family', 'travel', 'celebration']
   },
-  13: { 
+  {
+    id: 'jebel-jais-trip',
     type: 'MEMORY',
-    title: "Trip to Jebel Jais", 
-    description: "The mountains, the cold, the road trip! 🏔️", 
-    buttonText: "What a view! 🌄", 
+    title: "Jebel Jais Road Trip",
+    description: "Freezing at the top of UAE's highest peak! 🏔️",
+    buttonText: "Worth the Drive! 🌄",
     icon: Mountain,
-    color: "bg-teal-500"
+    color: "bg-teal-500",
+    age: 12,
+    priority: 1,
+    tags: ['travel', 'adventure']
   },
-  
-  // --- THE TEENAGE SHIFT ---
-  14: { 
+
+  // --- TEENAGE YEARS (13-19) ---
+  {
+    id: 'moving-countries',
     type: 'OBSTACLE',
-    title: "Leaving Birth Country", 
-    description: "Saying goodbye to childhood home & friends...", 
-    buttonText: "Embrace Change ✈️", 
+    title: "Moving Countries",
+    description: "Saying goodbye to my room, my friends, my comfort zone...",
+    buttonText: "New Chapter ✈️",
     icon: Plane,
-    color: "bg-indigo-600"
+    color: "bg-indigo-600",
+    age: 13,
+    priority: 2,
+    tags: ['change', 'emotional']
   },
-  15: {
-    type: 'MEMORY',
-    title: "Billie Eilish Grammy!",
-    description: "She won! Fan girl moment of the century! 🎵",
-    buttonText: "Slay! 💅",
-    icon: Music,
-    color: "bg-green-500"
-  },
-  
-  // --- HIGH SCHOOL HIGHS & LOWS ---
-  16: { 
+  {
+    id: 'new-school-anxiety',
     type: 'OBSTACLE',
-    title: "The Heartbreak", 
-    description: "Messi leaves Barcelona... I can't.", 
-    buttonText: "Stay Loyal 💔", 
+    title: "New School, New Anxiety",
+    description: "First day at a new school where everyone already has friends...",
+    buttonText: "Make New Friends! 👋",
+    icon: School,
+    color: "bg-orange-500",
+    age: 13,
+    priority: 1,
+    tags: ['school', 'social']
+  },
+  {
+    id: 'messi-leaves',
+    type: 'OBSTACLE',
+    title: "Messi Leaves Barcelona",
+    description: "Actual tears. My childhood hero leaving home... 💔",
+    buttonText: "Stay Loyal! 🔴🔵",
     icon: HeartCrack,
-    color: "bg-red-500"
+    color: "bg-red-500",
+    age: 14,
+    priority: 1,
+    tags: ['sports', 'emotional']
   },
-  17: {
+  {
+    id: 'billie-grammy',
     type: 'MEMORY',
-    title: "Academic Weapon",
-    description: "99/100 in English?! Who is she?! 📝",
-    buttonText: "Smarty Pants! 🧠",
+    title: "Billie Eilish Grammy Win",
+    description: "MY QUEEN WON EVERYTHING! Obsessed. 💅",
+    buttonText: "SLAY! 🏆",
+    icon: Music,
+    color: "bg-green-500",
+    age: 14,
+    priority: 2,
+    tags: ['music', 'achievement']
+  },
+  {
+    id: 'english-99',
+    type: 'MEMORY',
+    title: "99/100 in English",
+    description: "When the teacher thought you cheated but you're just THAT good 📝",
+    buttonText: "Academic Weapon! 🧠",
     icon: Star,
-    color: "bg-yellow-500"
+    color: "bg-yellow-500",
+    age: 15,
+    priority: 1,
+    tags: ['academic', 'achievement']
   },
-  18: { 
-    type: 'OBSTACLE',
-    title: "Competitive Exams", 
-    description: "The stress. The books. The pressure.", 
-    buttonText: "Lock In! 🎯", 
-    icon: Zap,
-    color: "bg-purple-700"
+  {
+    id: 'first-job',
+    type: 'MEMORY',
+    title: "First Part-Time Job",
+    description: "Getting that first paycheck hit different 💸",
+    buttonText: "Money Moves! 💰",
+    icon: Coffee,
+    color: "bg-emerald-500",
+    age: 16,
+    priority: 1,
+    tags: ['work', 'milestone']
   },
-  
-  // --- RECENT WINS ---
-  19: {
+  {
+    id: 'messi-world-cup',
     type: 'MEMORY',
     title: "Messi Wins World Cup",
-    description: "THE GOAT COMPLETED FOOTBALL! 🏆",
-    buttonText: "VAMOS! 🇦🇷",
+    description: "CRYING, SCREAMING, HE COMPLETED FOOTBALL! 🐐",
+    buttonText: "GOAT STATUS! 🇦🇷",
     icon: Trophy,
-    color: "bg-sky-500" // Argentina blue
+    color: "bg-sky-500",
+    age: 16,
+    priority: 2,
+    tags: ['sports', 'celebration']
   },
-  20: { // Technically happens right before 20 in game logic
+  {
+    id: 'competitive-exams',
+    type: 'OBSTACLE',
+    title: "The Competitive Exam Grind",
+    description: "Books, anxiety, and too much coffee. The pressure is REAL.",
+    buttonText: "Lock In! 🎯",
+    icon: Zap,
+    color: "bg-purple-700",
+    age: 17,
+    priority: 1,
+    tags: ['academic', 'stress']
+  },
+  {
+    id: 'college-acceptance',
     type: 'MEMORY',
-    title: "Luna & Simba",
-    description: "Adopted the cutest babies ever! 🐱",
-    buttonText: "Meow! 🐾",
+    title: "College Acceptance Letter",
+    description: "That email that made all the stress worth it! 🎉",
+    buttonText: "We Did It! 🎓",
+    icon: Award,
+    color: "bg-violet-500",
+    age: 18,
+    priority: 1,
+    tags: ['academic', 'achievement']
+  },
+  {
+    id: 'adopt-pets',
+    type: 'MEMORY',
+    title: "Luna & Simba Adoption",
+    description: "The day my heart grew 3 sizes! Cutest babies ever 🐱🐾",
+    buttonText: "Fur-ever Home! 💕",
     icon: Cat,
-    color: "bg-orange-400"
+    color: "bg-orange-400",
+    age: 18,
+    priority: 2,
+    tags: ['family', 'pets']
+  },
+  {
+    id: 'moving-out',
+    type: 'OBSTACLE',
+    title: "Moving Out for College",
+    description: "Packing my life into suitcases. Mom's tears. Adulting begins...",
+    buttonText: "New Adventure! 🧳",
+    icon: Home,
+    color: "bg-rose-500",
+    age: 19,
+    priority: 1,
+    tags: ['change', 'adulting']
+  },
+  {
+    id: 'first-college-friends',
+    type: 'MEMORY',
+    title: "First College Squad",
+    description: "Finding your people in a sea of new faces! 👯‍♀️",
+    buttonText: "Found My Tribe! 🤝",
+    icon: Users,
+    color: "bg-cyan-500",
+    age: 19,
+    priority: 2,
+    tags: ['friends', 'social']
   }
+];
+
+// Helper to get events for a specific age, sorted by priority (highest first)
+const getEventsForAge = (age: number): LifeEvent[] => {
+  return LIFE_EVENTS_DB
+    .filter(event => event.age === age)
+    .sort((a, b) => b.priority - a.priority); // Higher priority first
 };
 
-const MAX_PROGRESS = 20; // 20 Years
+const MAX_PROGRESS = 20;
 const CHARACTER_PADDING = 24;
 
 /* ------------------------------------------------------------------ */
@@ -155,6 +288,76 @@ const CloudPlatform = ({ delay, top, left, scale }: { delay: number, top: string
   </div>
 );
 
+// Event Popup Component
+const EventPopup = ({ event, onComplete }: { event: LifeEvent, onComplete: () => void }) => {
+  const [showConfetti, setShowConfetti] = useState(event.type === 'MEMORY');
+
+  const handleClick = () => {
+    onComplete();
+  };
+
+  return (
+    <>
+      {showConfetti && (
+        <div className="absolute inset-0 pointer-events-none z-40">
+          <Confetti 
+            recycle={false} 
+            numberOfPieces={event.type === 'MEMORY' ? 100 : 30}
+            gravity={0.3} 
+            colors={event.type === 'MEMORY' ? ['#FFD700', '#FF69B4', '#FFFFFF'] : ['#FFFFFF', '#FF6B6B']}
+          />
+        </div>
+      )}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-72 animate-bounce-in">
+        <div className={`${event.color} text-white p-1.5 rounded-3xl shadow-2xl ${event.type === 'OBSTACLE' ? '-rotate-2' : 'rotate-2'}`}>
+          <div className="bg-white text-gray-800 rounded-[20px] p-5 text-center border-4 border-dashed border-white/50">
+            
+            {/* Icon Bubble */}
+            <div className="flex justify-center mb-3">
+              <div className={`p-3 rounded-full ${event.color} bg-opacity-20`}>
+                <event.icon className={`w-10 h-10 ${event.color.replace('bg-', 'text-')}`} />
+              </div>
+            </div>
+
+            {/* Title */}
+            <h3 className={`font-black text-xl uppercase mb-1 leading-tight ${event.type === 'OBSTACLE' ? 'text-red-600' : 'text-purple-600'}`}>
+              {event.type === 'MEMORY' && (
+                <span className="block text-xs text-yellow-500 mb-1">
+                  ✨ MEMORY UNLOCKED ✨
+                </span>
+              )}
+              {event.type === 'OBSTACLE' && (
+                <span className="block text-xs text-red-500 mb-1">
+                  🚧 CHALLENGE AHEAD 🚧
+                </span>
+              )}
+              {event.title}
+            </h3>
+            
+            {/* Age Badge */}
+            <div className="inline-block bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-full mb-3">
+              Age {event.age}
+            </div>
+            
+            {/* Description */}
+            <p className="text-sm text-gray-600 mb-5 font-medium leading-snug">
+              {event.description}
+            </p>
+            
+            {/* Action Button */}
+            <Button 
+              onClick={handleClick}
+              className={`w-full ${event.color} hover:brightness-110 text-white font-bold py-6 rounded-xl text-lg animate-pulse shadow-md transition-transform hover:scale-105 active:scale-95`}
+            >
+              {event.buttonText}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
 export function LadderScene() {
   const { updateProgress, settings } = useSceneStore();
 
@@ -164,8 +367,9 @@ export function LadderScene() {
   const [progress, setProgress] = useState(0); // Age 0-20
   const [isClimbing, setIsClimbing] = useState(false);
   
-  // The current event (Obstacle OR Memory) blocking the screen
-  const [activeEvent, setActiveEvent] = useState<number | null>(null);
+  // Event Queue System
+  const [eventQueue, setEventQueue] = useState<LifeEvent[]>([]);
+  const [currentEvent, setCurrentEvent] = useState<LifeEvent | null>(null);
   
   const [side, setSide] = useState<'left' | 'right'>('left');
   
@@ -173,8 +377,7 @@ export function LadderScene() {
   const [shake, setShake] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
   const [showLevelUp, setShowLevelUp] = useState(false);
-  const [showMemoryConfetti, setShowMemoryConfetti] = useState(false); // Mini confetti for memory popups
-  const [quote, setQuote] = useState("Journey to 20 Begins! ✨");
+  const [quote, setQuote] = useState(AGE_FLAVOR[0] || "Journey to 20 Begins! ✨");
 
   // Refs
   const characterRef = useRef<HTMLDivElement>(null);
@@ -218,8 +421,72 @@ export function LadderScene() {
     setProgress(0);
     progressRef.current = 0;
     setShowCompletion(false);
+    setEventQueue([]);
+    setCurrentEvent(null);
+    setQuote(AGE_FLAVOR[0] || "Journey to 20 Begins! ✨");
     updateProgress({ ladderProgress: 0, unlockedGifts: false });
   }, [updateProgress]);
+
+  /* ------------------------------------------------------------------ */
+  /* EVENT QUEUE SYSTEM */
+  /* ------------------------------------------------------------------ */
+
+  const processEventQueue = useCallback(() => {
+    if (currentEvent || eventQueue.length === 0) return;
+    
+    const nextEvent = eventQueue[0];
+    setCurrentEvent(nextEvent);
+    setEventQueue(prev => prev.slice(1));
+    
+    // Play appropriate sound
+    if (settings.soundEnabled) {
+      if (nextEvent.type === 'OBSTACLE') {
+        audioManager.play('hit');
+      } else {
+        audioManager.play('success');
+      }
+    }
+    
+    // Shake for obstacles
+    if (nextEvent.type === 'OBSTACLE') {
+      triggerShake();
+    }
+  }, [currentEvent, eventQueue, settings.soundEnabled]);
+
+  const completeCurrentEvent = useCallback(() => {
+    if (!currentEvent) return;
+    
+    // Play success sound
+    if (settings.soundEnabled) audioManager.play('success');
+    
+    // Visual power-up effect
+    if (characterRef.current) {
+      gsap.fromTo(characterRef.current, 
+        { scale: 1.5, filter: 'brightness(1.5)' }, 
+        { scale: 1, filter: 'brightness(1)', duration: 0.5 }
+      );
+    }
+    
+    // Set quote based on event
+    if (currentEvent.type === 'OBSTACLE') {
+      setQuote(`Overcame: ${currentEvent.title}! 💪`);
+    } else {
+      setQuote(`Celebrating: ${currentEvent.title}! ✨`);
+    }
+    
+    // Clear event and check queue
+    setCurrentEvent(null);
+    
+    // After a delay, show age flavor if no more events
+    setTimeout(() => {
+      if (eventQueue.length === 0 && AGE_FLAVOR[progressRef.current]) {
+        setQuote(AGE_FLAVOR[progressRef.current]);
+      }
+    }, 1500);
+    
+    // Process next event in queue
+    setTimeout(processEventQueue, 100);
+  }, [currentEvent, eventQueue.length, processEventQueue, settings.soundEnabled]);
 
   /* ------------------------------------------------------------------ */
   /* GAME LOGIC */
@@ -232,30 +499,13 @@ export function LadderScene() {
 
   const climb = useCallback(() => {
     // 1. Check constraints
-    if (isClimbing || activeEvent || progressRef.current >= MAX_PROGRESS) return;
+    if (isClimbing || currentEvent || progressRef.current >= MAX_PROGRESS) return;
 
     // 2. Determine Next Step
     const currentAge = progressRef.current;
     const nextAge = currentAge + 1;
 
-    // 3. Check for LIFE EVENTS (Obstacles OR Memories)
-    if (LIFE_EVENTS[nextAge]) {
-      // Pause! We hit an event.
-      setActiveEvent(nextAge);
-      
-      // Different sound/effect based on type
-      if (LIFE_EVENTS[nextAge].type === 'OBSTACLE') {
-        triggerShake();
-        if (settings.soundEnabled) audioManager.play('hit'); 
-      } else {
-        // Memory
-        if (settings.soundEnabled) audioManager.play('success');
-        setShowMemoryConfetti(true);
-      }
-      return;
-    }
-
-    // 4. Normal Climb
+    // 3. Update progress
     setIsClimbing(true);
     const nextSide = side === 'left' ? 'right' : 'left';
     
@@ -263,16 +513,26 @@ export function LadderScene() {
     progressRef.current = nextAge;
     setSide(nextSide);
 
-    // Update flavor text (The vibe of the age)
-    if (AGE_FLAVOR[nextAge]) {
+    // 4. Check for events at this age
+    const eventsAtAge = getEventsForAge(nextAge);
+    if (eventsAtAge.length > 0) {
+      // Add events to queue
+      setEventQueue(prev => [...prev, ...eventsAtAge]);
+      // Process queue after animation
+      setTimeout(processEventQueue, 600);
+    } else {
+      // No events, show age flavor
+      if (AGE_FLAVOR[nextAge]) {
         setQuote(AGE_FLAVOR[nextAge]);
         setShowLevelUp(true);
         setTimeout(() => setShowLevelUp(false), 1000);
+      }
     }
 
+    // 5. Play climb sound
     if (settings.soundEnabled) audioManager.play('hit');
 
-    // 5. Animation
+    // 6. Animation
     if (!settings.reducedMotion && characterRef.current) {
       // Jump Arc
       gsap.to(characterRef.current, {
@@ -280,7 +540,7 @@ export function LadderScene() {
         x: (nextSide === 'left' ? 1 : -1) * 30, 
         rotation: (nextSide === 'left' ? -5 : 5),
         duration: 0.5,
-        ease: 'back.out(1.4)', // Very bouncy
+        ease: 'back.out(1.4)',
         onComplete: () => setIsClimbing(false)
       });
       
@@ -293,85 +553,37 @@ export function LadderScene() {
       setIsClimbing(false);
     }
 
-    // 6. Win Condition
+    // 7. Win Condition
     if (nextAge >= MAX_PROGRESS) {
-        updateProgress({ unlockedGifts: true, ladderProgress: MAX_PROGRESS });
-        setTimeout(() => setShowCompletion(true), 800);
+      updateProgress({ unlockedGifts: true, ladderProgress: MAX_PROGRESS });
+      setTimeout(() => setShowCompletion(true), 800);
     }
-
-  }, [isClimbing, activeEvent, side, settings, getTranslateForProgress, updateProgress]);
-
-  // Logic to handle clicking the button on a Pop-up (Memory or Obstacle)
-  const handleEventAction = () => {
-    if (!activeEvent) return;
-    
-    const eventData = LIFE_EVENTS[activeEvent];
-
-    // Sound
-    if (settings.soundEnabled) audioManager.play('success');
-    
-    // Visual "Power Up"
-    if (characterRef.current) {
-        gsap.fromTo(characterRef.current, 
-            { scale: 1.5, filter: 'brightness(1.5)' }, 
-            { scale: 1, filter: 'brightness(1)', duration: 0.5 }
-        );
-    }
-
-    // Resume climbing logic for that specific step
-    const nextAge = activeEvent;
-    
-    setIsClimbing(true);
-    const nextSide = side === 'left' ? 'right' : 'left';
-    
-    setActiveEvent(null); // Clear popup
-    setShowMemoryConfetti(false); // Stop mini confetti
-    setProgress(nextAge);
-    progressRef.current = nextAge;
-    setSide(nextSide);
-
-    // Set Quote based on what just happened
-    if (eventData.type === 'OBSTACLE') {
-       setQuote(`Overcame: ${eventData.title}! 💪`);
-    } else {
-       setQuote(`Memory Unlocked: ${eventData.title} ✨`);
-    }
-
-    // Check if there is specific flavor text for this age to overwrite the "Overcame" text
-    if (AGE_FLAVOR[nextAge]) {
-        setTimeout(() => setQuote(AGE_FLAVOR[nextAge]), 1500);
-    }
-
-    // Animate move
-    if (!settings.reducedMotion && characterRef.current) {
-        gsap.to(characterRef.current, {
-          y: getTranslateForProgress(nextAge),
-          x: (nextSide === 'left' ? 1 : -1) * 30, 
-          duration: 0.6,
-          ease: 'power4.out', // Powerful move
-          onComplete: () => setIsClimbing(false)
-        });
-    } else {
-        setIsClimbing(false);
-    }
-  };
+  }, [isClimbing, currentEvent, side, settings, getTranslateForProgress, updateProgress, processEventQueue]);
 
   // Keyboard support
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-        if (activeEvent) return; // Prevent key spam during popup
-        if (e.key === ' ' || e.key === 'ArrowUp') { e.preventDefault(); climb(); }
+      if (currentEvent) {
+        // Space or Enter to complete event
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          completeCurrentEvent();
+        }
+        return;
+      }
+      
+      if (e.key === ' ' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        climb();
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [climb, activeEvent]);
+  }, [climb, currentEvent, completeCurrentEvent]);
 
   /* ------------------------------------------------------------------ */
   /* RENDER */
   /* ------------------------------------------------------------------ */
-  
-  // Current Event Data
-  const currentEventData = activeEvent ? LIFE_EVENTS[activeEvent] : null;
 
   return (
     <div className={`relative w-full h-full flex flex-col items-center justify-center overflow-hidden 
@@ -381,7 +593,7 @@ export function LadderScene() {
       {/* --- BACKGROUND --- */}
       <div className="absolute inset-0 z-0">
         <div className="absolute top-10 right-10 animate-spin-slow opacity-80">
-            <Sun className="text-yellow-200 w-32 h-32" />
+          <Sun className="text-yellow-200 w-32 h-32" />
         </div>
         <CloudPlatform delay={0} top="15%" left="10%" scale={1} />
         <CloudPlatform delay={2} top="40%" left="80%" scale={0.8} />
@@ -391,16 +603,16 @@ export function LadderScene() {
         <div className="absolute inset-0 opacity-30 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IndoaXRlIi8+PC9zdmc+')] animate-pan-bg"></div>
       </div>
 
-      {/* --- CONFETTI ON WIN OR MEMORY --- */}
-      {showMemoryConfetti && (
-         <div className="absolute inset-0 pointer-events-none z-50">
-           <Confetti recycle={false} numberOfPieces={100} gravity={0.3} colors={['#FFD700', '#FFFFFF']} />
-         </div>
-      )}
-      {progress >= MAX_PROGRESS && (
-         <div className="absolute inset-0 pointer-events-none z-50">
-           <Confetti recycle={true} numberOfPieces={200} colors={['#FFD700', '#FF69B4', '#FFFFFF']} />
-         </div>
+      {/* --- EVENT QUEUE INDICATOR --- */}
+      {eventQueue.length > 0 && !currentEvent && (
+        <div className="absolute top-4 right-4 z-30 animate-pulse">
+          <div className="bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 shadow-lg border border-purple-200">
+            <span className="text-purple-600 font-bold text-sm flex items-center gap-1">
+              <Book className="w-4 h-4" />
+              {eventQueue.length} event{eventQueue.length !== 1 ? 's' : ''} queued
+            </span>
+          </div>
+        </div>
       )}
 
       {/* --- MAIN UI CONTAINER --- */}
@@ -408,126 +620,106 @@ export function LadderScene() {
 
         {/* HEADER */}
         <div className="flex-none text-center mb-2">
-            <h1 className="text-3xl sm:text-5xl font-display font-black text-white drop-shadow-md stroke-pink-700">
-                AFRAH'S JOURNEY
-            </h1>
-            <div className="inline-block mt-2 bg-white/30 backdrop-blur-md px-6 py-2 rounded-full border border-white/50 shadow-lg">
-                <span className="text-pink-900 font-bold flex items-center gap-2">
-                    <Crown className="w-5 h-5 text-yellow-500 fill-yellow-400" />
-                    AGE: <span className="text-2xl">{progress}</span> / 20
-                </span>
-            </div>
+          <h1 className="text-3xl sm:text-5xl font-display font-black text-white drop-shadow-md stroke-pink-700">
+            AFRAH'S JOURNEY
+          </h1>
+          <div className="inline-block mt-2 bg-white/30 backdrop-blur-md px-6 py-2 rounded-full border border-white/50 shadow-lg">
+            <span className="text-pink-900 font-bold flex items-center gap-2">
+              <Crown className="w-5 h-5 text-yellow-500 fill-yellow-400" />
+              AGE: <span className="text-2xl">{progress}</span> / 20
+            </span>
+          </div>
         </div>
 
         {/* FLAVOR TEXT AREA */}
         <div className="h-12 flex items-center justify-center mb-2">
-            <div key={quote} className="animate-pop-in bg-white/90 text-purple-600 px-6 py-2 rounded-2xl font-bold text-sm sm:text-base shadow-xl border-2 border-purple-100">
-                {quote}
-            </div>
+          <div key={quote} className="animate-pop-in bg-white/90 text-purple-600 px-6 py-2 rounded-2xl font-bold text-sm sm:text-base shadow-xl border-2 border-purple-100">
+            {quote}
+          </div>
         </div>
 
         {/* GAME AREA */}
         <div className="flex-1 relative w-full max-w-md mx-auto min-h-0">
+          
+          {/* CASTLE AT TOP */}
+          <FloatingCastle />
+
+          {/* THE LADDER */}
+          <div ref={ladderRef} className="absolute left-1/2 -translate-x-1/2 w-32 h-[85%] bottom-0 top-16">
+            {/* Rails */}
+            <div className="absolute left-0 h-full w-3 bg-gradient-to-b from-yellow-200 to-yellow-500 rounded-full shadow-lg border-x border-yellow-600/30" />
+            <div className="absolute right-0 h-full w-3 bg-gradient-to-b from-yellow-200 to-yellow-500 rounded-full shadow-lg border-x border-yellow-600/30" />
             
-            {/* CASTLE AT TOP */}
-            <FloatingCastle />
+            {/* Steps */}
+            {Array.from({ length: MAX_PROGRESS }).map((_, i) => (
+              <div key={i} 
+                   className={`absolute left-3 right-3 h-4 rounded-md shadow-sm border-b-2 transition-colors duration-300
+                             ${i < progress ? 'bg-pink-400 border-pink-600' : 'bg-white/40 border-white/60'}`}
+                   style={{ top: `${(i / (MAX_PROGRESS - 1)) * 95}%` }}
+              />
+            ))}
+          </div>
 
-            {/* THE LADDER */}
-            <div ref={ladderRef} className="absolute left-1/2 -translate-x-1/2 w-32 h-[85%] bottom-0 top-16">
-                {/* Rails */}
-                <div className="absolute left-0 h-full w-3 bg-gradient-to-b from-yellow-200 to-yellow-500 rounded-full shadow-lg border-x border-yellow-600/30" />
-                <div className="absolute right-0 h-full w-3 bg-gradient-to-b from-yellow-200 to-yellow-500 rounded-full shadow-lg border-x border-yellow-600/30" />
-                
-                {/* Steps */}
-                {Array.from({ length: MAX_PROGRESS }).map((_, i) => (
-                    <div key={i} 
-                         className={`absolute left-3 right-3 h-4 rounded-md shadow-sm border-b-2 transition-colors duration-300
-                                   ${i < progress ? 'bg-pink-400 border-pink-600' : 'bg-white/40 border-white/60'}`}
-                         style={{ top: `${(i / (MAX_PROGRESS - 1)) * 95}%` }}
-                    />
-                ))}
-            </div>
+          {/* --- EVENT POPUP --- */}
+          {currentEvent && (
+            <EventPopup 
+              event={currentEvent}
+              onComplete={completeCurrentEvent}
+            />
+          )}
 
-            {/* --- POP-UP OVERLAY (OBSTACLES & MEMORIES) --- */}
-            {activeEvent && currentEventData && (
-                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 w-72 animate-bounce-in">
-                    {/* Rotate different directions for fun */}
-                    <div className={`${currentEventData.color} text-white p-1.5 rounded-3xl shadow-2xl ${currentEventData.type === 'OBSTACLE' ? '-rotate-2' : 'rotate-2'}`}>
-                        <div className="bg-white text-gray-800 rounded-[20px] p-5 text-center border-4 border-dashed border-white/50">
-                            
-                            {/* Icon Bubble */}
-                            <div className="flex justify-center mb-3">
-                                <div className={`p-3 rounded-full ${currentEventData.color} bg-opacity-20`}>
-                                    <currentEventData.icon className={`w-10 h-10 ${currentEventData.color.replace('bg-', 'text-')}`} />
-                                </div>
-                            </div>
-
-                            {/* Title */}
-                            <h3 className={`font-black text-xl uppercase mb-1 leading-tight ${currentEventData.type === 'OBSTACLE' ? 'text-red-600' : 'text-purple-600'}`}>
-                                {currentEventData.type === 'MEMORY' && <span className="block text-xs text-yellow-500 mb-1">✨ SPECIAL MEMORY ✨</span>}
-                                {currentEventData.title}
-                            </h3>
-                            
-                            {/* Description */}
-                            <p className="text-sm text-gray-600 mb-5 font-medium leading-snug">
-                                {currentEventData.description}
-                            </p>
-                            
-                            {/* Action Button */}
-                            <Button 
-                                onClick={handleEventAction}
-                                className={`w-full ${currentEventData.color} hover:brightness-110 text-white font-bold py-6 rounded-xl text-lg animate-pulse shadow-md transition-transform hover:scale-105 active:scale-95`}
-                            >
-                                {currentEventData.buttonText}
-                            </Button>
-                        </div>
-                    </div>
-                 </div>
-            )}
-
-            {/* THE PRINCESS AVATAR */}
-            <div ref={characterRef} className="absolute bottom-0 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
-                <div className="princess-avatar relative w-24 h-24 transition-transform">
-                    {/* Crown Icon floating above head */}
-                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 animate-float-slow">
-                        <Crown className="w-8 h-8 text-yellow-400 fill-yellow-200 drop-shadow-md" />
-                    </div>
-                    {/* The Princess Emoji */}
-                    <div className="w-full h-full flex items-center justify-center text-6xl drop-shadow-2xl filter hover:brightness-110">
-                        👸
-                    </div>
-                    
-                    {/* Level Up Effect */}
-                    {showLevelUp && (
-                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 text-yellow-400 font-black text-xl animate-float-up whitespace-nowrap stroke-black">
-                            +1 YEAR!
-                        </div>
-                    )}
+          {/* THE PRINCESS AVATAR */}
+          <div ref={characterRef} className="absolute bottom-0 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+            <div className="princess-avatar relative w-24 h-24 transition-transform">
+              {/* Crown Icon floating above head */}
+              <div className="absolute -top-6 left-1/2 -translate-x-1/2 animate-float-slow">
+                <Crown className="w-8 h-8 text-yellow-400 fill-yellow-200 drop-shadow-md" />
+              </div>
+              {/* The Princess Emoji */}
+              <div className="w-full h-full flex items-center justify-center text-6xl drop-shadow-2xl filter hover:brightness-110">
+                👸
+              </div>
+              
+              {/* Level Up Effect */}
+              {showLevelUp && (
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 text-yellow-400 font-black text-xl animate-float-up whitespace-nowrap stroke-black">
+                  +1 YEAR!
                 </div>
+              )}
             </div>
+          </div>
 
         </div>
 
         {/* CONTROLS */}
         <div className="flex-none pt-2 pb-4 space-y-3">
-             {/* Main Button */}
-             <Button
-                onClick={climb}
-                disabled={isClimbing || !!activeEvent || progress >= MAX_PROGRESS}
-                className={`w-full max-w-sm mx-auto h-auto py-5 rounded-3xl text-xl font-black tracking-wide shadow-xl transition-all
-                           ${activeEvent 
-                               ? 'bg-gray-400 cursor-not-allowed opacity-50' 
-                               : 'bg-gradient-to-r from-pink-500 via-rose-500 to-pink-500 hover:scale-[1.02] border-b-4 border-pink-800 active:border-b-0 active:translate-y-1'
-                           } text-white`}
-             >
-                {progress >= MAX_PROGRESS ? (
-                    <span className="flex items-center gap-2"><Trophy /> HAPPY 20TH!</span>
-                ) : activeEvent ? (
-                    <span className="flex items-center gap-2">LOCKED 🔒</span>
-                ) : (
-                    <span>GROW UP! (Click)</span>
-                )}
-             </Button>
+          {/* Main Button */}
+          <Button
+            onClick={currentEvent ? completeCurrentEvent : climb}
+            disabled={isClimbing || progress >= MAX_PROGRESS}
+            className={`w-full max-w-sm mx-auto h-auto py-5 rounded-3xl text-xl font-black tracking-wide shadow-xl transition-all
+                       ${currentEvent 
+                           ? 'bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500' 
+                           : 'bg-gradient-to-r from-pink-500 via-rose-500 to-pink-500 hover:scale-[1.02] border-b-4 border-pink-800 active:border-b-0 active:translate-y-1'
+                       } text-white`}
+          >
+            {progress >= MAX_PROGRESS ? (
+              <span className="flex items-center gap-2"><Trophy /> HAPPY 20TH!</span>
+            ) : currentEvent ? (
+              <span className="flex items-center gap-2">
+                {currentEvent.type === 'OBSTACLE' ? '💪 OVERCOME!' : '✨ CELEBRATE!'}
+              </span>
+            ) : (
+              <span>GROW UP! (Click or Space)</span>
+            )}
+          </Button>
+          
+          {/* Queue Info */}
+          {eventQueue.length > 0 && (
+            <div className="text-center text-sm text-white/80 font-medium">
+              {eventQueue.length} more event{eventQueue.length !== 1 ? 's' : ''} coming up at age {progress + 1}
+            </div>
+          )}
         </div>
 
       </div>
@@ -535,54 +727,54 @@ export function LadderScene() {
       {/* --- VICTORY MODAL --- */}
       {showCompletion && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fade-in">
-           <div className="bg-gradient-to-br from-pink-400 via-purple-400 to-indigo-400 p-1.5 rounded-[2rem] w-full max-w-sm shadow-2xl animate-bounce-in">
-              <div className="bg-white rounded-[1.8rem] p-8 text-center border-4 border-pink-200">
-                  <div className="text-7xl mb-4 animate-bounce">🎂</div>
-                  <h2 className="text-3xl font-black text-pink-600 mb-2">HAPPY 20TH AFRAH!</h2>
-                  <p className="text-gray-600 font-medium mb-6 leading-relaxed">
-                      From Jebel Jais to moving out, from heartbreak to finding Luna & Simba. You made it to 20!
-                  </p>
-                  <div className="bg-pink-50 p-4 rounded-xl mb-6">
-                      <p className="text-sm text-pink-800 font-bold">"Every step was worth it. Alhumdulillah" 💖</p>
-                  </div>
-                  <Button onClick={() => window.location.reload()} className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl py-4 text-lg shadow-lg">
-                      Replay The Journey 🔄
-                  </Button>
+          <div className="bg-gradient-to-br from-pink-400 via-purple-400 to-indigo-400 p-1.5 rounded-[2rem] w-full max-w-sm shadow-2xl animate-bounce-in">
+            <div className="bg-white rounded-[1.8rem] p-8 text-center border-4 border-pink-200">
+              <div className="text-7xl mb-4 animate-bounce">🎂</div>
+              <h2 className="text-3xl font-black text-pink-600 mb-2">HAPPY 20TH AFRAH!</h2>
+              <p className="text-gray-600 font-medium mb-6 leading-relaxed">
+                From first steps to college moves, from school stress to pet cuddles. You made it to 20!
+              </p>
+              <div className="bg-pink-50 p-4 rounded-xl mb-6">
+                <p className="text-sm text-pink-800 font-bold">"Every step was worth it. Alhumdulillah" 💖</p>
               </div>
-           </div>
+              <Button onClick={() => window.location.reload()} className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl py-4 text-lg shadow-lg">
+                Replay The Journey 🔄
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 
       {/* --- STYLES --- */}
       <style>{`
         @keyframes float-slow {
-           0%, 100% { transform: translateY(0px); }
-           50% { transform: translateY(-10px); }
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
         }
         @keyframes float-cloud {
-           0%, 100% { transform: translateX(0) scale(var(--tw-scale-x)); }
-           50% { transform: translateX(20px) scale(var(--tw-scale-x)); }
+          0%, 100% { transform: translateX(0) scale(var(--tw-scale-x)); }
+          50% { transform: translateX(20px) scale(var(--tw-scale-x)); }
         }
         @keyframes bounce-in {
-            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-            80% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(1); }
+          0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+          80% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+          100% { transform: translate(-50%, -50%) scale(1); }
         }
         @keyframes pop-in {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
+          0% { transform: scale(0.8); opacity: 0; }
+          100% { transform: scale(1); opacity: 1; }
         }
         @keyframes pan-bg {
-            0% { background-position: 0% 0%; }
-            100% { background-position: 100% 100%; }
+          0% { background-position: 0% 0%; }
+          100% { background-position: 100% 100%; }
         }
         @keyframes spin-slow {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
         @keyframes float-up {
-            0% { transform: translate(-50%, 0); opacity: 1; }
-            100% { transform: translate(-50%, -40px); opacity: 0; }
+          0% { transform: translate(-50%, 0); opacity: 1; }
+          100% { transform: translate(-50%, -40px); opacity: 0; }
         }
       `}</style>
     </div>
