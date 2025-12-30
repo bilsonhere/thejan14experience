@@ -200,7 +200,7 @@ const LIFE_EVENTS_DB: LifeEvent[] = [
     icon: Zap,
     color: "bg-purple-700",
     age: 18,
-    priority: 2
+    priority: 2,
     tags: ['academic', 'stress']
   },
   {
