@@ -192,8 +192,8 @@ export function RoomScene() {
       animations.push(anim);
     }
 
-    // Card Hover/Float animations
-    const items = [cakeRef.current, ladderRef.current, giftsRef.current];
+    // Card Hover/Float animations - CHANGED ORDER: Ladder (0), Cake (1), Gifts (2)
+    const items = [ladderRef.current, cakeRef.current, giftsRef.current];
     items.forEach((item, i) => {
       if (item) {
         // Initial entrance
@@ -348,11 +348,33 @@ export function RoomScene() {
             </p>
           </div>
 
-          {/* Main cards - 3 Column Layout */}
+          {/* Main cards - 3 Column Layout - CHANGED SEQUENCE: Ladder -> Cake -> Gifts */}
           <div className="w-full max-w-sm sm:max-w-xl lg:max-w-3xl mx-auto px-2 mb-6">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full perspective-1000">
               
-              {/* Cake Card */}
+              {/* Ladder Card - NOW FIRST */}
+              <button
+                ref={ladderRef}
+                onClick={() => navigateTo('ladder')}
+                className="group relative p-4 sm:p-5 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 hover:border-cyan-400/40 transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,211,238,0.15)] cursor-pointer overflow-hidden min-h-[110px] sm:min-h-[150px] flex flex-col items-center justify-center"
+                aria-label="Go to ladder game"
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                <div className="relative z-10 flex flex-col items-center">
+                  <div className="text-3xl sm:text-4xl mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 drop-shadow-lg">🪜</div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Layers className="w-4 h-4 text-cyan-300" />
+                    <h3 className="text-base sm:text-lg font-display font-bold text-white tracking-wide">Life Journey</h3>
+                  </div>
+                  {/* CHANGED SUBTEXT */}
+                  <p className="text-cyan-100/60 font-elegant text-xs sm:text-sm group-hover:text-cyan-100 transition-colors text-center">
+                    Explore your magical journey
+                  </p>
+                </div>
+              </button>
+
+              {/* Cake Card - NOW SECOND */}
               <button
                 ref={cakeRef}
                 onClick={() => navigateTo('cake')}
@@ -374,26 +396,7 @@ export function RoomScene() {
                 <div className="absolute -inset-full top-0 block h-full w-1/2 -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-10 group-hover:animate-shine" />
               </button>
 
-              {/* Ladder Card */}
-              <button
-                ref={ladderRef}
-                onClick={() => navigateTo('ladder')}
-                className="group relative p-4 sm:p-5 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 hover:border-cyan-400/40 transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,211,238,0.15)] cursor-pointer overflow-hidden min-h-[110px] sm:min-h-[150px] flex flex-col items-center justify-center"
-                aria-label="Go to ladder game"
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                
-                <div className="relative z-10 flex flex-col items-center">
-                  <div className="text-3xl sm:text-4xl mb-2 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 drop-shadow-lg">🪜</div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <Layers className="w-4 h-4 text-cyan-300" />
-                    <h3 className="text-base sm:text-lg font-display font-bold text-white tracking-wide">Ladder 😍</h3>
-                  </div>
-                  <p className="text-cyan-100/60 font-elegant text-xs sm:text-sm group-hover:text-cyan-100 transition-colors">Climb & win!</p>
-                </div>
-              </button>
-
-              {/* Gifts Card */}
+              {/* Gifts Card - NOW THIRD */}
               <button
                 ref={giftsRef}
                 onClick={() => navigateTo('gifts')}
