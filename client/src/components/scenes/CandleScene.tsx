@@ -4,20 +4,22 @@ import { audioManager } from '../../lib/audioManager';
 import { Button } from '../ui/button';
 import { AdaptiveParticleSystem } from '../AdaptiveParticleSystem';
 import gsap from 'gsap';
-import { Mic, Sparkles, Wind, PartyPopper, Volume2, VolumeX, Heart } from 'lucide-react';
+import { Mic, Sparkles, Wind, PartyPopper, Volume2, VolumeX, Heart, Flame } from 'lucide-react';
 
-// Coordinates to form the number "20" with candles (0-100% relative container space)
-const CANDLE_POSITIONS = [
-  // The "2"
-  { x: 15, y: 30 }, { x: 22, y: 20 }, { x: 32, y: 20 }, { x: 40, y: 30 }, 
-  { x: 40, y: 45 }, { x: 30, y: 55 }, { x: 20, y: 65 }, { x: 15, y: 80 }, 
-  { x: 28, y: 80 }, { x: 40, y: 80 },
-  // The "0"
-  { x: 60, y: 30 }, { x: 72, y: 20 }, { x: 85, y: 30 }, { x: 85, y: 50 }, 
-  { x: 85, y: 70 }, { x: 72, y: 80 }, { x: 60, y: 70 }, { x: 60, y: 50 },
-  // Decorative accents (Making it exactly 20 and aesthetic)
-  { x: 50, y: 50 }, // Center
-  { x: 27.5, y: 40 }, // Filler for 2 curve
+// Define relative positions for the number "2" (approx 10 candles)
+const POSITIONS_2 = [
+  { left: '20%', top: '10%' }, { left: '50%', top: '5%' }, { left: '80%', top: '15%' }, // Top curve
+  { left: '85%', top: '35%' }, { left: '60%', top: '55%' }, { left: '40%', top: '70%' }, // Diagonal down
+  { left: '20%', top: '85%' }, { left: '50%', top: '90%' }, { left: '85%', top: '90%' }, // Bottom base
+  { left: '15%', top: '30%' } // Extra curve filler
+];
+
+// Define relative positions for the number "0" (approx 10 candles)
+const POSITIONS_0 = [
+  { left: '50%', top: '5%' }, { left: '80%', top: '15%' }, { left: '90%', top: '40%' }, // Top right arc
+  { left: '90%', top: '65%' }, { left: '80%', top: '85%' }, { left: '50%', top: '95%' }, // Bottom right arc
+  { left: '20%', top: '85%' }, { left: '10%', top: '65%' }, { left: '10%', top: '40%' }, // Bottom left arc
+  { left: '20%', top: '15%' } // Top left arc
 ];
 
 export function CandleScene() {
@@ -29,8 +31,7 @@ export function CandleScene() {
   const [micActive, setMicActive] = useState(false);
   const [showWishPrompt, setShowWishPrompt] = useState(false);
   
-  // Arrays of refs for the 20 candles
-  const candleRefs = useRef<(HTMLDivElement | null)[]>([]);
+  // Arrays of refs for all candles and flames
   const flameRefs = useRef<(HTMLDivElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const wishRef = useRef<HTMLDivElement>(null);
@@ -40,422 +41,398 @@ export function CandleScene() {
   const isLitRef = useRef<boolean>(true);
   const animationFrameRef = useRef<number | null>(null);
 
-  // Generate random properties for candles once to avoid re-renders
+  // Total candles count
+  const totalCandles = POSITIONS_2.length + POSITIONS_0.length;
+
+  // Generate random properties for candles
   const candleVariations = useMemo(() => {
-    return CANDLE_POSITIONS.map(() => ({
-      height: 60 + Math.random() * 40, // Random height between 60-100px
-      hue: Math.random() > 0.5 ? 'from-amber-200 via-orange-200 to-amber-100' : 'from-rose-200 via-pink-200 to-rose-100', // Gold or Rose Gold
-      delay: Math.random() * 0.5,
+    return Array.from({ length: totalCandles }).map((_, i) => ({
+      // Alternate colors between gold and rose for the "2" and "0"
+      colorClass: i < POSITIONS_2.length 
+        ? 'bg-gradient-to-b from-amber-200 via-yellow-100 to-amber-50' // Goldish for '2'
+        : 'bg-gradient-to-b from-rose-200 via-pink-100 to-rose-50', // Rose for '0'
+      height: Math.random() * 20 + 50, // Random height 50-70px
+      rotation: Math.random() * 10 - 5, // Slight random tilt
     }));
-  }, []);
+  }, [totalCandles]);
 
-  // Initial entrance
-  useEffect(() => {
-    if (!settings.reducedMotion && containerRef.current) {
-      gsap.fromTo(containerRef.current,
-        { opacity: 0, scale: 0.95 },
-        { opacity: 1, scale: 1, duration: 1.2, ease: 'power2.out' }
-      );
-      
-      // Animate candles popping up
-      gsap.from('.candle-item', {
-        y: 100,
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.05,
-        ease: 'back.out(1.7)',
-        delay: 0.3
-      });
-    }
-  }, [settings.reducedMotion]);
-
+  // Sync ref for audio loop
   useEffect(() => {
     isLitRef.current = isLit;
   }, [isLit]);
 
-  // Enhanced flame animation loop
+  // Initial Entrance Animation
+  useEffect(() => {
+    if (!settings.reducedMotion && containerRef.current) {
+      const ctx = gsap.context(() => {
+        // Fade in container
+        gsap.from(containerRef.current, { opacity: 0, duration: 1 });
+
+        // Staggered candle pop-up
+        gsap.from('.candle-container', {
+          y: 50,
+          opacity: 0,
+          scale: 0.8,
+          duration: 0.8,
+          stagger: 0.05,
+          ease: 'back.out(1.5)',
+          delay: 0.5
+        });
+
+        // Ignite flames
+        gsap.fromTo('.flame', 
+          { scale: 0, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 0.5, stagger: 0.05, delay: 1.2, ease: 'power2.out' }
+        );
+      }, containerRef);
+      return () => ctx.revert();
+    }
+  }, [settings.reducedMotion]);
+
+  // Flame Flicker Animation Loop
   useEffect(() => {
     if (!settings.reducedMotion && isLit) {
-      const animations: gsap.core.Tween[] = [];
-      
-      flameRefs.current.forEach((ref, index) => {
-        if (ref) {
-          // Flicker
-          const flicker = gsap.to(ref, {
-            scaleX: 'random(0.8, 1.2)',
-            scaleY: 'random(0.9, 1.1)',
-            opacity: 'random(0.8, 1)',
-            duration: 0.1,
-            repeat: -1,
-            yoyo: true,
-            ease: 'rough({ strength: 1, points: 20, template: none, randomize: true, clamp: false })'
-          });
+      const ctx = gsap.context(() => {
+        flameRefs.current.forEach((ref) => {
+          if (!ref) return;
           
+          // Realistic randomized flicker
+          const flicker = gsap.timeline({ repeat: -1, yoyo: true });
+          flicker.to(ref, {
+            scaleX: 'random(0.9, 1.1)',
+            scaleY: 'random(0.95, 1.05)',
+            opacity: 'random(0.8, 1)',
+            duration: 'random(0.05, 0.2)',
+            ease: 'none'
+          });
+
           // Gentle sway
-          const sway = gsap.to(ref, {
-            rotation: 'random(-5, 5)',
-            x: 'random(-2, 2)',
-            duration: 'random(1, 2)',
+          gsap.to(ref, {
+            rotation: 'random(-3, 3)',
+            x: 'random(-1, 1)',
+            duration: 'random(1.5, 3)',
             repeat: -1,
             yoyo: true,
             ease: 'sine.inOut',
             delay: Math.random()
           });
-
-          animations.push(flicker, sway);
-        }
-      });
-
-      return () => animations.forEach(anim => anim.kill());
+        });
+      }, containerRef);
+      return () => ctx.revert();
     }
   }, [isLit, settings.reducedMotion]);
 
   const requestMicrophoneAccess = async () => {
     try {
       setMicActive(true);
-      
-      if (!settings.reducedMotion) {
-        gsap.to('.mic-button', { scale: 1.05, duration: 0.2, yoyo: true, repeat: 1 });
-      }
-
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
       });
-      
       streamRef.current = stream;
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       audioContextRef.current = audioContext;
-
       const analyser = audioContext.createAnalyser();
-      analyser.fftSize = 512;
-      analyser.smoothingTimeConstant = 0.5; // More responsive
-      
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.5;
       const microphone = audioContext.createMediaStreamSource(stream);
       microphone.connect(analyser);
-
       const dataArray = new Uint8Array(analyser.frequencyBinCount);
-      const volumeHistory: number[] = [];
-
+      
       const checkBlowing = () => {
-        if (!isLitRef.current) {
-          if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-          return;
-        }
+        if (!isLitRef.current) return;
 
         analyser.getByteFrequencyData(dataArray);
-        // Focus on lower frequencies for "blowing" sound
-        const lowFreq = dataArray.slice(0, 20); 
-        const average = lowFreq.reduce((a, b) => a + b, 0) / lowFreq.length;
-        
-        volumeHistory.push(average);
-        if (volumeHistory.length > 5) volumeHistory.shift();
-        const smoothedAverage = volumeHistory.reduce((a, b) => a + b, 0) / volumeHistory.length;
-        
-        setBlowStrength(smoothedAverage);
+        // Average of lower frequencies
+        const average = dataArray.slice(0, 20).reduce((a, b) => a + b, 0) / 20;
+        setBlowStrength(average);
 
-        // Visual feedback based on blow strength
-        if (smoothedAverage > 10 && !settings.reducedMotion) {
-           flameRefs.current.forEach(ref => {
-             if (ref) {
-               const lean = Math.min(smoothedAverage / 2, 45); // Cap lean at 45deg
-               gsap.to(ref, {
-                 rotation: (Math.random() - 0.5) * lean, // Randomize direction slightly
-                 scaleY: 1 - (smoothedAverage / 200), // Squish flame
-                 opacity: 0.7,
-                 duration: 0.1
-               });
-             }
+        // Visual feedback on flames leaning
+        if (average > 15 && !settings.reducedMotion) {
+           gsap.to('.flame-core', {
+             rotation: (Math.random() - 0.5) * (average / 2),
+             scaleY: 1 - (average / 255),
+             duration: 0.1,
+             overwrite: 'auto'
            });
         }
 
-        if (smoothedAverage > 55) { // Threshold
+        if (average > 65) {
           setShowWishPrompt(true);
           blowOut();
         } else {
           animationFrameRef.current = requestAnimationFrame(checkBlowing);
         }
       };
-
       checkBlowing();
     } catch (error) {
-      console.log('Microphone access denied');
+      console.error('Mic access denied:', error);
       setMicActive(false);
     }
   };
 
   const blowOut = () => {
     if (!isLit || isBlowing) return;
-
     setIsBlowing(true);
-    isLitRef.current = false;
+    isLitRef.current = false; // Stop audio loop immediately
     setWishMade(true);
 
-    if (wishRef.current && !settings.reducedMotion) {
-      gsap.fromTo(wishRef.current,
-        { opacity: 0, scale: 0.8 },
-        { opacity: 1, scale: 1, duration: 1, ease: 'elastic.out(1, 0.5)' }
-      );
-    }
-
-    // Cleanup Audio
+    // Stop Audio
     if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
+    if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+    if (audioContextRef.current) audioContextRef.current.close();
 
     if (!settings.reducedMotion) {
-      // Staggered blowout animation (Domino effect)
-      // Shuffle indices for random blowout order
-      const indices = flameRefs.current.map((_, i) => i).sort(() => Math.random() - 0.5);
-      
-      indices.forEach((index, i) => {
-        const flame = flameRefs.current[index];
-        const candle = candleRefs.current[index];
-        
-        if (flame && candle) {
-          const delay = i * 0.05; // Fast ripple effect
+      // Shuffle flames for random blowout order
+      const shuffledFlames = [...flameRefs.current]
+        .filter(f => f !== null)
+        .sort(() => Math.random() - 0.5);
 
-          // Flame extinguishes
-          gsap.to(flame, {
-            scale: 0,
-            opacity: 0,
-            duration: 0.2,
-            delay: delay,
-            ease: 'power1.in',
-            onComplete: () => {
-              // Smoke particle logic
-              createSmoke(candle, delay);
-            }
-          });
-        }
+      shuffledFlames.forEach((flame, i) => {
+        const delay = i * 0.04; // Fast ripple
+        
+        gsap.to(flame, {
+          scale: 0,
+          opacity: 0,
+          y: -20, // Move up as it disappears
+          duration: 0.3,
+          delay: delay,
+          ease: 'power2.in',
+          onComplete: () => {
+            // IMPORTANT: Ensure it stays hidden
+            gsap.set(flame, { autoAlpha: 0 }); 
+            createSmoke(flame.parentElement!.parentElement!);
+          }
+        });
       });
     }
 
-    if (settings.soundEnabled) {
-      audioManager.play('success'); // Replace with 'blowout' sound if available
-    }
+    if (settings.soundEnabled) audioManager.play('success');
 
     setTimeout(() => {
-      setIsLit(false);
+      setIsLit(false); // Triggers re-render showing success state
       updateProgress({ candleBlown: true });
       setIsBlowing(false);
       setBlowStrength(0);
-    }, 2000);
+    }, 2500); // Wait for smoke animation to finish
   };
 
-  const createSmoke = (element: HTMLElement, delay: number) => {
-    // Create multiple smoke wisps
-    for (let k = 0; k < 3; k++) {
-      const smoke = document.createElement('div');
-      smoke.className = 'absolute w-2 h-2 bg-gray-400 rounded-full blur-sm z-50';
-      // Append directly to the candle container for positioning relative to candle
-      element.appendChild(smoke);
-      
-      // Position at the top of the candle
-      gsap.set(smoke, { 
-        top: 0, 
-        left: '50%', 
-        xPercent: -50,
-        opacity: 0.6 
-      });
+  const createSmoke = (candleElement: HTMLElement) => {
+    const smokeContainer = document.createElement('div');
+    smokeContainer.className = 'absolute -top-2 left-1/2 -translate-x-1/2 pointer-events-none';
+    candleElement.appendChild(smokeContainer);
 
-      gsap.to(smoke, {
-        y: -50 - Math.random() * 50,
-        x: (Math.random() - 0.5) * 40,
-        scale: 4,
-        opacity: 0,
-        duration: 1.5 + Math.random(),
-        delay: delay + (k * 0.1),
-        ease: 'power2.out',
-        onComplete: () => smoke.remove()
-      });
+    for (let i = 0; i < 3; i++) {
+      const puff = document.createElement('div');
+      puff.className = 'absolute w-3 h-3 bg-gray-200/40 rounded-full blur-sm';
+      smokeContainer.appendChild(puff);
+      
+      gsap.fromTo(puff, 
+        { scale: 0.5, opacity: 0.6, x: 0, y: 0 },
+        { 
+          scale: 3 + Math.random() * 2,
+          opacity: 0,
+          x: (Math.random() - 0.5) * 50,
+          y: -80 - Math.random() * 50,
+          rotation: Math.random() * 360,
+          duration: 1.5 + Math.random(),
+          delay: i * 0.1,
+          ease: 'power1.out',
+          onComplete: () => { if (i === 2) smokeContainer.remove(); }
+        }
+      );
     }
   };
 
   const makeWish = () => {
     setWishMade(true);
+    // Animate wish prompt away
+    gsap.to(wishRef.current, { opacity: 0, scale: 1.1, duration: 0.5 });
     setTimeout(() => {
       setShowWishPrompt(false);
       blowOut();
-    }, 1000);
+    }, 800);
   };
 
-  // Cleanup
-  useEffect(() => {
-    return () => {
-      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-      if (streamRef.current) streamRef.current.getTracks().forEach(track => track.stop());
-      if (audioContextRef.current?.state !== 'closed') audioContextRef.current?.close().catch(console.warn);
-    };
-  }, []);
+  // Render a single candle
+  const renderCandle = (pos: {left: string, top: string}, index: number) => {
+    const variation = candleVariations[index];
+    return (
+      <div 
+        key={index}
+        className="candle-container absolute transform -translate-x-1/2 -translate-y-1/2"
+        style={{ left: pos.left, top: pos.top }}
+      >
+        {/* Candle Body */}
+        <div 
+          className={`relative w-3 sm:w-4 rounded-sm shadow-sm ${variation.colorClass}`}
+          style={{ 
+            height: `${variation.height}px`,
+            transform: `rotate(${variation.rotation}deg)`,
+            boxShadow: isLit ? '0 4px 15px rgba(251, 191, 36, 0.3), inset 0 -10px 20px rgba(0,0,0,0.1)' : 'inset 0 -10px 20px rgba(0,0,0,0.1)'
+          }}
+        >
+          {/* Wick */}
+          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0.5 h-2 bg-gray-800 opacity-80" />
+        </div>
+
+        {/* Flame Container (Ref goes here) */}
+        <div 
+          ref={el => flameRefs.current[index] = el}
+          className="flame absolute -top-5 left-1/2 -translate-x-1/2 w-6 h-8 pointer-events-none origin-bottom"
+          // Use autoAlpha for GSAP visibility toggling
+          style={{ visibility: isLit ? 'visible' : 'hidden', opacity: isLit ? 1 : 0 }} 
+        >
+            {/* Flame Glow Halo */}
+            <div className="absolute inset-0 -m-4 bg-amber-300/30 rounded-full blur-xl animate-pulse-slow" />
+            {/* The Flame itself */}
+            <div className="flame-core relative w-full h-full">
+                <div className="absolute inset-0 bg-gradient-to-t from-orange-500 via-yellow-300 to-white rounded-[50%_50%_50%_50%_/_60%_60%_40%_40%] blur-[1px]" />
+            </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div 
       ref={containerRef}
       className="relative w-full h-full flex flex-col items-center justify-between overflow-hidden 
-                 bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900"
+                 bg-[#1a1120]" // Deep warm dark background
     >
-      {/* Background Ambience */}
+      {/* --- Ambient Background ("Cakey Environment") --- */}
       <div className="absolute inset-0 pointer-events-none">
-        {/* Warm vignette */}
-        <div className={`absolute inset-0 transition-opacity duration-1000 ${isLit ? 'opacity-60' : 'opacity-20'}
-                        bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-900/40 via-transparent to-black`} />
+        {/* Warm Golden Hour Gradient */}
+        <div className={`absolute inset-0 transition-opacity duration-1000 ${isLit ? 'opacity-80' : 'opacity-30'}
+                        bg-[radial-gradient(circle_at_50%_30%,_var(--tw-gradient-stops))] from-amber-800/40 via-[#2a1a30] to-[#1a1120]`} />
         
-        {/* Animated Dust/Stars */}
-        {isLit && <AdaptiveParticleSystem count={150} color="#fbbf24" speed={0.2} size={1} />}
-        {!isLit && <AdaptiveParticleSystem count={50} color="#ffffff" speed={0.1} size={1.5} />}
+        {/* Bokeh Lights (Out of focus festive lights) */}
+        <div className={`absolute inset-0 bg-[url('/assets/bokeh.png')] bg-cover opacity-20 mix-blend-screen transition-opacity duration-1000 ${isLit ? 'opacity-30' : 'opacity-10'}`} />
+
+        {/* Floating Dust/Magic */}
+        {isLit && <AdaptiveParticleSystem count={100} color="#fbbf24" speed={0.15} size={1.5} />}
       </div>
 
-      {/* Main Content Area */}
-      <div className="relative z-10 w-full max-w-4xl mx-auto px-4 flex-1 flex flex-col items-center justify-center">
+      {/* --- Main Content --- */}
+      <div className="relative z-10 w-full max-w-4xl mx-auto px-4 flex-1 flex flex-col items-center justify-center py-8">
         
-        {/* Title Group */}
-        <div className="text-center mb-8 sm:mb-12 mt-8 transition-all duration-700">
-          <h1 className="font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-200
-                         text-5xl sm:text-6xl md:text-7xl drop-shadow-[0_0_15px_rgba(251,191,36,0.5)] mb-2">
+        {/* Header */}
+        <div className="text-center mb-8 transition-all duration-700">
+          <h1 className="font-handwriting font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-100 via-yellow-200 to-amber-100
+                         text-5xl sm:text-7xl drop-shadow-[0_2px_15px_rgba(251,191,36,0.5)] mb-2 leading-tight">
             Happy 20th!
           </h1>
-          <p className="font-cursive text-2xl sm:text-3xl text-rose-200/90 animate-pulse">
-            Make a Wish 
-            <Heart className="inline-block w-6 h-6 ml-2 text-rose-400 fill-rose-400" />
-          </p>
-        </div>
-
-        {/* The Candle Display */}
-        <div className="relative w-full max-w-lg aspect-[4/3] mb-8">
-          
-          {/* Wish Confirmation Overlay */}
-          {wishMade && (
-             <div ref={wishRef} 
-                  className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
-                <div className="bg-black/40 backdrop-blur-md rounded-3xl p-6 border border-amber-500/30 text-center
-                                transform transition-all duration-500">
-                   <Sparkles className="w-12 h-12 text-yellow-300 mx-auto mb-2 animate-spin-slow" />
-                   <h2 className="text-2xl font-bold text-white mb-1">Wish Sent!</h2>
-                   <p className="text-amber-200 text-sm">Magic is in the air...</p>
-                </div>
-             </div>
+          {isLit && (
+            <p className="font-serif text-2xl sm:text-3xl text-amber-100/90 flex items-center justify-center gap-2 animate-pulse-slow">
+              <Sparkles className="w-5 h-5 text-amber-300" />
+              Make a Wish
+              <Sparkles className="w-5 h-5 text-amber-300" />
+            </p>
           )}
-
-          {/* Candle Container using Coordinate System */}
-          <div className="absolute inset-0">
-            {CANDLE_POSITIONS.map((pos, i) => {
-              const variant = candleVariations[i];
-              return (
-                <div
-                  key={i}
-                  className="candle-item absolute transform -translate-x-1/2 -translate-y-full"
-                  style={{
-                    left: `${pos.x}%`,
-                    top: `${pos.y}%`,
-                    zIndex: Math.floor(pos.y), // Lower candles appear in front
-                  }}
-                >
-                  {/* The Candle Stick */}
-                  <div 
-                    ref={el => candleRefs.current[i] = el}
-                    className={`relative w-3 sm:w-4 rounded-t-sm shadow-lg
-                               bg-gradient-to-b ${variant.hue}`}
-                    style={{ 
-                      height: `${variant.height}px`,
-                      boxShadow: isLit ? '0 0 15px rgba(251, 191, 36, 0.2)' : 'none'
-                    }}
-                  >
-                    {/* Stripes/Texture */}
-                    <div className="absolute top-0 inset-x-0 h-full opacity-30 
-                                  bg-[repeating-linear-gradient(45deg,transparent,transparent_5px,#000_5px,#000_6px)]" />
-                  </div>
-
-                  {/* The Flame */}
-                  <div
-                    ref={el => flameRefs.current[i] = el}
-                    className={`absolute -top-4 left-1/2 -translate-x-1/2 w-4 h-6 origin-bottom
-                               transition-opacity duration-300
-                               ${isLit ? 'opacity-100' : 'opacity-0'}`}
-                  >
-                    {/* Flame Core */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-orange-500 via-yellow-300 to-white rounded-full blur-[1px]" />
-                    {/* Flame Glow Halo */}
-                    <div className="absolute -inset-4 bg-orange-400/30 rounded-full blur-md animate-pulse" />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
         </div>
 
-        {/* Bottom Controls Area */}
-        <div className="w-full max-w-md space-y-4 min-h-[160px]">
+        {/* --- The "20" Candle Display --- */}
+        <div className="relative w-full max-w-2xl aspect-[16/9] sm:aspect-[2/1] mb-8 flex justify-center items-center gap-8 sm:gap-16">
+          
+           {/* Container for "2" */}
+           <div className="relative w-1/3 h-full max-h-[300px]">
+              {POSITIONS_2.map((pos, i) => renderCandle(pos, i))}
+           </div>
+
+           {/* Container for "0" */}
+           <div className="relative w-1/3 h-full max-h-[300px]">
+              {POSITIONS_0.map((pos, i) => renderCandle(pos, i + POSITIONS_2.length))}
+           </div>
+
+           {/* Wish Prompt Overlay */}
+           {showWishPrompt && !wishMade && (
+              <div ref={wishRef} className="absolute top-0 left-1/2 -translate-x-1/2 z-30 w-64 text-center animate-in zoom-in-95 duration-300">
+                <div className="bg-black/60 backdrop-blur-md rounded-2xl p-4 border border-amber-400/50 shadow-[0_0_30px_rgba(251,191,36,0.3)]">
+                  <h3 className="text-xl font-bold text-amber-100 mb-2">Ready to wish?</h3>
+                  <Button size="sm" onClick={makeWish} className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0">
+                    Yes, blow them out! ✨
+                  </Button>
+                </div>
+              </div>
+           )}
+        </div>
+
+        {/* --- Controls Area --- */}
+        <div className="w-full max-w-md min-h-[180px] flex items-end justify-center">
           {isLit ? (
-            <div className="flex flex-col items-center gap-4 animate-in slide-in-from-bottom duration-500">
+            /* Pre-Blowout Controls */
+            <div className="w-full flex flex-col items-center gap-5 animate-in slide-in-from-bottom duration-500">
               
-              {/* Blow Strength Visualizer */}
-              {blowStrength > 5 && (
-                 <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-blue-400 to-cyan-300 transition-all duration-100 ease-out"
-                         style={{ width: `${Math.min(blowStrength * 1.5, 100)}%` }} />
-                 </div>
-              )}
+              {/* Blow Strength Meter */}
+              <div className={`w-full bg-black/30 h-2.5 rounded-full overflow-hidden border border-white/10 transition-opacity duration-300 ${blowStrength > 5 ? 'opacity-100' : 'opacity-0'}`}>
+                  <div className="h-full bg-gradient-to-r from-blue-400 via-cyan-300 to-white transition-all duration-100 ease-out box-shadow-[0_0_10px_rgba(56,189,248,0.5)]"
+                        style={{ width: `${Math.min(blowStrength, 100)}%` }} />
+              </div>
 
               <div className="grid grid-cols-2 gap-4 w-full">
+                {/* Mic Button */}
                 <Button
                   onClick={requestMicrophoneAccess}
                   disabled={micActive}
-                  className={`mic-button relative h-16 rounded-xl border transition-all duration-300
+                  className={`relative h-16 rounded-2xl border transition-all duration-300 group overflow-hidden
                             ${micActive 
-                              ? 'bg-emerald-500/20 border-emerald-500/50' 
-                              : 'bg-white/5 border-white/20 hover:bg-white/10'}`}
+                              ? 'bg-emerald-900/40 border-emerald-500/50' 
+                              : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/30'}`}
                 >
-                  <div className="flex flex-col items-center">
+                  <div className="flex flex-col items-center relative z-10">
                     {micActive ? (
                       <>
-                         <Mic className="w-6 h-6 text-emerald-400 animate-pulse" />
-                         <span className="text-xs text-emerald-200 mt-1">Blow now!</span>
+                         <Mic className="w-7 h-7 text-emerald-400 animate-pulse" />
+                         <span className="text-xs text-emerald-200 font-semibold mt-1">Blow into mic!</span>
                       </>
                     ) : (
                       <>
-                         <Mic className="w-6 h-6 text-white/80" />
-                         <span className="text-xs text-white/60 mt-1">Use Mic</span>
+                         <Mic className="w-7 h-7 text-white/70 group-hover:text-white transition-colors" />
+                         <span className="text-xs text-white/60 group-hover:text-white/90 mt-1">Use Microphone</span>
                       </>
                     )}
                   </div>
+                  {micActive && <div className="absolute inset-0 bg-emerald-500/10 animate-pulse-slow" />}
                 </Button>
 
+                {/* Manual Blow Button */}
                 <Button
                   onClick={blowOut}
                   disabled={isBlowing}
-                  className="h-16 rounded-xl bg-gradient-to-r from-rose-500 to-orange-500 
-                             hover:from-rose-600 hover:to-orange-600 border-0 shadow-lg shadow-orange-900/20"
+                  className="h-16 rounded-2xl bg-gradient-to-r from-rose-500 to-orange-500 
+                             hover:from-rose-600 hover:to-orange-600 border-0 shadow-lg shadow-orange-900/30
+                             group relative overflow-hidden transition-transform active:scale-95"
                 >
-                  <div className="flex flex-col items-center">
-                    <Wind className="w-6 h-6 text-white" />
-                    <span className="text-xs text-white mt-1">Blow Out</span>
+                   <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                  <div className="flex flex-col items-center relative z-10">
+                    <Wind className="w-7 h-7 text-white group-hover:rotate-12 transition-transform" />
+                    <span className="text-xs text-white font-bold mt-1">Blow Out Now</span>
                   </div>
                 </Button>
               </div>
               
-              <div className="text-white/40 text-xs font-elegant flex items-center gap-2">
-                 <Sparkles className="w-3 h-3" />
-                 <span>Tip: Make a wish before you blow!</span>
-                 <Sparkles className="w-3 h-3" />
-              </div>
+              <p className="text-amber-200/60 text-xs font-serif italic flex items-center gap-2">
+                 <Flame className="w-3 h-3" /> Close your eyes and make a wish first!
+              </p>
             </div>
           ) : (
             /* Post-Blowout Success State */
-            <div className="text-center animate-in zoom-in fade-in duration-700">
-              <h3 className="text-2xl font-bold text-white mb-2">Wishes Granted! ✨</h3>
-              <p className="text-purple-200/80 mb-6 text-sm">
-                The universe has heard you. Now, let's see what else awaits...
+            <div className="text-center animate-in zoom-in fade-in duration-1000 flex flex-col items-center justify-center h-full">
+               <div className="mb-4 relative">
+                 <div className="absolute inset-0 bg-amber-500/20 blur-2xl rounded-full animate-pulse-slow" />
+                 <Heart className="w-16 h-16 text-rose-400 fill-rose-400 relative z-10 animate-bounce-slow" />
+               </div>
+              <h3 className="text-3xl font-bold text-white mb-2 font-handwriting">Wishes made! ✨</h3>
+              <p className="text-amber-100/80 mb-8 text-lg max-w-xs mx-auto font-serif leading-relaxed">
+                May this year bring you everything you've hoped for.
               </p>
               
               <Button
                  onClick={() => navigateTo('gifts')}
-                 className="w-full py-6 text-lg rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500
-                            hover:from-amber-500 hover:to-orange-600 shadow-xl shadow-amber-900/30
-                            text-white font-bold group transform transition-all hover:scale-[1.02]"
+                 className="w-full max-w-sm py-4 text-xl rounded-full bg-gradient-to-r from-amber-400 to-orange-500
+                            hover:from-amber-500 hover:to-orange-600 shadow-[0_0_30px_rgba(251,191,36,0.4)]
+                            text-white font-bold group transform transition-all hover:scale-105 active:scale-95"
               >
-                <PartyPopper className="w-6 h-6 mr-2 group-hover:-rotate-12 transition-transform" />
+                <PartyPopper className="w-6 h-6 mr-3 group-hover:-rotate-12 transition-transform" />
                 Open Presents
               </Button>
             </div>
@@ -463,21 +440,19 @@ export function CandleScene() {
         </div>
       </div>
       
-      {/* Footer / Audio Toggle */}
+      {/* Footer Toggle */}
       <div className="absolute bottom-4 left-4 z-20">
-         <Button
-           variant="ghost"
-           size="sm"
-           className="text-white/40 hover:text-white hover:bg-white/10 rounded-full px-3"
-         >
+         <Button variant="ghost" size="sm" className="text-white/40 hover:text-white hover:bg-white/10 rounded-full px-3 border border-transparent hover:border-white/20 transition-all">
            {settings.soundEnabled ? <Volume2 className="w-4 h-4 mr-2" /> : <VolumeX className="w-4 h-4 mr-2" />}
-           <span className="text-xs">Ambience</span>
+           <span className="text-xs">Sound</span>
          </Button>
       </div>
 
       <style>{`
-        .animate-spin-slow { animation: spin 3s linear infinite; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .font-handwriting { font-family: 'Pacifico', 'Dancing Script', cursive; }
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .animate-pulse-slow { animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .animate-bounce-slow { animation: bounce 3s infinite; }
       `}</style>
     </div>
   );
