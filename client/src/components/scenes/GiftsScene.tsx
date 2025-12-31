@@ -118,28 +118,23 @@ export function GiftsScene() {
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRefs = useRef<gsap.core.Tween[]>([]);
 
-  // Update background image when settings change
   useEffect(() => {
     if (settings.customGiftBackground) {
       setBgImage(settings.customGiftBackground);
     }
   }, [settings.customGiftBackground]);
 
-  // Initialize animations
   useEffect(() => {
     if (!settings.reducedMotion) {
-      // Clear previous animations
       animationRefs.current.forEach(anim => anim.kill());
       animationRefs.current = [];
 
-      // Create very slow, breathing floating animations
       giftsRefs.current.forEach((ref, i) => {
         if (ref && !openedGifts.includes(i + 1)) {
-          // A slower, more organic float
           const anim = gsap.to(ref, {
-            y: -8, // Reduced movement for calmness
-            rotation: 1, // Micro rotation
-            duration: 4 + i * 0.5, // Slower duration
+            y: -8,
+            rotation: 1,
+            duration: 4 + i * 0.5,
             repeat: -1,
             yoyo: true,
             ease: 'sine.inOut',
@@ -149,12 +144,10 @@ export function GiftsScene() {
         }
       });
 
-      // Background particle effect when all gifts opened
       if (openedGifts.length === 5 && !showFinale) {
-        setTimeout(() => setShowFinale(true), 1500); // Longer pause before finale
+        setTimeout(() => setShowFinale(true), 1500);
       }
 
-      // Initial entrance animation - smoother
       if (containerRef.current) {
         gsap.fromTo(containerRef.current,
           { opacity: 0 },
@@ -175,7 +168,6 @@ export function GiftsScene() {
   const openGift = (gift: Gift) => {
     if (openedGifts.includes(gift.id)) return;
 
-    // Stop animation for this gift
     const giftIndex = gift.id - 1;
     if (animationRefs.current[giftIndex]) {
       animationRefs.current[giftIndex].kill();
@@ -185,16 +177,15 @@ export function GiftsScene() {
     setOpenedGifts(newOpened);
     updateProgress({ giftsOpened: newOpened });
 
-    // Visual feedback - gentle and reverent
     const giftElement = giftsRefs.current[giftIndex];
     if (giftElement && !settings.reducedMotion) {
       gsap.timeline({
         onComplete: () => {
-          setTimeout(() => setSelectedGift(gift), 600); // Slower pause before opening
+          setTimeout(() => setSelectedGift(gift), 600);
         }
       })
       .to(giftElement, {
-        scale: 1.05, // Subtle lift
+        scale: 1.05,
         y: -10,
         boxShadow: `0 0 30px ${gift.glowColor}60`,
         duration: 0.8,
@@ -211,11 +202,9 @@ export function GiftsScene() {
     }
 
     if (settings.soundEnabled) {
-      // Intentionally using the same sound but implying a softer volume context via UI
       audioManager.play('success');
     }
 
-    // Gentle sparkle effect
     if (!settings.reducedMotion && giftElement) {
       createSparkleEffect(giftElement, gift.glowColor);
     }
@@ -227,7 +216,7 @@ export function GiftsScene() {
 
   const createSparkleEffect = (element: HTMLElement, color: string) => {
     const rect = element.getBoundingClientRect();
-    for (let i = 0; i < 6; i++) { // More sparkles, slower
+    for (let i = 0; i < 6; i++) {
       setTimeout(() => {
         const sparkle = document.createElement('div');
         sparkle.innerHTML = '✨';
@@ -243,7 +232,7 @@ export function GiftsScene() {
           opacity: 0,
           scale: 0,
           rotation: 90,
-          duration: 2.5, // Slower fade
+          duration: 2.5,
           ease: 'power1.out',
           onComplete: () => sparkle.remove(),
         });
@@ -333,15 +322,12 @@ export function GiftsScene() {
     window.open(GOOGLE_DRIVE_AUDIO_LINK, '_blank');
   };
 
-  // Content Renderers - Elevated Aesthetics
   const renderGiftContent = (gift: Gift) => {
     switch (gift.type) {
       case 'letter':
         return (
           <div className="relative group">
-             {/* Paper Texture Effect */}
             <div className="font-elegant whitespace-pre-wrap text-base sm:text-lg leading-loose text-slate-800 p-8 sm:p-10 bg-[#fffdf5] rounded-xl shadow-[0_0_50px_-10px_rgba(255,255,255,0.3)] mx-auto max-w-lg relative overflow-hidden">
-               {/* Subtle grain overlay for paper feel */}
               <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIj48ZmlsdGVyIGlkPSJhIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjkiIG51bW9jdGF2ZXM9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9IjAuNSIvPjwvc3ZnPg==')] pointer-events-none"></div>
               
               <div className="relative z-10 selection:bg-pink-200 selection:text-pink-900">
@@ -368,7 +354,6 @@ export function GiftsScene() {
                   }
                   className="group relative aspect-[4/5] bg-white/5 rounded-lg border border-white/10 hover:border-purple-300/40 transition-all duration-700 hover:-translate-y-1 hover:shadow-[0_10px_30px_-10px_rgba(139,92,246,0.3)] overflow-hidden"
                 >
-                   {/* Vignette overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
                   
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -399,9 +384,6 @@ export function GiftsScene() {
                  <span className="text-sm font-elegant text-pink-200/80 tracking-widest uppercase text-[10px]">Play Memory</span>
               </div>
             </button>
-            <p className="text-center text-white/30 text-[10px] sm:text-xs font-elegant tracking-widest uppercase">
-              Collection of Moments
-            </p>
           </div>
         );
       case 'audio':
@@ -409,7 +391,6 @@ export function GiftsScene() {
           <div className="space-y-8 px-4 py-2">
             <div className="flex flex-col items-center justify-center gap-6">
               <div className="relative group">
-                {/* Vinyl/Circle aesthetic */}
                 <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border border-white/10 bg-gradient-to-br from-slate-800 to-slate-900 shadow-[0_0_50px_-10px_rgba(59,130,246,0.3)] flex items-center justify-center relative overflow-hidden">
                    <div className={`absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0_340deg,rgba(255,255,255,0.1)_360deg)] opacity-30 ${isPlaying ? 'animate-spin-slow' : ''}`} />
                    <div className="absolute inset-[35%] rounded-full border border-white/5 bg-black/40 backdrop-blur-md" />
@@ -424,7 +405,6 @@ export function GiftsScene() {
             </div>
             
             <div className="space-y-6 max-w-xs mx-auto w-full">
-              {/* Elegant Progress Bar */}
               <div className="relative group cursor-pointer">
                 <div className="bg-white/5 h-1 rounded-full overflow-hidden">
                   <div
@@ -538,9 +518,8 @@ export function GiftsScene() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full overflow-hidden bg-[#0a0510]" // Very dark base
+      className="relative w-full h-full overflow-hidden bg-[#0a0510]"
     >
-      {/* Cinematic Lighting - Warm Center, Dark Edges */}
       <div 
         className="absolute inset-0 z-0 pointer-events-none"
         style={{
@@ -548,7 +527,6 @@ export function GiftsScene() {
         }}
       />
 
-      {/* Custom Background Image Layer - Blended Softly */}
       <div
         className="absolute inset-0 transition-all duration-1000 z-0"
         style={{
@@ -556,22 +534,20 @@ export function GiftsScene() {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          opacity: 0.15, // Lower opacity for ambient feel
-          filter: 'blur(2px) saturate(0.8)', // Dreamy blur
+          opacity: 0.15,
+          filter: 'blur(2px) saturate(0.8)',
         }}
       />
 
-      {/* Grain Overlay for Texture */}
       <div className="absolute inset-0 pointer-events-none z-[1] opacity-[0.03] mix-blend-overlay bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjY1IiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9IjAuNSIvPjwvc3ZnPg==')]"></div>
 
-      {/* Celebration Effects */}
       {showFinale && (
         <>
           <div className="absolute inset-0 pointer-events-none z-20">
             <Confetti 
               recycle={false} 
-              numberOfPieces={300} // Reduced for elegance
-              gravity={0.05} // Slower fall
+              numberOfPieces={300}
+              gravity={0.05}
               colors={['#fbbf24', '#f472b6', '#a855f7', '#fff']}
               wind={0.005}
               opacity={0.8}
@@ -588,11 +564,8 @@ export function GiftsScene() {
         </>
       )}
 
-      {/* Main Content Layer */}
       <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-4 sm:p-6 md:p-8">
-        {/* Header - Minimal & Ceremonial */}
         <div className="text-center mb-12 sm:mb-16 md:mb-20 px-2 relative">
-          {/* Subtle glow behind title */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-32 bg-purple-500/20 blur-[100px] rounded-full pointer-events-none" />
           
           <div className="relative inline-block mb-6">
@@ -614,7 +587,6 @@ export function GiftsScene() {
           </div>
         </div>
 
-        {/* Gifts Grid - Spaced & Breathing */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 sm:gap-8 lg:gap-10 max-w-6xl mx-auto w-full px-4">
           {GIFTS.map((gift, index) => {
             const isOpened = openedGifts.includes(gift.id);
@@ -633,7 +605,6 @@ export function GiftsScene() {
                             : 'cursor-pointer hover:-translate-y-2'
                           } backdrop-blur-sm`}
                 style={{
-                  // Glassmorphism with slight tint matching gift color
                   background: `linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)`,
                   border: '1px solid rgba(255,255,255,0.08)',
                   boxShadow: isHovered && !isOpened 
@@ -642,10 +613,8 @@ export function GiftsScene() {
                 }}
                 disabled={isOpened}
               >
-                 {/* Inner Glow on Hover */}
                 <div className={`absolute inset-0 rounded-xl bg-gradient-to-t from-${gift.color}/10 to-transparent opacity-0 transition-opacity duration-700 ${isHovered && !isOpened ? 'opacity-20' : ''}`} />
 
-                {/* Content */}
                 <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-4">
                   <div className={`text-4xl sm:text-5xl md:text-6xl mb-6 transition-all duration-1000 transform
                                 ${isHovered && !isOpened ? 'scale-110 drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]' : 'drop-shadow-lg'}`}>
@@ -664,7 +633,6 @@ export function GiftsScene() {
                   </div>
                 </div>
 
-                {/* Opened Checkmark - Subtle */}
                 {isOpened && (
                   <div className="absolute top-4 right-4 text-white/20 text-sm border border-white/10 rounded-full w-6 h-6 flex items-center justify-center">
                     ✓
@@ -675,7 +643,6 @@ export function GiftsScene() {
           })}
         </div>
 
-        {/* Cinematic Progress Bar */}
         {openedGifts.length > 0 && (
           <div className="fixed bottom-0 left-0 right-0 h-1 bg-white/5">
              <div 
@@ -685,11 +652,9 @@ export function GiftsScene() {
           </div>
         )}
 
-        {/* Completion Celebration Overlay */}
         {showFinale && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fade-in duration-1000">
             <div className="text-center p-10 bg-black/40 border border-white/10 rounded-3xl backdrop-blur-xl max-w-md w-full animate-scale-in shadow-2xl relative overflow-hidden">
-               {/* Shine effect */}
                <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
                
               <div className="relative mb-8">
@@ -706,7 +671,6 @@ export function GiftsScene() {
         )}
       </div>
 
-      {/* Dialogs - Deep, Dark, & Immersive */}
       <Dialog open={!!selectedGift} onOpenChange={() => setSelectedGift(null)}>
         <DialogContent 
           ref={dialogRef}
@@ -717,7 +681,6 @@ export function GiftsScene() {
         >
           {selectedGift && (
             <>
-              {/* Header */}
               <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
                 <div className="flex items-center gap-4">
                   <span 
@@ -742,22 +705,20 @@ export function GiftsScene() {
                 </button>
               </div>
 
-              {/* Body */}
               <div className="p-0 bg-gradient-to-b from-transparent to-black/20 max-h-[70vh] overflow-y-auto custom-scrollbar">
                 {renderGiftContent(selectedGift)}
               </div>
               
-              {/* Footer Gradient Fade */}
               <div className="h-1 w-full bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-50" />
             </>
           )}
         </DialogContent>
       </Dialog>
 
-      {/* Media Overlay */}
+      {/* Increased Z-Index to 100 to ensure it opens on top of everything */}
       {activeMedia && (
         <div 
-          className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 sm:p-8 animate-fade-in"
+          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 sm:p-8 animate-fade-in"
           onClick={() => setActiveMedia(null)}
         >
           <button 
@@ -773,16 +734,12 @@ export function GiftsScene() {
           >
             {activeMedia.type === 'image' ? (
               <div className="relative group">
-                 {/* Photo Frame Effect */}
-                <div className="bg-white p-2 sm:p-4 rounded-sm shadow-2xl transform rotate-1 transition-transform duration-500 hover:rotate-0">
+                <div className="bg-white p-2 rounded-sm shadow-2xl">
                     <img 
                         src={activeMedia.src} 
                         alt="Memory" 
-                        className="max-h-[80vh] w-auto object-contain bg-black/5"
+                        className="max-h-[85vh] w-auto object-contain bg-black/5"
                     />
-                    <div className="mt-4 text-center font-handwriting text-gray-500 text-sm sm:text-base">
-                        A beautiful moment 🌸
-                    </div>
                 </div>
               </div>
             ) : (
