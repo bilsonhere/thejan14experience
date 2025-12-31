@@ -240,7 +240,7 @@ export function GiftsScene() {
         sparkle.innerHTML = '✨';
         sparkle.className = 'fixed text-xl pointer-events-none z-50 text-white/80';
         sparkle.style.left = `${rect.left + rect.width / 2}px`;
-        sparkle.style.top = `${rect.top + rect.height / 2}px`;
+        sparkle.style.top = `${rect.top + element.clientHeight / 2}px`;
         sparkle.style.filter = `drop-shadow(0 0 4px ${color})`;
         document.body.appendChild(sparkle);
 
@@ -364,12 +364,13 @@ export function GiftsScene() {
               {[1, 2, 3, 4, 5].map((i) => (
                 <button
                   key={i}
-                  onClick={() =>
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setActiveMedia({
                       type: 'image',
                       src: `/assets/gifts/media/img${i}.jpeg`,
-                    })
-                  }
+                    });
+                  }}
                   className="group relative aspect-[4/5] bg-white/5 rounded-lg border border-white/10 hover:border-purple-300/40 transition-all duration-700 hover:-translate-y-1 hover:shadow-[0_10px_30px_-10px_rgba(139,92,246,0.3)] overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
@@ -386,12 +387,13 @@ export function GiftsScene() {
             </div>
             
             <button
-              onClick={() =>
+              onClick={(e) => {
+                e.stopPropagation();
                 setActiveMedia({
                   type: 'video',
                   src: '/assets/gifts/media/video.mp4',
-                })
-              }
+                });
+              }}
               className="w-full group relative aspect-video bg-black/20 rounded-xl flex items-center justify-center border border-pink-500/20 hover:border-pink-500/50 transition-all duration-700 hover:shadow-[0_0_40px_-10px_rgba(236,72,153,0.3)] overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-pink-900/10 via-transparent to-purple-900/10" />
@@ -531,11 +533,6 @@ export function GiftsScene() {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  // Handle media viewer close
-  const handleCloseMedia = () => {
-    setActiveMedia(null);
   };
 
   return (
@@ -693,11 +690,11 @@ export function GiftsScene() {
         )}
       </div>
 
-      {/* Dialog for gift content - removed backdrop blur to prevent z-index issues */}
+      {/* Dialog for gift content */}
       <Dialog open={!!selectedGift} onOpenChange={() => setSelectedGift(null)}>
         <DialogContent 
           ref={dialogRef}
-          className="bg-[#0f0a15] border border-white/10 text-white max-w-sm sm:max-w-md md:max-w-xl rounded-2xl p-0 overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] animate-dialog-in z-[90]"
+          className="bg-[#0f0a15] border border-white/10 text-white max-w-sm sm:max-w-md md:max-w-xl rounded-2xl p-0 overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] animate-dialog-in z-40"
           style={{
              boxShadow: selectedGift ? `0 0 80px -20px ${selectedGift.glowColor}20` : 'none'
           }}
@@ -741,42 +738,49 @@ export function GiftsScene() {
         </DialogContent>
       </Dialog>
 
-      {/* Media Viewer - Higher z-index to always appear on top */}
+      {/* Media Viewer - Completely separate from dialog, always on top */}
       {activeMedia && (
-        <div 
-          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 sm:p-8 animate-fade-in"
-          onClick={handleCloseMedia}
-        >
+        <div className="fixed inset-0 z-[9999]">
+          <div 
+            className="absolute inset-0 bg-black/95 backdrop-blur-xl"
+            onClick={() => setActiveMedia(null)}
+          />
+          
           <button 
-            onClick={handleCloseMedia}
-            className="absolute top-4 right-4 sm:top-8 sm:right-8 text-white/50 hover:text-white transition-colors p-2 bg-white/10 hover:bg-white/20 rounded-full z-[101]"
+            onClick={() => setActiveMedia(null)}
+            className="absolute top-4 right-4 sm:top-8 sm:right-8 z-[10000] text-white/50 hover:text-white transition-colors p-2 bg-white/10 hover:bg-white/20 rounded-full"
           >
             <X className="w-6 h-6 sm:w-8 sm:h-8" />
           </button>
           
-          <div 
-            className="relative max-w-5xl w-full max-h-full flex items-center justify-center p-2 z-[100]"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="absolute inset-0 flex items-center justify-center p-4 sm:p-8 z-[9999]">
             {activeMedia.type === 'image' ? (
-              <div className="relative group">
+              <div 
+                className="relative max-w-5xl w-full max-h-full flex items-center justify-center"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <div className="bg-white/10 backdrop-blur-sm p-4 rounded-2xl shadow-2xl border border-white/10">
-                    <img 
-                        src={activeMedia.src} 
-                        alt="Memory" 
-                        className="max-h-[85vh] w-auto object-contain"
-                        loading="lazy"
-                    />
+                  <img 
+                    src={activeMedia.src} 
+                    alt="Memory" 
+                    className="max-h-[85vh] w-auto object-contain"
+                    loading="lazy"
+                  />
                 </div>
               </div>
             ) : (
-              <div className="w-full aspect-video bg-black/50 rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(236,72,153,0.3)] border border-white/10 backdrop-blur-sm">
-                <video 
-                  src={activeMedia.src} 
-                  controls 
-                  autoPlay 
-                  className="w-full h-full"
-                />
+              <div 
+                className="relative w-full max-w-5xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="w-full aspect-video bg-black/50 rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(236,72,153,0.3)] border border-white/10 backdrop-blur-sm">
+                  <video 
+                    src={activeMedia.src} 
+                    controls 
+                    autoPlay 
+                    className="w-full h-full"
+                  />
+                </div>
               </div>
             )}
           </div>
