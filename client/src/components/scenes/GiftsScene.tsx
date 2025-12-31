@@ -132,17 +132,18 @@ export function GiftsScene() {
       animationRefs.current.forEach(anim => anim.kill());
       animationRefs.current = [];
 
-      // Create floating animations for unopened gifts with anticipation
+      // Create very slow, breathing floating animations
       giftsRefs.current.forEach((ref, i) => {
         if (ref && !openedGifts.includes(i + 1)) {
+          // A slower, more organic float
           const anim = gsap.to(ref, {
-            y: -12,
-            rotation: 2,
-            duration: 3 + i * 0.2,
+            y: -8, // Reduced movement for calmness
+            rotation: 1, // Micro rotation
+            duration: 4 + i * 0.5, // Slower duration
             repeat: -1,
             yoyo: true,
             ease: 'sine.inOut',
-            delay: i * 0.15,
+            delay: i * 0.3,
           });
           animationRefs.current.push(anim);
         }
@@ -150,14 +151,14 @@ export function GiftsScene() {
 
       // Background particle effect when all gifts opened
       if (openedGifts.length === 5 && !showFinale) {
-        setTimeout(() => setShowFinale(true), 800);
+        setTimeout(() => setShowFinale(true), 1500); // Longer pause before finale
       }
 
-      // Initial entrance animation
+      // Initial entrance animation - smoother
       if (containerRef.current) {
         gsap.fromTo(containerRef.current,
           { opacity: 0 },
-          { opacity: 1, duration: 1, ease: 'power2.out' }
+          { opacity: 1, duration: 2, ease: 'power2.inOut' }
         );
       }
     }
@@ -184,65 +185,69 @@ export function GiftsScene() {
     setOpenedGifts(newOpened);
     updateProgress({ giftsOpened: newOpened });
 
-    // Visual feedback with anticipation build-up
+    // Visual feedback - gentle and reverent
     const giftElement = giftsRefs.current[giftIndex];
     if (giftElement && !settings.reducedMotion) {
       gsap.timeline({
         onComplete: () => {
-          setTimeout(() => setSelectedGift(gift), 400);
+          setTimeout(() => setSelectedGift(gift), 600); // Slower pause before opening
         }
       })
       .to(giftElement, {
-        scale: 1.3,
-        duration: 0.3,
-        ease: 'back.out(1.7)',
+        scale: 1.05, // Subtle lift
+        y: -10,
+        boxShadow: `0 0 30px ${gift.glowColor}60`,
+        duration: 0.8,
+        ease: 'power2.out',
       })
       .to(giftElement, {
         scale: 1,
-        duration: 0.2,
+        y: 0,
+        duration: 0.5,
         ease: 'power2.inOut',
       });
     } else {
-      setTimeout(() => setSelectedGift(gift), 400);
+      setTimeout(() => setSelectedGift(gift), 600);
     }
 
     if (settings.soundEnabled) {
+      // Intentionally using the same sound but implying a softer volume context via UI
       audioManager.play('success');
     }
 
-    // Create anticipation sparkle effect
+    // Gentle sparkle effect
     if (!settings.reducedMotion && giftElement) {
       createSparkleEffect(giftElement, gift.glowColor);
     }
 
     if (gift.id === 5) {
-      setTimeout(() => setShowFinale(true), 1200);
+      setTimeout(() => setShowFinale(true), 2000);
     }
   };
 
   const createSparkleEffect = (element: HTMLElement, color: string) => {
     const rect = element.getBoundingClientRect();
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 6; i++) { // More sparkles, slower
       setTimeout(() => {
         const sparkle = document.createElement('div');
         sparkle.innerHTML = '✨';
-        sparkle.className = 'fixed text-xl pointer-events-none z-50';
+        sparkle.className = 'fixed text-xl pointer-events-none z-50 text-white/80';
         sparkle.style.left = `${rect.left + rect.width / 2}px`;
         sparkle.style.top = `${rect.top + rect.height / 2}px`;
-        sparkle.style.filter = `drop-shadow(0 0 6px ${color})`;
+        sparkle.style.filter = `drop-shadow(0 0 4px ${color})`;
         document.body.appendChild(sparkle);
 
         gsap.to(sparkle, {
-          x: (Math.random() - 0.5) * 60,
-          y: (Math.random() - 0.5) * 60 - 40,
+          x: (Math.random() - 0.5) * 80,
+          y: (Math.random() - 0.5) * 80 - 30,
           opacity: 0,
           scale: 0,
-          rotation: 180,
-          duration: 1.5,
-          ease: 'power2.out',
+          rotation: 90,
+          duration: 2.5, // Slower fade
+          ease: 'power1.out',
           onComplete: () => sparkle.remove(),
         });
-      }, i * 150);
+      }, i * 200);
     }
   };
 
@@ -328,22 +333,30 @@ export function GiftsScene() {
     window.open(GOOGLE_DRIVE_AUDIO_LINK, '_blank');
   };
 
+  // Content Renderers - Elevated Aesthetics
   const renderGiftContent = (gift: Gift) => {
     switch (gift.type) {
       case 'letter':
         return (
-          <div className="relative">
-            <div className="absolute -top-4 -right-4 text-3xl opacity-30 animate-float-slow">💌</div>
-            <div className="absolute -bottom-4 -left-4 text-2xl opacity-20 animate-float-slow" style={{animationDelay: '1s'}}>💛</div>
-            <div className="font-elegant whitespace-pre-wrap text-base sm:text-lg leading-relaxed text-white/95 p-5 sm:p-6 bg-gradient-to-br from-pink-900/40 to-rose-900/30 rounded-2xl border-2 border-pink-500/30 backdrop-blur-xl shadow-2xl shadow-pink-900/30">
-              {LETTER_CONTENT_1}
+          <div className="relative group">
+             {/* Paper Texture Effect */}
+            <div className="font-elegant whitespace-pre-wrap text-base sm:text-lg leading-loose text-slate-800 p-8 sm:p-10 bg-[#fffdf5] rounded-xl shadow-[0_0_50px_-10px_rgba(255,255,255,0.3)] mx-auto max-w-lg relative overflow-hidden">
+               {/* Subtle grain overlay for paper feel */}
+              <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIj48ZmlsdGVyIGlkPSJhIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjkiIG51bW9jdGF2ZXM9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9IjAuNSIvPjwvc3ZnPg==')] pointer-events-none"></div>
+              
+              <div className="relative z-10 selection:bg-pink-200 selection:text-pink-900">
+                {LETTER_CONTENT_1}
+              </div>
+              <div className="absolute bottom-4 right-6 text-pink-400 opacity-50 text-xl">
+                 💌
+              </div>
             </div>
           </div>
         );
       case 'media':
         return (
-          <div className="space-y-5 sm:space-y-6">
-            <div className="grid grid-cols-3 gap-3 sm:gap-4">
+          <div className="space-y-8">
+            <div className="grid grid-cols-3 gap-4 sm:gap-6 px-2">
               {[1, 2, 3, 4, 5].map((i) => (
                 <button
                   key={i}
@@ -353,17 +366,22 @@ export function GiftsScene() {
                       src: `/assets/gifts/media/img${i}.jpeg`,
                     })
                   }
-                  className="group relative aspect-square bg-gradient-to-br from-purple-900/40 to-violet-900/30 rounded-xl sm:rounded-2xl flex items-center justify-center border-2 border-purple-500/40 hover:border-purple-400/70 transition-all duration-500 hover:scale-110 overflow-hidden shadow-lg shadow-purple-900/30"
+                  className="group relative aspect-[4/5] bg-white/5 rounded-lg border border-white/10 hover:border-purple-300/40 transition-all duration-700 hover:-translate-y-1 hover:shadow-[0_10px_30px_-10px_rgba(139,92,246,0.3)] overflow-hidden"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 via-transparent to-violet-500/0 group-hover:from-purple-500/20 group-hover:to-violet-500/20 transition-all duration-500" />
-                  <span className="text-3xl sm:text-4xl group-hover:scale-125 group-hover:rotate-12 transition-all duration-500">🌺</span>
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 bg-black/30">
-                    <Maximize2 className="w-6 h-6 sm:w-8 sm:h-8 text-white/90" />
+                   {/* Vignette overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
+                  
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-2xl sm:text-3xl opacity-70 group-hover:scale-110 transition-transform duration-700 filter drop-shadow-md">🌺</span>
                   </div>
-                  <div className="absolute inset-0 border-4 border-transparent group-hover:border-white/20 rounded-xl sm:rounded-2xl transition-all duration-500" />
+                  
+                  <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-2 group-hover:translate-y-0">
+                    <Maximize2 className="w-4 h-4 text-white/80" />
+                  </div>
                 </button>
               ))}
             </div>
+            
             <button
               onClick={() =>
                 setActiveMedia({
@@ -371,116 +389,124 @@ export function GiftsScene() {
                   src: '/assets/gifts/media/video.mp4',
                 })
               }
-              className="group relative aspect-video bg-gradient-to-br from-pink-900/40 to-rose-900/30 rounded-xl sm:rounded-2xl flex items-center justify-center border-2 border-pink-500/40 hover:border-pink-400/70 transition-all duration-500 overflow-hidden shadow-lg shadow-pink-900/30"
+              className="w-full group relative aspect-video bg-black/20 rounded-xl flex items-center justify-center border border-pink-500/20 hover:border-pink-500/50 transition-all duration-700 hover:shadow-[0_0_40px_-10px_rgba(236,72,153,0.3)] overflow-hidden"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-pink-500/0 via-transparent to-rose-500/0 group-hover:from-pink-500/20 group-hover:to-rose-500/20 transition-all duration-500" />
-              <span className="text-4xl sm:text-5xl group-hover:scale-125 transition-all duration-500">🎬</span>
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500">
-                <div className="bg-black/60 backdrop-blur-sm rounded-full p-3 sm:p-4">
-                  <Play className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-                </div>
+              <div className="absolute inset-0 bg-gradient-to-br from-pink-900/10 via-transparent to-purple-900/10" />
+              <div className="relative z-10 flex flex-col items-center gap-3">
+                 <div className="w-16 h-16 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 flex items-center justify-center group-hover:scale-110 transition-all duration-500">
+                    <Play className="w-6 h-6 text-white ml-1" />
+                 </div>
+                 <span className="text-sm font-elegant text-pink-200/80 tracking-widest uppercase text-[10px]">Play Memory</span>
               </div>
             </button>
-            <p className="text-center text-purple-300/70 text-xs sm:text-sm font-elegant">
-              Click on any media to view in full size
+            <p className="text-center text-white/30 text-[10px] sm:text-xs font-elegant tracking-widest uppercase">
+              Collection of Moments
             </p>
           </div>
         );
       case 'audio':
         return (
-          <div className="space-y-5 sm:space-y-6">
-            <div className="flex flex-col items-center justify-center gap-4">
-              <div className="relative">
-                <div className="absolute inset-0 bg-blue-500/30 blur-xl rounded-full" />
-                <Music className="relative w-12 h-12 sm:w-16 sm:h-16 text-blue-300" />
+          <div className="space-y-8 px-4 py-2">
+            <div className="flex flex-col items-center justify-center gap-6">
+              <div className="relative group">
+                {/* Vinyl/Circle aesthetic */}
+                <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border border-white/10 bg-gradient-to-br from-slate-800 to-slate-900 shadow-[0_0_50px_-10px_rgba(59,130,246,0.3)] flex items-center justify-center relative overflow-hidden">
+                   <div className={`absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0_340deg,rgba(255,255,255,0.1)_360deg)] opacity-30 ${isPlaying ? 'animate-spin-slow' : ''}`} />
+                   <div className="absolute inset-[35%] rounded-full border border-white/5 bg-black/40 backdrop-blur-md" />
+                   <Music className={`relative z-10 w-8 h-8 text-blue-300/80 ${isPlaying ? 'animate-pulse' : ''}`} />
+                </div>
               </div>
-              <div className="text-center">
-                <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">bday song</h3>
-                <p className="text-blue-300/80 text-sm sm:text-base">Mute the bg audio and put on em headphones for best experience!</p>
+              
+              <div className="text-center space-y-1">
+                <h3 className="text-xl sm:text-2xl font-light text-white tracking-wide">bday song</h3>
+                <p className="text-blue-200/50 text-xs sm:text-sm font-light">Mute the bg audio and put on em headphones for best experience!</p>
               </div>
             </div>
             
-            <div className="space-y-3 sm:space-y-4">
-              <div className="relative">
-                <div className="bg-blue-900/40 h-2.5 sm:h-3 rounded-full overflow-hidden">
+            <div className="space-y-6 max-w-xs mx-auto w-full">
+              {/* Elegant Progress Bar */}
+              <div className="relative group cursor-pointer">
+                <div className="bg-white/5 h-1 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-blue-400 via-cyan-400 to-sky-400 rounded-full transition-all duration-300 shadow-lg shadow-blue-500/30"
+                    className="h-full bg-blue-400/80 rounded-full transition-all duration-300 shadow-[0_0_10px_rgba(96,165,250,0.5)]"
                     style={{ width: `${audioProgress}%` }}
                   />
                 </div>
-                <div className="flex justify-between text-xs sm:text-sm text-blue-300/70 mt-2">
+                <div className="flex justify-between text-[10px] text-white/30 mt-2 font-mono tracking-wider">
                   <span>{formatTime(audioRef.current?.currentTime || 0)}</span>
                   <span>{formatTime(audioRef.current?.duration || 0)}</span>
                 </div>
               </div>
-            </div>
-            
-            <div className="space-y-3">
-              <Button 
-                onClick={handleAudioPlay}
-                disabled={isAudioLoading}
-                className="w-full py-4 sm:py-5 bg-gradient-to-r from-blue-600 via-cyan-600 to-sky-600 hover:from-blue-500 hover:via-cyan-500 hover:to-sky-500 text-white rounded-xl sm:rounded-2xl group relative overflow-hidden shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300"
-              >
-                {isAudioLoading ? (
-                  <Loader2 className="mr-3 w-5 h-5 animate-spin" />
-                ) : isPlaying ? (
-                  <Pause className="mr-3 w-5 h-5 group-hover:scale-110 transition-transform" />
-                ) : (
-                  <Play className="mr-3 w-5 h-5 group-hover:scale-110 transition-transform" />
-                )}
-                {isAudioLoading ? 'Loading Melody...' : audioError ? 'Open in Google Drive' : isPlaying ? 'Pause Birthday Song' : 'Play Birthday Song'}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-              </Button>
               
-              {audioError && (
-                <div className="text-center p-3 bg-red-900/30 rounded-xl border border-red-500/30">
-                  <p className="text-sm text-red-300/90 mb-2">Couldn't load audio directly</p>
-                  <Button
-                    onClick={handleDirectAudioLink}
-                    variant="outline"
-                    className="w-full py-3 text-sm border-blue-400/50 text-blue-300 hover:bg-blue-900/40"
-                  >
-                    <ExternalLink className="mr-2 w-4 h-4" />
-                    Open in Google Drive
-                  </Button>
-                </div>
-              )}
-              
-              <div className="text-center">
-                <button
-                  onClick={handleDirectAudioLink}
-                  className="text-xs sm:text-sm text-blue-400/80 hover:text-blue-300 transition-colors underline underline-offset-2 decoration-blue-400/50 hover:decoration-blue-300"
+              <div className="space-y-4">
+                <Button 
+                  onClick={handleAudioPlay}
+                  disabled={isAudioLoading}
+                  variant="ghost"
+                  className="w-full py-6 bg-white/5 hover:bg-white/10 text-white border border-white/5 rounded-full transition-all duration-500 hover:tracking-widest"
                 >
-                  Or open directly in Google Drive ↗
-                </button>
+                  {isAudioLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : isPlaying ? (
+                    <Pause className="w-4 h-4 mr-2" />
+                  ) : (
+                    <Play className="w-4 h-4 mr-2" />
+                  )}
+                  <span className="font-light text-sm">
+                    {isAudioLoading ? 'Loading Melody...' : audioError ? 'Open in Google Drive' : isPlaying ? 'Pause Birthday Song' : 'Play Birthday Song'}
+                  </span>
+                </Button>
+                
+                {audioError && (
+                  <div className="text-center">
+                    <button
+                      onClick={handleDirectAudioLink}
+                      className="text-xs text-red-300/70 hover:text-red-300 transition-colors border-b border-red-300/20 pb-0.5"
+                    >
+                      Use external link instead
+                    </button>
+                  </div>
+                )}
+                
+                {!audioError && (
+                   <div className="text-center">
+                    <button
+                      onClick={handleDirectAudioLink}
+                      className="text-[10px] text-white/20 hover:text-white/40 transition-colors uppercase tracking-widest"
+                    >
+                      Or open directly in Google Drive ↗
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         );
       case 'pdf':
         return (
-          <div className="text-center space-y-5 sm:space-y-6">
-            <div className="relative">
-              <div className="absolute inset-0 bg-emerald-500/20 blur-2xl rounded-full" />
-              <div className="relative text-5xl sm:text-6xl mb-4">📖✨</div>
-            </div>
-            <div>
-              <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3">bday ppt</h3>
-              <p className="text-emerald-300/90 text-lg sm:text-xl mb-2">"Branches, Trees, Garden"</p>
-              <p className="text-emerald-200/70 text-sm sm:text-base">🍀</p>
+          <div className="text-center space-y-8 py-4">
+            <div className="relative inline-block group">
+              <div className="absolute inset-0 bg-emerald-500/10 blur-3xl rounded-full opacity-50 group-hover:opacity-80 transition-opacity duration-1000" />
+              <div className="relative text-6xl sm:text-7xl mb-6 filter drop-shadow-2xl opacity-90">📖✨</div>
             </div>
             
-            <div className="p-4 sm:p-5 bg-gradient-to-br from-emerald-900/40 to-green-900/30 rounded-2xl border-2 border-emerald-500/40 backdrop-blur-lg shadow-xl shadow-emerald-900/30">
-              <p className="text-emerald-200/80 text-sm sm:text-base mb-4">
-                📦
+            <div className="space-y-2">
+              <h3 className="text-2xl sm:text-3xl font-light text-white tracking-wide">bday ppt</h3>
+              <div className="h-px w-12 bg-emerald-500/30 mx-auto my-3" />
+              <p className="text-emerald-100/70 text-lg italic font-serif">"Branches, Trees, Garden"</p>
+              <p className="text-emerald-500/40 text-sm">🍀</p>
+            </div>
+            
+            <div className="max-w-xs mx-auto pt-4">
+              <p className="text-emerald-200/40 text-xs mb-4 uppercase tracking-widest">
+                📦 Document Enclosed
               </p>
               <Button 
                 onClick={() => window.open(GOOGLE_SLIDES_LINK, '_blank')}
-                className="w-full py-4 sm:py-5 bg-gradient-to-r from-emerald-600 via-teal-600 to-green-600 hover:from-emerald-500 hover:via-teal-500 hover:to-green-500 text-white rounded-xl sm:rounded-2xl group relative overflow-hidden shadow-lg shadow-emerald-500/30"
+                className="w-full py-6 bg-emerald-900/20 hover:bg-emerald-900/40 text-emerald-100 border border-emerald-500/20 rounded-xl transition-all duration-500 group"
               >
-                <ExternalLink className="mr-3 w-5 h-5 group-hover:scale-110 transition-transform" />
-                Unwrap it
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                <span className="group-hover:mr-2 transition-all duration-300">Unwrap it</span>
+                <ExternalLink className="ml-2 w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
               </Button>
             </div>
           </div>
@@ -488,11 +514,13 @@ export function GiftsScene() {
       case 'final':
         return (
           <div className="relative">
-            <div className="absolute -top-6 -right-6 text-4xl sm:text-5xl opacity-30 animate-float">✨</div>
-            <div className="absolute -bottom-6 -left-6 text-4xl sm:text-5xl opacity-30 animate-float" style={{animationDelay: '1s'}}>💖</div>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-yellow-500/10 blur-3xl rounded-full" />
-            <div className="relative font-elegant whitespace-pre-wrap text-base sm:text-lg leading-relaxed text-white/95 p-6 sm:p-8 bg-gradient-to-br from-yellow-900/40 via-amber-900/35 to-orange-900/30 rounded-2xl border-2 border-amber-500/40 backdrop-blur-xl shadow-2xl shadow-amber-900/30 text-center">
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-amber-500/10 blur-3xl rounded-full pointer-events-none" />
+            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-orange-500/10 blur-3xl rounded-full pointer-events-none" />
+            
+            <div className="relative font-elegant whitespace-pre-wrap text-base sm:text-lg leading-loose text-amber-50/90 p-8 sm:p-10 bg-gradient-to-b from-black/40 to-black/60 rounded-xl border border-amber-500/10 backdrop-blur-xl text-center shadow-2xl">
+              <div className="mb-6 opacity-80">✨</div>
               {LETTER_CONTENT_FINAL}
+              <div className="mt-6 opacity-80">💖</div>
             </div>
           </div>
         );
@@ -510,88 +538,84 @@ export function GiftsScene() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full overflow-hidden bg-gradient-to-br from-indigo-950/90 via-purple-950/80 to-pink-950/90"
+      className="relative w-full h-full overflow-hidden bg-[#0a0510]" // Very dark base
     >
-      {/* Custom Background Image Layer */}
+      {/* Cinematic Lighting - Warm Center, Dark Edges */}
+      <div 
+        className="absolute inset-0 z-0 pointer-events-none"
+        style={{
+            background: 'radial-gradient(circle at 50% 40%, rgba(60, 30, 80, 0.4) 0%, rgba(10, 5, 16, 0.9) 70%, rgba(0,0,0,1) 100%)'
+        }}
+      />
+
+      {/* Custom Background Image Layer - Blended Softly */}
       <div
-        className="absolute inset-0 transition-all duration-1000"
+        className="absolute inset-0 transition-all duration-1000 z-0"
         style={{
           backgroundImage: `url(${bgImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          opacity: 0.25,
-          filter: 'blur(0.5px)',
+          opacity: 0.15, // Lower opacity for ambient feel
+          filter: 'blur(2px) saturate(0.8)', // Dreamy blur
         }}
       />
 
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/60 via-pink-900/40 to-indigo-900/60" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/30" />
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjc0IiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wMiIvPjwvc3ZnPg==')] 
-                    opacity-5" />
-        <div className="absolute top-1/4 left-1/4 w-48 h-48 sm:w-64 sm:h-64 bg-purple-500/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-48 h-48 sm:w-64 sm:h-64 bg-pink-500/20 rounded-full blur-3xl" />
-      </div>
-
-      {/* Decorative Floating Elements */}
-      <div className="absolute top-10 left-10 text-3xl sm:text-4xl opacity-20 animate-float-slow">🎀</div>
-      <div className="absolute top-20 right-12 text-2xl sm:text-3xl opacity-15 animate-float-slow" style={{animationDelay: '2s'}}>✨</div>
-      <div className="absolute bottom-16 left-16 text-2xl sm:text-3xl opacity-15 animate-float-slow" style={{animationDelay: '1s'}}>🎁</div>
-      <div className="absolute bottom-20 right-10 text-3xl sm:text-4xl opacity-20 animate-float-slow" style={{animationDelay: '3s'}}>💝</div>
+      {/* Grain Overlay for Texture */}
+      <div className="absolute inset-0 pointer-events-none z-[1] opacity-[0.03] mix-blend-overlay bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjY1IiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9IjAuNSIvPjwvc3ZnPg==')]"></div>
 
       {/* Celebration Effects */}
       {showFinale && (
         <>
-          <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 pointer-events-none z-20">
             <Confetti 
               recycle={false} 
-              numberOfPieces={500} 
-              gravity={0.08}
-              colors={['#fbbf24', '#ec4899', '#a855f7', '#60a5fa', '#34d399']}
-              wind={0.01}
-              opacity={0.9}
+              numberOfPieces={300} // Reduced for elegance
+              gravity={0.05} // Slower fall
+              colors={['#fbbf24', '#f472b6', '#a855f7', '#fff']}
+              wind={0.005}
+              opacity={0.8}
             />
           </div>
-          <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 pointer-events-none z-20">
             <AdaptiveParticleSystem 
-              count={200} 
+              count={150} 
               color="#fbbf24" 
-              speed={0.6} 
-              size={2.5}
+              speed={0.4} 
+              size={2}
             />
           </div>
         </>
       )}
 
-      {/* Main Content */}
+      {/* Main Content Layer */}
       <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-4 sm:p-6 md:p-8">
-        {/* Header */}
-        <div className="text-center mb-8 sm:mb-12 md:mb-16 px-2">
-          <div className="relative inline-block mb-4 sm:mb-6">
-            <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500 blur-xl rounded-full opacity-50" />
-            <div className="relative text-5xl sm:text-6xl md:text-7xl animate-float">
+        {/* Header - Minimal & Ceremonial */}
+        <div className="text-center mb-12 sm:mb-16 md:mb-20 px-2 relative">
+          {/* Subtle glow behind title */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-32 bg-purple-500/20 blur-[100px] rounded-full pointer-events-none" />
+          
+          <div className="relative inline-block mb-6">
+            <div className="relative text-5xl sm:text-6xl md:text-7xl opacity-90 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] animate-float-slow">
               🎁✨
             </div>
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3
-                        drop-shadow-[0_0_40px_rgba(168,85,247,0.8)]">
-            <span className="font-cursive bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 
-                           bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-light text-white mb-4 tracking-wide drop-shadow-xl">
+            <span className="font-cursive bg-gradient-to-br from-amber-100 via-pink-100 to-purple-100 bg-clip-text text-transparent opacity-90">
               Unwrap Your Gifts
             </span>
           </h1>
-          <p className="text-sm sm:text-base md:text-lg text-purple-200/90 font-elegant max-w-xl mx-auto">
+          <div className="h-px w-24 bg-gradient-to-r from-transparent via-white/20 to-transparent mx-auto mb-4" />
+          <p className="text-sm sm:text-base md:text-lg text-purple-200/60 font-elegant max-w-xl mx-auto tracking-wider leading-relaxed">
             💕It's all yours💕
-            <span className="block text-xs sm:text-sm text-purple-300/60 mt-1">
-              {openedGifts.length === 0 ? 'Each gift holds a special surprise...' : `${openedGifts.length}/5 gifts opened`}
-            </span>
           </p>
+          <div className="mt-2 text-[10px] sm:text-xs text-purple-300/40 uppercase tracking-[0.2em]">
+             {openedGifts.length === 0 ? 'Awaiting Discovery' : `${openedGifts.length} / 5 Revealed`}
+          </div>
         </div>
 
-        {/* Gifts Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 max-w-5xl mx-auto w-full px-2">
+        {/* Gifts Grid - Spaced & Breathing */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 sm:gap-8 lg:gap-10 max-w-6xl mx-auto w-full px-4">
           {GIFTS.map((gift, index) => {
             const isOpened = openedGifts.includes(gift.id);
             const isHovered = hoveredGift === gift.id;
@@ -603,228 +627,177 @@ export function GiftsScene() {
                 onClick={() => openGift(gift)}
                 onMouseEnter={() => setHoveredGift(gift.id)}
                 onMouseLeave={() => setHoveredGift(null)}
-                className={`group relative p-4 sm:p-5 md:p-6 rounded-2xl transition-all duration-500 
+                className={`group relative aspect-[4/5] rounded-xl transition-all duration-1000 ease-out
                           ${isOpened 
-                            ? 'opacity-90 scale-95 cursor-default' 
-                            : 'cursor-pointer hover:scale-105 active:scale-102'
-                          } overflow-hidden backdrop-blur-sm`}
+                            ? 'opacity-40 grayscale-[0.5] scale-95 cursor-default' 
+                            : 'cursor-pointer hover:-translate-y-2'
+                          } backdrop-blur-sm`}
                 style={{
-                  background: `linear-gradient(135deg, ${gift.color}40, ${gift.color}20)`,
-                  border: `2px solid ${gift.color}${isOpened ? '40' : '60'}`,
+                  // Glassmorphism with slight tint matching gift color
+                  background: `linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)`,
+                  border: '1px solid rgba(255,255,255,0.08)',
                   boxShadow: isHovered && !isOpened 
-                    ? `0 20px 40px ${gift.color}40, 0 0 60px ${gift.color}30, inset 0 0 30px ${gift.color}20` 
-                    : `0 10px 25px ${gift.color}30, inset 0 0 15px ${gift.color}10`,
+                    ? `0 20px 50px -10px ${gift.color}20, inset 0 0 20px rgba(255,255,255,0.02)` 
+                    : `0 10px 30px -10px rgba(0,0,0,0.5), inset 0 0 0 transparent`,
                 }}
                 disabled={isOpened}
               >
-                {/* Gentle anticipation glow */}
-                {isHovered && !isOpened && (
-                  <div 
-                    className="absolute inset-0 rounded-2xl opacity-50"
-                    style={{
-                      background: `radial-gradient(circle at center, ${gift.color}40, transparent 70%)`,
-                      filter: 'blur(12px)',
-                    }}
-                  />
-                )}
+                 {/* Inner Glow on Hover */}
+                <div className={`absolute inset-0 rounded-xl bg-gradient-to-t from-${gift.color}/10 to-transparent opacity-0 transition-opacity duration-700 ${isHovered && !isOpened ? 'opacity-20' : ''}`} />
 
                 {/* Content */}
-                <div className={`relative z-10 flex flex-col items-center justify-center`}>
-                  <div className={`text-4xl sm:text-5xl md:text-6xl mb-2 sm:mb-3 transition-all duration-500 
-                                ${isHovered && !isOpened ? 'scale-110 rotate-6' : ''}`}>
+                <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-4">
+                  <div className={`text-4xl sm:text-5xl md:text-6xl mb-6 transition-all duration-1000 transform
+                                ${isHovered && !isOpened ? 'scale-110 drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]' : 'drop-shadow-lg'}`}>
                     {gift.emoji}
                   </div>
-                  <h3 className={`text-base sm:text-lg md:text-xl font-bold text-center transition-all duration-300
-                               ${isOpened ? 'text-white/80' : 'text-white'}`}>
-                    {gift.title}
-                  </h3>
-                  <p className={`text-xs sm:text-sm text-center mt-1 transition-all duration-300
-                              ${isOpened ? 'opacity-0 scale-0' : 'opacity-70'}`}>
-                    {gift.subtitle}
-                  </p>
+                  
+                  <div className="text-center space-y-1">
+                    <h3 className={`text-sm sm:text-base font-medium tracking-widest uppercase transition-colors duration-500
+                                  ${isOpened ? 'text-white/40' : 'text-white/90'}`}>
+                      {gift.title}
+                    </h3>
+                    <p className={`text-xs font-serif italic transition-all duration-500
+                                  ${isOpened ? 'opacity-0 translate-y-2' : 'text-white/50'}`}>
+                      {gift.subtitle}
+                    </p>
+                  </div>
                 </div>
 
-                {/* Opened Overlay */}
+                {/* Opened Checkmark - Subtle */}
                 {isOpened && (
-                  <>
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
-                    <div className="absolute top-3 right-3 text-lg sm:text-xl opacity-90">
-                      ✓
-                    </div>
-                  </>
+                  <div className="absolute top-4 right-4 text-white/20 text-sm border border-white/10 rounded-full w-6 h-6 flex items-center justify-center">
+                    ✓
+                  </div>
                 )}
               </button>
             );
           })}
         </div>
 
-        {/* Progress Indicator */}
+        {/* Cinematic Progress Bar */}
         {openedGifts.length > 0 && (
-          <div className="mt-8 sm:mt-12 max-w-md w-full px-4 animate-fade-in">
-            <div className="flex justify-between text-sm sm:text-base text-purple-300/90 mb-3">
-              <span className="font-elegant">Your Gift Journey</span>
-              <span className="font-semibold">{openedGifts.length}/5</span>
-            </div>
-            <div className="h-2 sm:h-3 bg-purple-900/40 rounded-full overflow-hidden shadow-inner">
-              <div 
-                className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500 rounded-full transition-all duration-700 shadow-lg shadow-purple-500/30"
-                style={{ width: `${(openedGifts.length / 5) * 100}%` }}
-              />
-            </div>
-            <p className="text-xs text-purple-300/70 text-center mt-2">
-              Take your time with each special moment...
-            </p>
+          <div className="fixed bottom-0 left-0 right-0 h-1 bg-white/5">
+             <div 
+               className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-amber-500 shadow-[0_0_20px_rgba(236,72,153,0.5)] transition-all duration-1000 ease-out"
+               style={{ width: `${(openedGifts.length / 5) * 100}%` }}
+             />
           </div>
         )}
 
-        {/* Completion Celebration */}
+        {/* Completion Celebration Overlay */}
         {showFinale && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-lg p-4 animate-fade-in">
-            <div className="text-center p-6 sm:p-8 bg-gradient-to-br from-purple-900/95 via-pink-900/90 to-yellow-900/95 
-                          rounded-2xl sm:rounded-3xl border-2 border-pink-500/50 backdrop-blur-2xl
-                          max-w-sm sm:max-w-md w-full animate-scale-in shadow-2xl shadow-pink-900/50">
-              <div className="relative mb-4 sm:mb-6">
-                <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500 blur-2xl rounded-full opacity-30" />
-                <div className="relative text-5xl sm:text-6xl animate-float">🎉✨</div>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fade-in duration-1000">
+            <div className="text-center p-10 bg-black/40 border border-white/10 rounded-3xl backdrop-blur-xl max-w-md w-full animate-scale-in shadow-2xl relative overflow-hidden">
+               {/* Shine effect */}
+               <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
+               
+              <div className="relative mb-8">
+                <div className="text-6xl sm:text-7xl animate-bounce-slow">🎉</div>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">All Gifts Revealed!</h2>
-              <p className="text-pink-200/90 text-sm sm:text-base mb-6">
+              <h2 className="text-3xl font-light text-white mb-4 tracking-wide">All Gifts Revealed!</h2>
+              <div className="h-px w-16 bg-white/20 mx-auto mb-6" />
+              <p className="text-white/60 text-sm leading-relaxed mb-8 font-light">
                 You've discovered every special gift prepared for your birthday!
               </p>
-              <div className="text-3xl sm:text-4xl animate-pulse">🎁💝</div>
+              <div className="text-4xl animate-pulse text-pink-300/80">💝</div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Dialogs */}
+      {/* Dialogs - Deep, Dark, & Immersive */}
       <Dialog open={!!selectedGift} onOpenChange={() => setSelectedGift(null)}>
         <DialogContent 
           ref={dialogRef}
-          className="bg-gradient-to-br from-slate-900/95 via-gray-900/95 to-slate-950/95 border-white/30 
-                   backdrop-blur-2xl text-white max-w-sm sm:max-w-md md:max-w-xl 
-                   rounded-2xl sm:rounded-3xl p-0 overflow-hidden shadow-2xl shadow-black/50
-                   animate-dialog-in"
+          className="bg-[#0f0a15]/95 border border-white/10 backdrop-blur-2xl text-white max-w-sm sm:max-w-md md:max-w-xl rounded-2xl p-0 overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] animate-dialog-in"
+          style={{
+             boxShadow: selectedGift ? `0 0 80px -20px ${selectedGift.glowColor}20` : 'none'
+          }}
         >
           {selectedGift && (
             <>
-              <DialogHeader className="p-5 sm:p-6 border-b border-white/10">
-                <div className="flex items-center justify-between">
-                  <DialogTitle className="text-xl sm:text-2xl flex items-center gap-3">
-                    <span 
-                      className="text-3xl sm:text-4xl filter drop-shadow-lg"
-                      style={{ filter: `drop-shadow(0 0 10px ${selectedGift.glowColor}80)` }}
-                    >
-                      {selectedGift.emoji}
-                    </span>
-                    <div>
-                      <div className="bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">
-                        {selectedGift.title}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-400 mt-0.5">
-                        {selectedGift.subtitle}
-                      </div>
-                    </div>
-                  </DialogTitle>
-                  <button
-                    onClick={() => setSelectedGift(null)}
-                    className="p-2 hover:bg-white/10 rounded-xl transition-all duration-300 hover:rotate-90"
+              {/* Header */}
+              <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+                <div className="flex items-center gap-4">
+                  <span 
+                    className="text-3xl filter drop-shadow-md"
                   >
-                    <X className="w-5 h-5" />
-                  </button>
+                    {selectedGift.emoji}
+                  </span>
+                  <div>
+                    <div className="text-lg font-light tracking-wide text-white/90">
+                      {selectedGift.title}
+                    </div>
+                    <div className="text-xs text-white/30 font-serif italic">
+                      {selectedGift.subtitle}
+                    </div>
+                  </div>
                 </div>
-              </DialogHeader>
-              <div className="p-5 sm:p-6">
+                <button 
+                  onClick={() => setSelectedGift(null)}
+                  className="text-white/20 hover:text-white/60 transition-colors p-2 hover:bg-white/5 rounded-full"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-0 bg-gradient-to-b from-transparent to-black/20 max-h-[70vh] overflow-y-auto custom-scrollbar">
                 {renderGiftContent(selectedGift)}
               </div>
+              
+              {/* Footer Gradient Fade */}
+              <div className="h-1 w-full bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-50" />
             </>
           )}
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!activeMedia} onOpenChange={() => setActiveMedia(null)}>
-        <DialogContent className="max-w-4xl sm:max-w-5xl bg-black/95 border-none p-0 overflow-hidden">
-          <div className="relative">
-            <button
-              onClick={() => setActiveMedia(null)}
-              className="absolute top-3 sm:top-4 right-3 sm:right-4 z-50 p-2 bg-black/60 hover:bg-black/80 rounded-xl transition-all duration-300 hover:scale-110"
-            >
-              <X className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-            
-            {activeMedia?.type === 'image' && (
-              <div className="max-h-[80vh] sm:max-h-[85vh] flex items-center justify-center p-2 sm:p-4">
-                <img
-                  src={activeMedia.src}
-                  alt="Special memory"
-                  className="max-h-[75vh] sm:max-h-[80vh] max-w-full object-contain rounded-xl shadow-2xl shadow-black/50"
-                  loading="lazy"
-                />
+      {/* Media Overlay */}
+      {activeMedia && (
+        <div 
+          className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 sm:p-8 animate-fade-in"
+          onClick={() => setActiveMedia(null)}
+        >
+          <button 
+            onClick={() => setActiveMedia(null)}
+            className="absolute top-4 right-4 sm:top-8 sm:right-8 text-white/50 hover:text-white transition-colors p-2 bg-white/5 rounded-full"
+          >
+            <X className="w-6 h-6 sm:w-8 sm:h-8" />
+          </button>
+          
+          <div 
+            className="relative max-w-5xl w-full max-h-full flex items-center justify-center p-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {activeMedia.type === 'image' ? (
+              <div className="relative group">
+                 {/* Photo Frame Effect */}
+                <div className="bg-white p-2 sm:p-4 rounded-sm shadow-2xl transform rotate-1 transition-transform duration-500 hover:rotate-0">
+                    <img 
+                        src={activeMedia.src} 
+                        alt="Memory" 
+                        className="max-h-[80vh] w-auto object-contain bg-black/5"
+                    />
+                    <div className="mt-4 text-center font-handwriting text-gray-500 text-sm sm:text-base">
+                        A beautiful moment 🌸
+                    </div>
+                </div>
               </div>
-            )}
-
-            {activeMedia?.type === 'video' && (
-              <div className="max-h-[80vh] sm:max-h-[85vh] p-2 sm:p-4">
-                <video
-                  src={activeMedia.src}
-                  controls
-                  autoPlay
-                  className="w-full h-auto max-h-[75vh] sm:max-h-[80vh] rounded-xl shadow-2xl shadow-black/50"
-                  controlsList="nodownload"
+            ) : (
+              <div className="w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(236,72,153,0.3)] border border-white/10">
+                <video 
+                  src={activeMedia.src} 
+                  controls 
+                  autoPlay 
+                  className="w-full h-full"
                 />
               </div>
             )}
           </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* CSS Animations */}
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-8px) rotate(2deg); }
-        }
-        
-        @keyframes float-slow {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-4px) rotate(1deg); }
-        }
-        
-        @keyframes scale-in {
-          0% { transform: scale(0.9); opacity: 0; }
-          100% { transform: scale(1); opacity: 1; }
-        }
-        
-        @keyframes fade-in {
-          0% { opacity: 0; }
-          100% { opacity: 1; }
-        }
-        
-        @keyframes dialog-in {
-          0% { transform: scale(0.95) translateY(20px); opacity: 0; }
-          100% { transform: scale(1) translateY(0); opacity: 1; }
-        }
-        
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-        
-        .animate-float-slow {
-          animation: float-slow 4s ease-in-out infinite;
-        }
-        
-        .animate-scale-in {
-          animation: scale-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        
-        .animate-fade-in {
-          animation: fade-in 0.6s ease-out;
-        }
-        
-        .animate-dialog-in {
-          animation: dialog-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-      `}</style>
+        </div>
+      )}
     </div>
   );
 }
