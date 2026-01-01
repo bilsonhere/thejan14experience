@@ -111,7 +111,6 @@ export function GiftsScene() {
   const [activeMedia, setActiveMedia] = useState<{ type: 'image' | 'video'; src: string } | null>(null);
   const [hoveredGift, setHoveredGift] = useState<number | null>(null);
   const [bgImage, setBgImage] = useState<string>(settings.customGiftBackground || '/assets/gifts/background.jpg');
-  const [viewedGift, setViewedGift] = useState<number | null>(null);
 
   const giftsRefs = useRef<(HTMLDivElement | null)[]>([]);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -131,20 +130,10 @@ export function GiftsScene() {
       animationRefs.current = [];
 
       giftsRefs.current.forEach((ref, i) => {
-        if (ref && openedGifts.includes(i + 1)) {
-          // Opened gifts have a more subtle animation
-          const anim = gsap.to(ref, {
-            y: -4,
-            rotation: 0.5,
-            duration: 6 + i * 0.5,
-            repeat: -1,
-            yoyo: true,
-            ease: 'sine.inOut',
-            delay: i * 0.3,
-          });
-          animationRefs.current.push(anim);
-        } else if (ref) {
-          // Unopened gifts have more pronounced animation
+        // Only animate unopened gifts to avoid distraction, 
+        // or animate all if you prefer constant movement.
+        // Currently keeping original behavior: animate if not opened.
+        if (ref && !openedGifts.includes(i + 1)) {
           const anim = gsap.to(ref, {
             y: -8,
             rotation: 1,
@@ -180,55 +169,57 @@ export function GiftsScene() {
   }, [openedGifts, settings.reducedMotion, showFinale]);
 
   const openGift = (gift: Gift) => {
-    // Always allow reopening gifts by setting them as selected
-    setSelectedGift(gift);
-    setViewedGift(gift.id);
-    
-    // Only add to openedGifts if not already opened
-    if (!openedGifts.includes(gift.id)) {
-      const giftIndex = gift.id - 1;
-      if (animationRefs.current[giftIndex]) {
-        animationRefs.current[giftIndex].kill();
-      }
+    // If ALREADY opened, just view it immediately without the fanfare
+    if (openedGifts.includes(gift.id)) {
+      setSelectedGift(gift);
+      return;
+    }
 
-      const newOpened = [...openedGifts, gift.id];
-      setOpenedGifts(newOpened);
-      updateProgress({ giftsOpened: newOpened });
+    // --- First time opening sequence ---
 
-      const giftElement = giftsRefs.current[giftIndex];
-      if (giftElement && !settings.reducedMotion) {
-        gsap.timeline()
-        .to(giftElement, {
-          scale: 1.05,
-          y: -10,
-          boxShadow: `0 0 30px ${gift.glowColor}60`,
-          duration: 0.8,
-          ease: 'power2.out',
-        })
-        .to(giftElement, {
-          scale: 1,
-          y: 0,
-          duration: 0.5,
-          ease: 'power2.inOut',
-        });
-      }
+    const giftIndex = gift.id - 1;
+    if (animationRefs.current[giftIndex]) {
+      animationRefs.current[giftIndex].kill();
+    }
 
-      if (settings.soundEnabled) {
-        audioManager.play('success');
-      }
+    const newOpened = [...openedGifts, gift.id];
+    setOpenedGifts(newOpened);
+    updateProgress({ giftsOpened: newOpened });
 
-      if (!settings.reducedMotion && giftElement) {
-        createSparkleEffect(giftElement, gift.glowColor);
-      }
-
-      if (gift.id === 5) {
-        setTimeout(() => setShowFinale(true), 2000);
-      }
+    const giftElement = giftsRefs.current[giftIndex];
+    if (giftElement && !settings.reducedMotion) {
+      gsap.timeline({
+        onComplete: () => {
+          setTimeout(() => setSelectedGift(gift), 600);
+        }
+      })
+      .to(giftElement, {
+        scale: 1.05,
+        y: -10,
+        boxShadow: `0 0 30px ${gift.glowColor}60`,
+        duration: 0.8,
+        ease: 'power2.out',
+      })
+      .to(giftElement, {
+        scale: 1,
+        y: 0,
+        duration: 0.5,
+        ease: 'power2.inOut',
+      });
     } else {
-      // Gift is already opened, just show it without animation
-      if (settings.soundEnabled) {
-        audioManager.play('click');
-      }
+      setTimeout(() => setSelectedGift(gift), 600);
+    }
+
+    if (settings.soundEnabled) {
+      audioManager.play('success');
+    }
+
+    if (!settings.reducedMotion && giftElement) {
+      createSparkleEffect(giftElement, gift.glowColor);
+    }
+
+    if (gift.id === 5) {
+      setTimeout(() => setShowFinale(true), 2000);
     }
   };
 
@@ -359,7 +350,7 @@ export function GiftsScene() {
         );
       case 'media':
         return (
-          <div className="space-y-8">
+          <div className="space-y-6">
             <div className="grid grid-cols-3 gap-4 sm:gap-6 px-2">
               {[1, 2, 3, 4, 5].map((i) => (
                 <button
@@ -533,11 +524,6 @@ export function GiftsScene() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Handle media viewer close
-  const handleCloseMedia = () => {
-    setActiveMedia(null);
-  };
-
   return (
     <div
       ref={containerRef}
@@ -622,41 +608,43 @@ export function GiftsScene() {
                 onClick={() => openGift(gift)}
                 onMouseEnter={() => setHoveredGift(gift.id)}
                 onMouseLeave={() => setHoveredGift(null)}
+                // Removed disabled={isOpened} so it's always clickable
+                // Adjusted visual styles: less opaque, keep pointer cursor
                 className={`group relative aspect-[4/5] rounded-xl transition-all duration-1000 ease-out
                           ${isOpened 
-                            ? 'opacity-80 cursor-pointer' 
+                            ? 'opacity-60 grayscale-[0.3] scale-100 cursor-pointer hover:opacity-80 hover:scale-[1.02]' 
                             : 'cursor-pointer hover:-translate-y-2'
                           } backdrop-blur-sm`}
                 style={{
                   background: `linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)`,
                   border: '1px solid rgba(255,255,255,0.08)',
-                  boxShadow: isHovered || (isOpened && viewedGift === gift.id)
-                    ? `0 20px 50px -10px ${gift.color}40, inset 0 0 20px rgba(255,255,255,0.02)` 
+                  boxShadow: isHovered 
+                    ? `0 20px 50px -10px ${gift.color}20, inset 0 0 20px rgba(255,255,255,0.02)` 
                     : `0 10px 30px -10px rgba(0,0,0,0.5), inset 0 0 0 transparent`,
                 }}
               >
-                <div className={`absolute inset-0 rounded-xl bg-gradient-to-t from-${gift.color}/10 to-transparent opacity-0 transition-opacity duration-700 ${(isHovered || (isOpened && viewedGift === gift.id)) ? 'opacity-20' : ''}`} />
+                <div className={`absolute inset-0 rounded-xl bg-gradient-to-t from-${gift.color}/10 to-transparent opacity-0 transition-opacity duration-700 ${isHovered && !isOpened ? 'opacity-20' : ''}`} />
 
                 <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-4">
                   <div className={`text-4xl sm:text-5xl md:text-6xl mb-6 transition-all duration-1000 transform
-                                ${(isHovered || (isOpened && viewedGift === gift.id)) ? 'scale-110 drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]' : 'drop-shadow-lg'}`}>
+                                ${isHovered && !isOpened ? 'scale-110 drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]' : 'drop-shadow-lg'}`}>
                     {gift.emoji}
                   </div>
                   
                   <div className="text-center space-y-1">
                     <h3 className={`text-sm sm:text-base font-medium tracking-widest uppercase transition-colors duration-500
-                                  ${isOpened ? 'text-white/90' : 'text-white/90'}`}>
+                                  ${isOpened ? 'text-white/60' : 'text-white/90'}`}>
                       {gift.title}
                     </h3>
                     <p className={`text-xs font-serif italic transition-all duration-500
-                                  ${isOpened ? 'text-white/60' : 'text-white/50'}`}>
+                                  ${isOpened ? 'opacity-0 translate-y-2' : 'text-white/50'}`}>
                       {gift.subtitle}
                     </p>
                   </div>
                 </div>
 
                 {isOpened && (
-                  <div className="absolute top-4 right-4 text-white/50 text-sm border border-white/20 rounded-full w-6 h-6 flex items-center justify-center">
+                  <div className="absolute top-4 right-4 text-green-300/60 text-sm border border-green-300/30 bg-green-900/20 rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
                     ✓
                   </div>
                 )}
@@ -693,11 +681,10 @@ export function GiftsScene() {
         )}
       </div>
 
-      {/* Dialog for gift content - removed backdrop blur to prevent z-index issues */}
       <Dialog open={!!selectedGift} onOpenChange={() => setSelectedGift(null)}>
         <DialogContent 
           ref={dialogRef}
-          className="bg-[#0f0a15] border border-white/10 text-white max-w-sm sm:max-w-md md:max-w-xl rounded-2xl p-0 overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] animate-dialog-in z-[90]"
+          className="bg-[#0f0a15]/95 border border-white/10 backdrop-blur-2xl text-white max-w-sm sm:max-w-md md:max-w-xl rounded-2xl p-0 overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] animate-dialog-in"
           style={{
              boxShadow: selectedGift ? `0 0 80px -20px ${selectedGift.glowColor}20` : 'none'
           }}
@@ -721,10 +708,7 @@ export function GiftsScene() {
                   </div>
                 </div>
                 <button 
-                  onClick={() => {
-                    setSelectedGift(null);
-                    setViewedGift(null);
-                  }}
+                  onClick={() => setSelectedGift(null)}
                   className="text-white/20 hover:text-white/60 transition-colors p-2 hover:bg-white/5 rounded-full"
                 >
                   <X className="w-5 h-5" />
@@ -741,36 +725,35 @@ export function GiftsScene() {
         </DialogContent>
       </Dialog>
 
-      {/* Media Viewer - Higher z-index to always appear on top */}
+      {/* Increased Z-Index to 99999 to definitely sit above shadcn Dialogs (usually z-50) */}
       {activeMedia && (
         <div 
-          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 sm:p-8 animate-fade-in"
-          onClick={handleCloseMedia}
+          className="fixed inset-0 z-[99999] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 sm:p-8 animate-fade-in"
+          onClick={() => setActiveMedia(null)}
         >
           <button 
-            onClick={handleCloseMedia}
-            className="absolute top-4 right-4 sm:top-8 sm:right-8 text-white/50 hover:text-white transition-colors p-2 bg-white/10 hover:bg-white/20 rounded-full z-[101]"
+            onClick={() => setActiveMedia(null)}
+            className="absolute top-4 right-4 sm:top-8 sm:right-8 text-white/50 hover:text-white transition-colors p-2 bg-white/5 rounded-full"
           >
             <X className="w-6 h-6 sm:w-8 sm:h-8" />
           </button>
           
           <div 
-            className="relative max-w-5xl w-full max-h-full flex items-center justify-center p-2 z-[100]"
+            className="relative max-w-5xl w-full max-h-full flex items-center justify-center p-2"
             onClick={(e) => e.stopPropagation()}
           >
             {activeMedia.type === 'image' ? (
               <div className="relative group">
-                <div className="bg-white/10 backdrop-blur-sm p-4 rounded-2xl shadow-2xl border border-white/10">
+                <div className="bg-white p-2 rounded-sm shadow-2xl">
                     <img 
                         src={activeMedia.src} 
                         alt="Memory" 
-                        className="max-h-[85vh] w-auto object-contain"
-                        loading="lazy"
+                        className="max-h-[85vh] w-auto object-contain bg-black/5"
                     />
                 </div>
               </div>
             ) : (
-              <div className="w-full aspect-video bg-black/50 rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(236,72,153,0.3)] border border-white/10 backdrop-blur-sm">
+              <div className="w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(236,72,153,0.3)] border border-white/10">
                 <video 
                   src={activeMedia.src} 
                   controls 
