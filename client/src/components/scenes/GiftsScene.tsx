@@ -1,14 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
-import { createPortal } from 'react-dom'; // Import createPortal
+import { createPortal } from 'react-dom';
 import { useSceneStore } from '../../lib/stores/useSceneStore';
 import { audioManager } from '../../lib/audioManager';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Dialog, DialogContent } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { AdaptiveParticleSystem } from '../AdaptiveParticleSystem';
 import gsap from 'gsap';
 import Confetti from 'react-confetti';
-import { Play, Pause, Volume2, X, ExternalLink, Maximize2, Music, Loader2, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { Play, Pause, Volume2, X, ExternalLink, Maximize2, Music, Loader2, Sparkles } from 'lucide-react';
 
+// --- Types & Constants ---
 interface Gift {
   id: number;
   emoji: string;
@@ -28,61 +29,60 @@ const GIFTS: Gift[] = [
     id: 1, 
     emoji: '💛', 
     title: 'Happy', 
-    subtitle: 'سعيد',
-    type: 'letter',
-    color: '#f472b6',
-    gradient: 'from-pink-500/30 via-rose-500/25 to-rose-600/20',
-    glowColor: '#f472b6'
+    subtitle: 'سعيد', 
+    type: 'letter', 
+    color: '#f472b6', 
+    gradient: 'from-pink-500/30 via-rose-500/25 to-rose-600/20', 
+    glowColor: '#f472b6' 
   },
   { 
     id: 2, 
     emoji: '🎂', 
     title: 'Birthday', 
-    subtitle: 'ميلاد',
-    type: 'media',
-    color: '#8b5cf6',
-    gradient: 'from-purple-500/30 via-violet-500/25 to-indigo-600/20',
-    glowColor: '#8b5cf6'
+    subtitle: 'ميلاد', 
+    type: 'media', 
+    color: '#8b5cf6', 
+    gradient: 'from-purple-500/30 via-violet-500/25 to-indigo-600/20', 
+    glowColor: '#8b5cf6' 
   },
   { 
     id: 3, 
     emoji: '🎶', 
     title: 'To', 
-    subtitle: 'لكِ',
-    type: 'audio',
-    color: '#60a5fa',
-    gradient: 'from-blue-500/30 via-cyan-500/25 to-sky-600/20',
-    glowColor: '#60a5fa'
+    subtitle: 'لكِ', 
+    type: 'audio', 
+    color: '#60a5fa', 
+    gradient: 'from-blue-500/30 via-cyan-500/25 to-sky-600/20', 
+    glowColor: '#60a5fa' 
   },
   { 
     id: 4, 
     emoji: '📄', 
     title: 'You', 
-    subtitle: 'أنتِ',
-    type: 'pdf',
-    color: '#34d399',
-    gradient: 'from-emerald-500/30 via-teal-500/25 to-green-600/20',
-    glowColor: '#34d399'
+    subtitle: 'أنتِ', 
+    type: 'pdf', 
+    color: '#34d399', 
+    gradient: 'from-emerald-500/30 via-teal-500/25 to-green-600/20', 
+    glowColor: '#34d399' 
   },
   { 
     id: 5, 
     emoji: '💖', 
     title: 'Afrah Ghazi', 
-    subtitle: 'أفراح غازي',
-    type: 'final',
-    color: '#fbbf24',
-    gradient: 'from-yellow-500/30 via-amber-500/25 to-orange-600/20',
-    glowColor: '#fbbf24'
+    subtitle: 'أفراح غازي', 
+    type: 'final', 
+    color: '#fbbf24', 
+    gradient: 'from-yellow-500/30 via-amber-500/25 to-orange-600/20', 
+    glowColor: '#fbbf24' 
   },
 ];
 
 const LETTER_CONTENT_1 = `i will write this on january 14 12 am.`;
-
 const LETTER_CONTENT_FINAL = `Dear Afrah,
 
 Thanks a lot for giving this your time.
 
-The core intention behind this was to make your special day memorable,happier. 
+The core intention behind this was to make your special day memorable, happier. 
 It was to honour this special day, this special moment that happened two decades ago.
 You being what you are is what truly helped to craft this.
 This is all yours.
@@ -105,19 +105,28 @@ export function GiftsScene() {
   const [openedGifts, setOpenedGifts] = useState<number[]>([]);
   const [selectedGift, setSelectedGift] = useState<Gift | null>(null);
   const [showFinale, setShowFinale] = useState(false);
+  
+  // Audio State
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioProgress, setAudioProgress] = useState(0);
   const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [audioError, setAudioError] = useState(false);
+  
+  // Media Overlay State
   const [activeMedia, setActiveMedia] = useState<{ type: 'image' | 'video'; src: string } | null>(null);
+  
+  // UI State
   const [hoveredGift, setHoveredGift] = useState<number | null>(null);
   const [bgImage, setBgImage] = useState<string>(settings.customGiftBackground || '/assets/gifts/background.jpg');
 
+  // Refs
   const giftsRefs = useRef<(HTMLDivElement | null)[]>([]);
   const dialogRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRefs = useRef<gsap.core.Tween[]>([]);
+
+  // --- Effects ---
 
   useEffect(() => {
     if (settings.customGiftBackground) {
@@ -125,6 +134,7 @@ export function GiftsScene() {
     }
   }, [settings.customGiftBackground]);
 
+  // Initial Animation
   useEffect(() => {
     if (!settings.reducedMotion) {
       animationRefs.current.forEach(anim => anim.kill());
@@ -166,14 +176,14 @@ export function GiftsScene() {
     };
   }, [openedGifts, settings.reducedMotion, showFinale]);
 
+  // --- Logic Functions ---
+
   const openGift = (gift: Gift) => {
-    // If ALREADY opened, just reopen the card without animation
     if (openedGifts.includes(gift.id)) {
       setSelectedGift(gift);
       return;
     }
 
-    // New Open Logic
     const giftIndex = gift.id - 1;
     if (animationRefs.current[giftIndex]) {
       animationRefs.current[giftIndex].kill();
@@ -207,9 +217,7 @@ export function GiftsScene() {
       setTimeout(() => setSelectedGift(gift), 600);
     }
 
-    if (settings.soundEnabled) {
-      audioManager.play('success');
-    }
+    if (settings.soundEnabled) audioManager.play('success');
 
     if (!settings.reducedMotion && giftElement) {
       createSparkleEffect(giftElement, gift.glowColor);
@@ -255,24 +263,17 @@ export function GiftsScene() {
     try {
       audioRef.current = new Audio('/assets/gifts/audio/Hbd.mp3');
       
-      audioRef.current.addEventListener('canplaythrough', () => {
-        setIsAudioLoading(false);
-      });
-      
+      audioRef.current.addEventListener('canplaythrough', () => setIsAudioLoading(false));
       audioRef.current.addEventListener('error', () => {
         setIsAudioLoading(false);
         setAudioError(true);
         audioRef.current = null;
       });
-      
       audioRef.current.addEventListener('timeupdate', () => {
         if (audioRef.current) {
-          setAudioProgress(
-            (audioRef.current.currentTime / audioRef.current.duration) * 100 || 0
-          );
+          setAudioProgress((audioRef.current.currentTime / audioRef.current.duration) * 100 || 0);
         }
       });
-      
       audioRef.current.addEventListener('ended', () => {
         setIsPlaying(false);
         setAudioProgress(0);
@@ -324,31 +325,32 @@ export function GiftsScene() {
     }
   };
 
-  const handleDirectAudioLink = () => {
-    window.open(GOOGLE_DRIVE_AUDIO_LINK, '_blank');
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
+
+  // --- Renderers ---
 
   const renderGiftContent = (gift: Gift) => {
     switch (gift.type) {
       case 'letter':
         return (
-          <div className="relative group">
-            <div className="font-elegant whitespace-pre-wrap text-base sm:text-lg leading-loose text-slate-800 p-8 sm:p-10 bg-[#fffdf5] rounded-xl shadow-[0_0_50px_-10px_rgba(255,255,255,0.3)] mx-auto max-w-lg relative overflow-hidden">
+          <div className="relative group p-2">
+            <div className="font-elegant whitespace-pre-wrap text-base leading-loose text-slate-800 p-6 sm:p-10 bg-[#fffdf5] rounded-xl shadow-[0_0_50px_-10px_rgba(255,255,255,0.3)] mx-auto max-w-lg relative overflow-hidden">
               <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIj48ZmlsdGVyIGlkPSJhIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjkiIG51bW9jdGF2ZXM9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9IjAuNSIvPjwvc3ZnPg==')] pointer-events-none"></div>
-              
               <div className="relative z-10 selection:bg-pink-200 selection:text-pink-900">
                 {LETTER_CONTENT_1}
               </div>
-              <div className="absolute bottom-4 right-6 text-pink-400 opacity-50 text-xl">
-                 💌
-              </div>
+              <div className="absolute bottom-4 right-6 text-pink-400 opacity-50 text-xl">💌</div>
             </div>
           </div>
         );
       case 'media':
         return (
-          <div className="space-y-6">
-            <div className="grid grid-cols-3 gap-4 sm:gap-6 px-2">
+          <div className="space-y-6 px-1">
+            <div className="grid grid-cols-3 gap-3 sm:gap-6">
               {[1, 2, 3, 4, 5].map((i) => (
                 <button
                   key={i}
@@ -358,16 +360,14 @@ export function GiftsScene() {
                       src: `/assets/gifts/media/img${i}.jpeg`,
                     })
                   }
-                  className="group relative aspect-[4/5] bg-white/5 rounded-lg border border-white/10 hover:border-purple-300/40 transition-all duration-700 hover:-translate-y-1 hover:shadow-[0_10px_30px_-10px_rgba(139,92,246,0.3)] overflow-hidden"
+                  className="group relative aspect-[4/5] bg-white/5 rounded-lg border border-white/10 hover:border-purple-300/40 transition-all duration-300 hover:scale-105 active:scale-95 overflow-hidden"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
-                  
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-2xl sm:text-3xl opacity-70 group-hover:scale-110 transition-transform duration-700 filter drop-shadow-md">🌺</span>
+                    <span className="text-xl sm:text-3xl opacity-70 group-hover:scale-110 transition-transform">🌺</span>
                   </div>
-                  
-                  <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-2 group-hover:translate-y-0">
-                    <Maximize2 className="w-4 h-4 text-white/80" />
+                  <div className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2">
+                    <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
                   </div>
                 </button>
               ))}
@@ -380,12 +380,12 @@ export function GiftsScene() {
                   src: '/assets/gifts/media/video.mp4',
                 })
               }
-              className="w-full group relative aspect-video bg-black/20 rounded-xl flex items-center justify-center border border-pink-500/20 hover:border-pink-500/50 transition-all duration-700 hover:shadow-[0_0_40px_-10px_rgba(236,72,153,0.3)] overflow-hidden"
+              className="w-full group relative aspect-video bg-black/20 rounded-xl flex items-center justify-center border border-pink-500/20 hover:border-pink-500/50 transition-all duration-300 active:scale-95 overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-pink-900/10 via-transparent to-purple-900/10" />
               <div className="relative z-10 flex flex-col items-center gap-3">
-                 <div className="w-16 h-16 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 flex items-center justify-center group-hover:scale-110 transition-all duration-500">
-                    <Play className="w-6 h-6 text-white ml-1" />
+                 <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Play className="w-5 h-5 sm:w-6 sm:h-6 text-white ml-1" />
                  </div>
               </div>
             </button>
@@ -405,17 +405,14 @@ export function GiftsScene() {
               
               <div className="text-center space-y-1">
                 <h3 className="text-xl sm:text-2xl font-light text-white tracking-wide">bday song</h3>
-                <p className="text-blue-200/50 text-xs sm:text-sm font-light">Mute the bg audio and put on em headphones for best experience!</p>
+                <p className="text-blue-200/50 text-xs sm:text-sm font-light">Mute bg audio & use headphones!</p>
               </div>
             </div>
             
             <div className="space-y-6 max-w-xs mx-auto w-full">
-              <div className="relative group cursor-pointer">
+              <div className="relative group">
                 <div className="bg-white/5 h-1 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-blue-400/80 rounded-full transition-all duration-300 shadow-[0_0_10px_rgba(96,165,250,0.5)]"
-                    style={{ width: `${audioProgress}%` }}
-                  />
+                  <div className="h-full bg-blue-400/80 rounded-full transition-all duration-300" style={{ width: `${audioProgress}%` }} />
                 </div>
                 <div className="flex justify-between text-[10px] text-white/30 mt-2 font-mono tracking-wider">
                   <span>{formatTime(audioRef.current?.currentTime || 0)}</span>
@@ -428,41 +425,19 @@ export function GiftsScene() {
                   onClick={handleAudioPlay}
                   disabled={isAudioLoading}
                   variant="ghost"
-                  className="w-full py-6 bg-white/5 hover:bg-white/10 text-white border border-white/5 rounded-full transition-all duration-500 hover:tracking-widest"
+                  className="w-full py-6 bg-white/5 hover:bg-white/10 text-white border border-white/5 rounded-full transition-all duration-300"
                 >
-                  {isAudioLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  ) : isPlaying ? (
-                    <Pause className="w-4 h-4 mr-2" />
-                  ) : (
-                    <Play className="w-4 h-4 mr-2" />
-                  )}
+                  {isAudioLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : isPlaying ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
                   <span className="font-light text-sm">
-                    {isAudioLoading ? 'Loading Melody...' : audioError ? 'Open in Google Drive' : isPlaying ? 'Pause Birthday Song' : 'Play Birthday Song'}
+                    {isAudioLoading ? 'Loading...' : audioError ? 'Open Link' : isPlaying ? 'Pause' : 'Play Song'}
                   </span>
                 </Button>
                 
-                {audioError && (
-                  <div className="text-center">
-                    <button
-                      onClick={handleDirectAudioLink}
-                      className="text-xs text-red-300/70 hover:text-red-300 transition-colors border-b border-red-300/20 pb-0.5"
-                    >
-                      Use external link instead
-                    </button>
-                  </div>
-                )}
-                
-                {!audioError && (
-                   <div className="text-center">
-                    <button
-                      onClick={handleDirectAudioLink}
-                      className="text-[10px] text-white/20 hover:text-white/40 transition-colors uppercase tracking-widest"
-                    >
-                      Or open directly in Google Drive ↗
-                    </button>
-                  </div>
-                )}
+                <div className="text-center">
+                   <button onClick={() => window.open(GOOGLE_DRIVE_AUDIO_LINK, '_blank')} className="text-[10px] text-white/20 hover:text-white/40 uppercase tracking-widest">
+                     Open in Drive ↗
+                   </button>
+                 </div>
               </div>
             </div>
           </div>
@@ -470,28 +445,15 @@ export function GiftsScene() {
       case 'pdf':
         return (
           <div className="text-center space-y-8 py-4">
-            <div className="relative inline-block group">
-              <div className="absolute inset-0 bg-emerald-500/10 blur-3xl rounded-full opacity-50 group-hover:opacity-80 transition-opacity duration-1000" />
-              <div className="relative text-6xl sm:text-7xl mb-6 filter drop-shadow-2xl opacity-90">📖✨</div>
-            </div>
-            
+            <div className="relative text-6xl sm:text-7xl mb-6 filter drop-shadow-2xl opacity-90">📖✨</div>
             <div className="space-y-2">
               <h3 className="text-2xl sm:text-3xl font-light text-white tracking-wide">bday ppt</h3>
               <div className="h-px w-12 bg-emerald-500/30 mx-auto my-3" />
               <p className="text-emerald-100/70 text-lg italic font-serif">"Branches, Trees, Garden"</p>
-              <p className="text-emerald-500/40 text-sm">🍀</p>
             </div>
-            
             <div className="max-w-xs mx-auto pt-4">
-              <p className="text-emerald-200/40 text-xs mb-4 uppercase tracking-widest">
-                📦 Document Enclosed
-              </p>
-              <Button 
-                onClick={() => window.open(GOOGLE_SLIDES_LINK, '_blank')}
-                className="w-full py-6 bg-emerald-900/20 hover:bg-emerald-900/40 text-emerald-100 border border-emerald-500/20 rounded-xl transition-all duration-500 group"
-              >
-                <span className="group-hover:mr-2 transition-all duration-300">Unwrap it</span>
-                <ExternalLink className="ml-2 w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
+              <Button onClick={() => window.open(GOOGLE_SLIDES_LINK, '_blank')} className="w-full py-6 bg-emerald-900/20 hover:bg-emerald-900/40 text-emerald-100 border border-emerald-500/20 rounded-xl transition-all duration-500">
+                Unwrap it <ExternalLink className="ml-2 w-4 h-4 opacity-50" />
               </Button>
             </div>
           </div>
@@ -501,7 +463,6 @@ export function GiftsScene() {
           <div className="relative">
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-amber-500/10 blur-3xl rounded-full pointer-events-none" />
             <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-orange-500/10 blur-3xl rounded-full pointer-events-none" />
-            
             <div className="relative font-elegant whitespace-pre-wrap text-base sm:text-lg leading-loose text-amber-50/90 p-8 sm:p-10 bg-gradient-to-b from-black/40 to-black/60 rounded-xl border border-amber-500/10 backdrop-blur-xl text-center shadow-2xl">
               <div className="mb-6 opacity-80">✨</div>
               {LETTER_CONTENT_FINAL}
@@ -514,52 +475,56 @@ export function GiftsScene() {
     }
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  // Helper component to render the media overlay via Portal
+  // --- Optimized Media Overlay for Mobile ---
   const MediaOverlay = () => {
     if (!activeMedia) return null;
 
     return createPortal(
       <div 
-        className="fixed inset-0 z-[99999] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 sm:p-8 animate-fade-in"
-        onClick={() => setActiveMedia(null)}
+        className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-md animate-in fade-in duration-300"
+        onClick={() => setActiveMedia(null)} // Standard mobile interaction: Tap background to close
+        style={{ touchAction: 'none' }} // Prevent scrolling background
       >
+        {/* Close Button - Optimized for Thumb Reach & Visibility */}
         <button 
-          onClick={() => setActiveMedia(null)}
-          className="absolute top-4 right-4 sm:top-8 sm:right-8 text-white/50 hover:text-white transition-colors p-2 bg-white/5 rounded-full"
+          onClick={(e) => {
+             e.stopPropagation();
+             setActiveMedia(null);
+          }}
+          className="absolute top-4 right-4 sm:top-8 sm:right-8 z-[10000] p-3 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white rounded-full backdrop-blur-md transition-all border border-white/10 shadow-lg"
+          style={{ 
+             // Ensure it doesn't get hidden behind notches on landscape
+             marginRight: 'env(safe-area-inset-right)', 
+             marginTop: 'env(safe-area-inset-top)' 
+          }}
+          aria-label="Close Media"
         >
           <X className="w-6 h-6 sm:w-8 sm:h-8" />
         </button>
         
-        <div 
-          className="relative max-w-5xl w-full max-h-full flex items-center justify-center p-2"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {activeMedia.type === 'image' ? (
-            <div className="relative group">
-              <div className="bg-white p-2 rounded-sm shadow-2xl">
-                  <img 
-                      src={activeMedia.src} 
-                      alt="Memory" 
-                      className="max-h-[85vh] w-auto object-contain bg-black/5"
-                  />
-              </div>
-            </div>
-          ) : (
-            <div className="w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(236,72,153,0.3)] border border-white/10">
-              <video 
+        <div className="w-full h-full flex items-center justify-center p-2 sm:p-4">
+          <div 
+            className="relative max-w-full max-h-full flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()} // Clicking the image itself shouldn't close it
+          >
+            {activeMedia.type === 'image' ? (
+              <img 
                 src={activeMedia.src} 
-                controls 
-                autoPlay 
-                className="w-full h-full"
+                alt="Memory" 
+                className="max-h-[85vh] max-w-[95vw] w-auto h-auto object-contain rounded-md shadow-2xl bg-black/50"
               />
-            </div>
-          )}
+            ) : (
+              <div className="w-[95vw] max-w-5xl aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/10">
+                <video 
+                  src={activeMedia.src} 
+                  controls 
+                  autoPlay 
+                  playsInline
+                  className="w-full h-full"
+                />
+              </div>
+            )}
+          </div>
         </div>
       </div>,
       document.body
@@ -567,82 +532,34 @@ export function GiftsScene() {
   };
 
   return (
-    <div
-      ref={containerRef}
-      className="relative w-full h-full overflow-hidden bg-[#0a0510]"
-    >
-      <div 
-        className="absolute inset-0 z-0 pointer-events-none"
-        style={{
-            background: 'radial-gradient(circle at 50% 40%, rgba(60, 30, 80, 0.4) 0%, rgba(10, 5, 16, 0.9) 70%, rgba(0,0,0,1) 100%)'
-        }}
-      />
-
-      <div
-        className="absolute inset-0 transition-all duration-1000 z-0"
-        style={{
-          backgroundImage: `url(${bgImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          opacity: 0.15,
-          filter: 'blur(2px) saturate(0.8)',
-        }}
-      />
-
+    <div ref={containerRef} className="relative w-full h-full overflow-hidden bg-[#0a0510]">
+      {/* Background Layers */}
+      <div className="absolute inset-0 z-0 pointer-events-none" style={{ background: 'radial-gradient(circle at 50% 40%, rgba(60, 30, 80, 0.4) 0%, rgba(10, 5, 16, 0.9) 70%, rgba(0,0,0,1) 100%)' }} />
+      <div className="absolute inset-0 transition-all duration-1000 z-0" style={{ backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.15, filter: 'blur(2px) saturate(0.8)' }} />
       <div className="absolute inset-0 pointer-events-none z-[1] opacity-[0.03] mix-blend-overlay bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjY1IiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9IjAuNSIvPjwvc3ZnPg==')]"></div>
 
       {showFinale && (
-        <>
-          <div className="absolute inset-0 pointer-events-none z-20">
-            <Confetti 
-              recycle={false} 
-              numberOfPieces={300}
-              gravity={0.05}
-              colors={['#fbbf24', '#f472b6', '#a855f7', '#fff']}
-              wind={0.005}
-              opacity={0.8}
-            />
-          </div>
-          <div className="absolute inset-0 pointer-events-none z-20">
-            <AdaptiveParticleSystem 
-              count={150} 
-              color="#fbbf24" 
-              speed={0.4} 
-              size={2}
-            />
-          </div>
-        </>
+        <div className="absolute inset-0 pointer-events-none z-20">
+          <Confetti recycle={false} numberOfPieces={300} gravity={0.05} colors={['#fbbf24', '#f472b6', '#a855f7', '#fff']} wind={0.005} opacity={0.8} />
+          <AdaptiveParticleSystem count={150} color="#fbbf24" speed={0.4} size={2} />
+        </div>
       )}
 
-      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-4 sm:p-6 md:p-8">
-        <div className="text-center mb-12 sm:mb-16 md:mb-20 px-2 relative">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-32 bg-purple-500/20 blur-[100px] rounded-full pointer-events-none" />
-          
-          <div className="relative inline-block mb-6">
-            <div className="relative text-5xl sm:text-6xl md:text-7xl opacity-90 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] animate-float-slow">
-              🎁✨
-            </div>
-          </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-light text-white mb-4 tracking-wide drop-shadow-xl">
+      {/* Main Grid */}
+      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-4">
+        <div className="text-center mb-6 sm:mb-12 relative">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-light text-white mb-2 tracking-wide drop-shadow-xl">
             <span className="font-cursive bg-gradient-to-br from-amber-100 via-pink-100 to-purple-100 bg-clip-text text-transparent opacity-90">
               Unwrap Your Gifts
             </span>
           </h1>
-          <div className="h-px w-24 bg-gradient-to-r from-transparent via-white/20 to-transparent mx-auto mb-4" />
-          <p className="text-sm sm:text-base md:text-lg text-purple-200/60 font-elegant max-w-xl mx-auto tracking-wider leading-relaxed">
-            💕It's all yours💕
-          </p>
-          <div className="mt-2 text-[10px] sm:text-xs text-purple-300/40 uppercase tracking-[0.2em]">
-             {openedGifts.length === 0 ? 'Awaiting Discovery' : `${openedGifts.length} / 5 Revealed`}
-          </div>
+          <p className="text-sm text-purple-200/60 font-elegant tracking-wider">💕It's all yours💕</p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 sm:gap-8 lg:gap-10 max-w-6xl mx-auto w-full px-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6 lg:gap-8 max-w-6xl mx-auto w-full px-2">
           {GIFTS.map((gift, index) => {
             const isOpened = openedGifts.includes(gift.id);
             const isHovered = hoveredGift === gift.id;
-            
             return (
               <button
                 key={gift.id}
@@ -650,122 +567,69 @@ export function GiftsScene() {
                 onClick={() => openGift(gift)}
                 onMouseEnter={() => setHoveredGift(gift.id)}
                 onMouseLeave={() => setHoveredGift(null)}
-                className={`group relative aspect-[4/5] rounded-xl transition-all duration-1000 ease-out
-                          ${isOpened 
-                            ? 'opacity-60 grayscale-[0.3] scale-100 cursor-pointer hover:opacity-80 hover:scale-[1.02]' 
-                            : 'cursor-pointer hover:-translate-y-2'
-                          } backdrop-blur-sm`}
+                className={`group relative aspect-[4/5] rounded-xl transition-all duration-500 ease-out border border-white/10
+                          ${isOpened ? 'opacity-70 grayscale-[0.3] scale-100' : 'hover:-translate-y-2'} backdrop-blur-sm`}
                 style={{
                   background: `linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)`,
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  boxShadow: isHovered 
-                    ? `0 20px 50px -10px ${gift.color}20, inset 0 0 20px rgba(255,255,255,0.02)` 
-                    : `0 10px 30px -10px rgba(0,0,0,0.5), inset 0 0 0 transparent`,
+                  boxShadow: isHovered ? `0 10px 30px -5px ${gift.color}30` : `0 5px 15px -5px rgba(0,0,0,0.5)`,
                 }}
               >
-                <div className={`absolute inset-0 rounded-xl bg-gradient-to-t from-${gift.color}/10 to-transparent opacity-0 transition-opacity duration-700 ${isHovered && !isOpened ? 'opacity-20' : ''}`} />
-
-                <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-4">
-                  <div className={`text-4xl sm:text-5xl md:text-6xl mb-6 transition-all duration-1000 transform
-                                ${isHovered && !isOpened ? 'scale-110 drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]' : 'drop-shadow-lg'}`}>
+                <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-2">
+                  <div className={`text-4xl sm:text-5xl mb-4 transition-transform ${isHovered && !isOpened ? 'scale-110' : ''}`}>
                     {gift.emoji}
                   </div>
-                  
-                  <div className="text-center space-y-1">
-                    <h3 className={`text-sm sm:text-base font-medium tracking-widest uppercase transition-colors duration-500
-                                  ${isOpened ? 'text-white/60' : 'text-white/90'}`}>
+                  <div className="text-center">
+                    <h3 className={`text-xs sm:text-sm font-medium tracking-widest uppercase ${isOpened ? 'text-white/60' : 'text-white/90'}`}>
                       {gift.title}
                     </h3>
-                    <p className={`text-xs font-serif italic transition-all duration-500
-                                  ${isOpened ? 'opacity-0 translate-y-2' : 'text-white/50'}`}>
-                      {gift.subtitle}
-                    </p>
                   </div>
                 </div>
-
                 {isOpened && (
-                  <div className="absolute top-4 right-4 text-green-300/60 text-sm border border-green-300/30 bg-green-900/20 rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
-                    ✓
-                  </div>
+                  <div className="absolute top-2 right-2 text-green-300 text-xs bg-green-900/40 rounded-full w-5 h-5 flex items-center justify-center">✓</div>
                 )}
               </button>
             );
           })}
         </div>
 
+        {/* Progress Bar */}
         {openedGifts.length > 0 && (
           <div className="fixed bottom-0 left-0 right-0 h-1 bg-white/5">
-             <div 
-               className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-amber-500 shadow-[0_0_20px_rgba(236,72,153,0.5)] transition-all duration-1000 ease-out"
-               style={{ width: `${(openedGifts.length / 5) * 100}%` }}
-             />
-          </div>
-        )}
-
-        {showFinale && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fade-in duration-1000">
-            <div className="text-center p-10 bg-black/40 border border-white/10 rounded-3xl backdrop-blur-xl max-w-md w-full animate-scale-in shadow-2xl relative overflow-hidden">
-               <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
-               
-              <div className="relative mb-8">
-                <div className="text-6xl sm:text-7xl animate-bounce-slow">🎉</div>
-              </div>
-              <h2 className="text-3xl font-light text-white mb-4 tracking-wide">All Gifts Revealed!</h2>
-              <div className="h-px w-16 bg-white/20 mx-auto mb-6" />
-              <p className="text-white/60 text-sm leading-relaxed mb-8 font-light">
-                You've discovered every special gift prepared for your birthday!
-              </p>
-              <div className="text-4xl animate-pulse text-pink-300/80">💝</div>
-            </div>
+             <div className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-amber-500 transition-all duration-1000 ease-out" style={{ width: `${(openedGifts.length / 5) * 100}%` }} />
           </div>
         )}
       </div>
 
+      {/* Gift Content Modal */}
       <Dialog open={!!selectedGift} onOpenChange={() => setSelectedGift(null)}>
         <DialogContent 
           ref={dialogRef}
-          className="bg-[#0f0a15]/95 border border-white/10 backdrop-blur-2xl text-white max-w-sm sm:max-w-md md:max-w-xl rounded-2xl p-0 overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] animate-dialog-in"
-          style={{
-             boxShadow: selectedGift ? `0 0 80px -20px ${selectedGift.glowColor}20` : 'none'
-          }}
+          className="bg-[#0f0a15]/95 border border-white/10 backdrop-blur-2xl text-white max-w-[95vw] sm:max-w-lg rounded-2xl p-0 overflow-hidden animate-dialog-in max-h-[85vh] flex flex-col"
+          style={{ boxShadow: selectedGift ? `0 0 60px -20px ${selectedGift.glowColor}30` : 'none' }}
         >
           {selectedGift && (
             <>
-              <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
-                <div className="flex items-center gap-4">
-                  <span 
-                    className="text-3xl filter drop-shadow-md"
-                  >
-                    {selectedGift.emoji}
-                  </span>
+              <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/[0.02] shrink-0">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{selectedGift.emoji}</span>
                   <div>
-                    <div className="text-lg font-light tracking-wide text-white/90">
-                      {selectedGift.title}
-                    </div>
-                    <div className="text-xs text-white/30 font-serif italic">
-                      {selectedGift.subtitle}
-                    </div>
+                    <div className="text-base font-light tracking-wide text-white/90">{selectedGift.title}</div>
+                    <div className="text-[10px] text-white/40 font-serif italic">{selectedGift.subtitle}</div>
                   </div>
                 </div>
-                <button 
-                  onClick={() => setSelectedGift(null)}
-                  className="text-white/20 hover:text-white/60 transition-colors p-2 hover:bg-white/5 rounded-full"
-                >
+                <button onClick={() => setSelectedGift(null)} className="text-white/40 hover:text-white p-2">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="p-0 bg-gradient-to-b from-transparent to-black/20 max-h-[70vh] overflow-y-auto custom-scrollbar">
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-1">
                 {renderGiftContent(selectedGift)}
               </div>
-              
-              <div className="h-1 w-full bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-50" />
             </>
           )}
         </DialogContent>
       </Dialog>
 
-      {/* Render the Media Overlay using React Portal to ensure it is always on top */}
       <MediaOverlay />
     </div>
   );
