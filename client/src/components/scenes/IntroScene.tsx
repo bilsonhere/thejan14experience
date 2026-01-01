@@ -4,6 +4,7 @@ import { AdaptiveParticleSystem } from '../AdaptiveParticleSystem';
 import { Button } from '../ui/button';
 import gsap from 'gsap';
 import { audioManager } from '../../lib/audioManager';
+import { Sparkles, MousePointer2, ChevronUp } from 'lucide-react'; // Added icons for visual polish
 
 export function IntroScene() {
   const { navigateTo, settings } = useSceneStore();
@@ -31,80 +32,60 @@ export function IntroScene() {
     if (!settings.reducedMotion) {
       const tl = gsap.timeline();
 
-      // Animate decorative elements
+      // Animate decorative elements (Emojis/Stars)
       decorationRefs.current.forEach((ref, i) => {
         if (ref) {
           gsap.fromTo(ref,
-            { opacity: 0, scale: 0.5, rotation: -45 },
+            { opacity: 0, scale: 0, rotation: -45 },
             {
-              opacity: 0.4,
+              opacity: 0.6,
               scale: 1,
               rotation: 0,
-              duration: 1.2,
+              duration: 1.5,
               ease: 'elastic.out(1, 0.5)',
-              delay: i * 0.2,
+              delay: i * 0.1,
             }
           );
         }
       });
 
       if (titleRef.current) {
-        // Store initial mobile-friendly styles
-        const titleElement = titleRef.current;
-        const h1Element = titleElement.querySelector('h1');
-        
-        if (h1Element) {
-          // Ensure mobile styles are set before animation
-          if (window.innerWidth < 768) {
-            h1Element.classList.add('text-white');
-            h1Element.classList.remove('md:text-transparent', 'md:bg-clip-text');
-          }
-        }
-        
+        // Main Title Entry
         tl.from(titleRef.current, {
           opacity: 0,
-          y: -80,
-          scale: 0.8,
-          rotationX: -15,
-          duration: 1.6,
-          ease: 'power4.out',
+          y: 50,
+          scale: 0.9,
+          filter: 'blur(10px)',
+          duration: 1.8,
+          ease: 'power3.out',
           clearProps: "all"
         });
       }
 
       if (subtitleRef.current) {
-        tl.from(
-          subtitleRef.current,
-          {
-            opacity: 0,
-            y: 40,
-            scale: 0.9,
-            duration: 1.2,
-            ease: 'expo.out',
-          },
-          '-=0.9'
-        );
+        tl.from(subtitleRef.current, {
+          opacity: 0,
+          y: 20,
+          duration: 1.2,
+          ease: 'power2.out',
+        }, '-=1.0');
       }
 
       if (buttonRef.current) {
-        tl.from(
-          buttonRef.current,
-          {
-            opacity: 0,
-            scale: 0.85,
-            y: 30,
-            duration: 1,
-            ease: 'back.out(1.7)',
-          },
-          '-=0.6'
-        );
+        tl.from(buttonRef.current, {
+          opacity: 0,
+          scale: 0.8,
+          y: 20,
+          duration: 1,
+          ease: 'back.out(1.7)',
+        }, '-=0.8');
       }
 
-      // Floating animation for title (only on desktop)
+      // Gentle floating animation for title (Desktop only to save mobile battery)
       if (titleRef.current && !settings.reducedMotion && window.innerWidth >= 768) {
         gsap.to(titleRef.current, {
           y: -10,
-          duration: 3,
+          duration: 4,
           repeat: -1,
           yoyo: true,
           ease: 'sine.inOut',
@@ -134,14 +115,12 @@ export function IntroScene() {
 
     const onTouchEnd = (e: TouchEvent) => {
       if (touchStartY.current === null) return;
-
       const deltaY = touchStartY.current - e.changedTouches[0].clientY;
 
       // Swipe UP only
       if (deltaY > 70) {
         navigateTo('midnight');
       }
-
       touchStartY.current = null;
     };
 
@@ -157,242 +136,134 @@ export function IntroScene() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full flex items-center justify-center overflow-hidden 
-                 bg-gradient-to-br from-gray-900 via-purple-950/90 to-pink-950/90"
+      className="relative w-full h-full flex items-center justify-center overflow-hidden bg-[#05020A]"
     >
-      {/* Enhanced Background Layers */}
-      <div className="absolute inset-0">
-        {/* Base gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-purple-950/80 to-fuchsia-900/90" />
-        
-        {/* Animated gradient mesh */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-0 left-0 w-full h-full 
-                          bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] 
-                          from-purple-900 via-transparent to-transparent" />
-          <div className="absolute bottom-0 right-0 w-full h-full 
-                          bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] 
-                          from-pink-900 via-transparent to-transparent" />
-        </div>
-        
-        {/* Subtle noise texture */}
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjc0IiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9Ii4wMyIvPjwvc3ZnPg==')] 
-                        opacity-15" />
-      </div>
+      {/* ==================== 
+          BACKGROUND LAYERS 
+         ==================== */}
+      
+      {/* 1. Deep Space Gradient */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_100%,_#2e1065_0%,_#0f0518_50%,_#000000_100%)] opacity-80" />
+      
+      {/* 2. Grain/Noise Texture (Adds premium feel) */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIj48ZmlsdGVyIGlkPSJhIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC45IiBudW1vY3RhdmVzPSIzIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsdGVyPSJ1cmwoI2EpIiBvcGFjaXR5PSIwLjUiLz48L3N2Zz4=')]" />
 
-      {/* Enhanced ambient glow */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-[40%] h-[40%] 
-                        bg-gradient-to-r from-purple-600/20 to-pink-600/20 
-                        rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-[35%] h-[35%] 
-                        bg-gradient-to-r from-pink-600/15 to-purple-600/15 
-                        rounded-full blur-3xl" />
-      </div>
+      {/* 3. Ambient Glow Orbs */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-purple-600/20 rounded-full blur-[100px] animate-pulse-slow" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-pink-600/10 rounded-full blur-[100px] animate-pulse-slow delay-1000" />
 
-      {/* Particles for all devices with adjusted settings */}
+      {/* 4. Particle System */}
       <AdaptiveParticleSystem 
-        count={window.innerWidth < 768 ? 120 : 250} 
-        color="#e0e7ff" 
-        speed={0.5} 
-        size={window.innerWidth < 768 ? 1.5 : 2}
-        className="absolute inset-0"
+        count={window.innerWidth < 768 ? 60 : 120} 
+        color="#fbbf24" // Gold/Warm color
+        speed={0.3} 
+        size={1.5}
+        className="z-0"
       />
 
-      {/* Decorative floating elements */}
-      <div className="absolute top-8 left-8 text-3xl sm:text-4xl opacity-30 animate-float-slow">✨</div>
-      <div className="absolute top-12 right-10 text-2xl sm:text-3xl opacity-20 animate-float-slow" style={{animationDelay: '1s'}}>🌺</div>
-      <div className="absolute bottom-16 left-10 text-2xl sm:text-3xl opacity-20 animate-float-slow" style={{animationDelay: '2s'}}>🎉</div>
-      <div className="absolute bottom-20 right-8 text-3xl sm:text-4xl opacity-30 animate-float-slow" style={{animationDelay: '0.5s'}}>🎂</div>
+      {/* ==================== 
+          DECORATIVE ELEMENTS 
+         ==================== */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-[5]">
+        <div ref={el => decorationRefs.current[0] = el} className="absolute top-[15%] left-[10%] text-3xl opacity-40 animate-float-delayed">✨</div>
+        <div ref={el => decorationRefs.current[1] = el} className="absolute top-[20%] right-[15%] text-2xl opacity-30 animate-float">🌺</div>
+        <div ref={el => decorationRefs.current[2] = el} className="absolute bottom-[20%] left-[15%] text-2xl opacity-30 animate-float">🎂</div>
+        <div ref={el => decorationRefs.current[3] = el} className="absolute bottom-[15%] right-[10%] text-3xl opacity-40 animate-float-delayed">🎉</div>
+      </div>
 
-      {/* Main Content */}
-      <div className="relative z-10 text-center px-4 sm:px-6 max-w-6xl w-full">
-        {/* Title Container */}
-        <div className="relative mb-6 sm:mb-8 md:mb-10">
-          {/* Title Glow Backdrop */}
-          <div className="absolute inset-0 blur-3xl opacity-60 scale-110">
-            <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/40 via-pink-500/40 to-purple-500/40 rounded-full" />
-          </div>
+      {/* ==================== 
+          MAIN CONTENT 
+         ==================== */}
+      <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-4xl px-6 py-12 text-center">
+        
+        {/* Title Section */}
+        <div ref={titleRef} className="relative mb-8 sm:mb-10 group cursor-default">
+          {/* Glow behind title */}
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 blur-3xl opacity-50 rounded-full transform scale-150" />
           
-          {/* Main Title - FIXED for mobile visibility */}
-          <div
-            ref={titleRef}
-            className="relative"
-          >
-            {/* Mobile: Solid white text, Desktop: Gradient text */}
-            <h1 className="text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl 
-                          font-display font-bold tracking-tight leading-tight
-                          text-white md:text-transparent md:bg-clip-text 
-                          md:bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-400
-                          drop-shadow-[0_2px_30px_rgba(255,255,255,0.3)]
-                          md:drop-shadow-[0_0_80px_rgba(168,85,247,0.6)]">
-              T W E N T Y
-            </h1>
-            
-            {/* Subtitle Glow Effect */}
-            <div className="absolute -inset-4 -z-10 blur-2xl opacity-30 
-                          bg-gradient-to-r from-yellow-400/30 via-pink-500/30 to-purple-500/30 
-                          rounded-full" />
-          </div>
+          <h1 className="relative font-display font-bold tracking-[0.2em] leading-tight
+                         text-5xl sm:text-7xl md:text-8xl lg:text-9xl
+                         text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]
+                         transition-all duration-500">
+            {/* Split for gradient effect on desktop, solid white on mobile for readability */}
+            <span className="md:text-transparent md:bg-clip-text md:bg-gradient-to-br md:from-amber-100 md:via-pink-200 md:to-purple-200">
+              TWENTY
+            </span>
+          </h1>
           
-          {/* Subtle border effect for title */}
-          <div className="h-px w-48 sm:w-64 md:w-80 mx-auto mt-6 sm:mt-8 
-                        bg-gradient-to-r from-transparent via-purple-400/50 to-transparent" />
+          <div className="h-px w-24 sm:w-48 bg-gradient-to-r from-transparent via-white/30 to-transparent mx-auto mt-4 sm:mt-6" />
         </div>
 
-        {/* Subtitle */}
-        <div ref={subtitleRef} className="mb-10 sm:mb-14 md:mb-16">
-          <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl 
-                       text-purple-100/90 font-cursive font-medium
-                       drop-shadow-[0_2px_15px_rgba(168,85,247,0.4)]
-                       max-w-3xl mx-auto px-4">
+        {/* Subtitle Section */}
+        <div ref={subtitleRef} className="relative mb-12 sm:mb-16 space-y-2">
+           <div className="flex items-center justify-center gap-2 text-pink-200/60 mb-2">
+              <Sparkles className="w-4 h-4" />
+           </div>
+          <p className="font-cursive text-xl sm:text-2xl md:text-3xl text-purple-100/90 font-light tracking-wide drop-shadow-md">
             An experience for your special day (❁´◡`❁)
           </p>
-          
-          {/* Decorative line under subtitle */}
-          <div className="h-0.5 w-32 sm:w-40 md:w-48 mx-auto mt-4 sm:mt-6
-                        bg-gradient-to-r from-pink-400/40 via-purple-400/60 to-pink-400/40 
-                        rounded-full" />
         </div>
 
-        {/* Enhanced Button */}
-        <div className="relative">
+        {/* Action Section */}
+        <div className="relative w-full max-w-xs sm:max-w-sm mx-auto perspective-1000">
           <Button
             ref={buttonRef}
             onClick={() => navigateTo('midnight')}
-            size="lg"
-            className="relative px-8 sm:px-10 md:px-12 py-5 sm:py-6 md:py-8 
-                       text-base sm:text-lg md:text-xl lg:text-2xl
-                       bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600
-                       hover:from-purple-500 hover:via-pink-500 hover:to-purple-500
-                       text-white border-2 border-white/40
-                       shadow-2xl hover:shadow-3xl hover:shadow-pink-500/40
-                       rounded-2xl md:rounded-3xl
-                       transition-all duration-300
-                       hover:scale-[1.03] active:scale-95
-                       w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto
-                       group overflow-hidden"
+            className="group relative w-full h-14 sm:h-16 rounded-full overflow-hidden
+                       bg-white/5 backdrop-blur-md border border-white/10
+                       hover:bg-white/10 hover:border-white/20 hover:scale-[1.02]
+                       transition-all duration-500 ease-out shadow-[0_0_40px_-10px_rgba(168,85,247,0.3)]"
           >
-            {/* Button shine effect */}
-            <div className="absolute inset-0 rounded-2xl md:rounded-3xl 
-                          bg-gradient-to-r from-transparent via-white/20 to-transparent
-                          -translate-x-full group-hover:translate-x-full 
-                          transition-transform duration-1000" />
+            {/* Button Gradient Hover Effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             
-            {/* Button text with decorative flowers */}
-            <span className="relative z-10 flex items-center justify-center gap-2 sm:gap-3 md:gap-4">
-              <span className="text-lg sm:text-xl md:text-2xl transition-transform duration-300 group-hover:rotate-12">🌺</span>
-              <span className="font-semibold">Enter the Experience</span>
-              <span className="text-lg sm:text-xl md:text-2xl transition-transform duration-300 group-hover:-rotate-12">🌺</span>
-            </span>
+            <div className="relative z-10 flex items-center justify-center gap-3 text-white">
+              <span className="uppercase tracking-[0.15em] text-sm sm:text-base font-medium">Enter Experience</span>
+              <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
+            </div>
           </Button>
-          
-          {/* Button glow effect */}
-          <div className="absolute inset-0 -z-10 blur-xl opacity-50 
-                        bg-gradient-to-r from-purple-600/50 via-pink-600/50 to-purple-600/50
-                        rounded-2xl md:rounded-3xl scale-105" />
+
+          {/* Desktop Instruction */}
+          <div className="hidden md:flex items-center justify-center gap-6 mt-6 opacity-40 text-xs tracking-widest uppercase text-white font-light">
+            <span className="flex items-center gap-2"><kbd className="border border-white/20 rounded px-1.5 py-0.5">Enter</kbd> to start</span>
+            <span>•</span>
+            <span className="flex items-center gap-2"><MousePointer2 className="w-3 h-3" /> or click</span>
+          </div>
+
+          {/* Mobile Instruction */}
+          <div className="md:hidden mt-8 flex flex-col items-center gap-2 animate-bounce-slow opacity-60">
+             <ChevronUp className="w-5 h-5 text-purple-200" />
+             <span className="text-xs text-purple-200/80 tracking-widest uppercase font-light">Swipe Up</span>
+          </div>
+
         </div>
 
-        {/* Mobile tip about desktop experience */}
-        <div className="mt-6 sm:mt-8">
-          <div className="inline-flex items-center justify-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 
-                        bg-white/5 backdrop-blur-sm rounded-full border border-white/10">
-            <span className="text-xs sm:text-sm text-purple-200/60 font-elegant">
-              💻 Tip: For best experience, try on laptop/desktop
-            </span>
-          </div>
-        </div>
-
-        {/* Instructions */}
-        <div className="mt-8 sm:mt-10 md:mt-12 space-y-4">
-          {/* Mobile Instructions */}
-          <p className="md:hidden text-sm sm:text-base text-purple-200/80 font-elegant
-                      drop-shadow-[0_1px_8px_rgba(168,85,247,0.3)]">
-            👆 Swipe up or tap the button above
-          </p>
-          
-          {/* Desktop Instructions */}
-          <p className="hidden md:block text-sm md:text-base text-purple-200/70 font-elegant
-                      drop-shadow-[0_1px_8px_rgba(168,85,247,0.3)]">
-            Press <kbd className="px-2 py-1 mx-1 bg-purple-800/50 text-purple-100 rounded border border-purple-700/50">Enter</kbd> 
-            or <kbd className="px-2 py-1 mx-1 bg-purple-800/50 text-purple-100 rounded border border-purple-700/50">Esc</kbd> to continue
-          </p>
-          
-          {/* Decorative separator */}
-          <div className="flex items-center justify-center gap-4 opacity-60">
-            <div className="h-px w-16 bg-gradient-to-r from-transparent to-purple-400/50" />
-            <div className="text-sm text-purple-300/50">✨</div>
-            <div className="h-px w-16 bg-gradient-to-l from-transparent to-pink-400/50" />
-          </div>
+        {/* Device Hint */}
+        <div className="absolute bottom-8 left-0 right-0 flex justify-center">
+            <div className="px-4 py-2 bg-black/20 backdrop-blur-sm rounded-full border border-white/5 text-[10px] sm:text-xs text-white/30 tracking-widest uppercase">
+              🎧 Best experienced with headphones
+            </div>
         </div>
       </div>
 
-      {/* Bottom gradient for mobile */}
-      <div className="sm:hidden absolute bottom-0 left-0 right-0 h-32 
-                      bg-gradient-to-t from-black/70 via-transparent to-transparent 
-                      pointer-events-none" />
-
-      {/* CSS Animations with mobile fixes */}
+      {/* CSS Animations */}
       <style>{`
-        @keyframes float-slow {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          50% { transform: translateY(-10px) rotate(2deg); }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-15px) rotate(5deg); }
         }
-        
-        @keyframes pulse-glow {
-          0%, 100% { opacity: 0.6; filter: drop-shadow(0 0 30px rgba(168, 85, 247, 0.5)); }
-          50% { opacity: 0.9; filter: drop-shadow(0 0 50px rgba(236, 72, 153, 0.8)); }
+        @keyframes float-delayed {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-12px) rotate(-5deg); }
         }
-        
-        .animate-float-slow {
-          animation: float-slow 4s ease-in-out infinite;
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(1.1); }
         }
-        
-        .animate-pulse-glow {
-          animation: pulse-glow 3s ease-in-out infinite;
-        }
-        
-        /* Mobile-specific text styles - FIX for visibility */
-        @media (max-width: 767px) {
-          h1 {
-            color: white !important;
-            background-image: none !important;
-            -webkit-text-fill-color: white !important;
-            text-fill-color: white !important;
-            background-clip: border-box !important;
-            -webkit-background-clip: border-box !important;
-          }
-          
-          /* Ensure text shadow is strong enough */
-          h1 {
-            text-shadow: 
-              0 2px 20px rgba(255, 255, 255, 0.4),
-              0 0 40px rgba(168, 85, 247, 0.6),
-              0 0 60px rgba(236, 72, 153, 0.4) !important;
-          }
-        }
-        
-        /* Extra small screens optimization */
-        @media (max-width: 380px) {
-          h1 {
-            font-size: 2.5rem;
-            letter-spacing: -0.5px;
-          }
-          .text-lg {
-            font-size: 1rem;
-          }
-        }
-        
-        /* Desktop gradient styles */
-        @media (min-width: 768px) {
-          h1 {
-            background-image: linear-gradient(to right, #fbbf24, #f472b6, #a855f7) !important;
-            -webkit-background-clip: text !important;
-            background-clip: text !important;
-            -webkit-text-fill-color: transparent !important;
-            text-fill-color: transparent !important;
-          }
-        }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .animate-float-delayed { animation: float-delayed 7s ease-in-out infinite 1s; }
+        .animate-pulse-slow { animation: pulse-slow 8s ease-in-out infinite; }
+        .perspective-1000 { perspective: 1000px; }
       `}</style>
     </div>
   );
