@@ -19,14 +19,7 @@ const LETTERS: Letter[] = [
   { id: 1, from: 'Maryam', relation: 'Sissy', content: `TBA,\nMaryam 💫`, rotation: -4, size: 0.9, pinPosition: 'tl', folded: false, depth: 2, color: '#f8f9fa' },
   { id: 2, from: 'Fatima', relation: 'Long Distance Sissy', content: `TBA,\nFatima 🌸`, rotation: 5, size: 0.92, pinPosition: 'tr', folded: true, depth: 3, color: '#fff5f5' },
   { id: 3, from: 'Monira', relation: 'Mufasa Mom', content: `TBA,\nMonira 🌟`, rotation: -2, size: 0.88, pinPosition: 'bl', folded: false, depth: 4, color: '#fffdf5' },
-  { id: 4, from: 'Lil Bro', relation: 'Bilsis heartbeat', content: `Hellllooooo, Arahhhhhhhh
-First of all Happpyyyy Birthdayyyyyy to youuuuuu
-So proud of you!!!!!!🥳🥳
-
-Just wanted to stay that you are truly an amazing soul. The way you make bilson (my idiot) happy and make him feel alive means a lot to me. 
-Just remember even though I have never met you. You are truly great and deserve the whole world.
-
-Allumdulhillah,\n Aayush 🎮`, rotation: 6, size: 0.95, pinPosition: 'br', folded: true, depth: 1, color: '#f8f9fa' },
+  { id: 4, from: 'Lil Bro', relation: 'Bilsis heartbeat', content: `Hellllooooo, Afrahhhhhhhh\nFirst of all Happpyyyy Birthdayyyyyy to youuuuuu\nSo proud of you!!!!!!🥳🥳\nJust wanted to stay that you are truly an amazing soul. The way you make bilson (my idiot) happy and make him feel alive means a lot to me.\n Just remember even though I have never met you. You are truly great and deserve the whole world.\nAlhumdullillah,\n Aayush 🎮`, rotation: 6, size: 0.95, pinPosition: 'br', folded: true, depth: 1, color: '#f8f9fa' },
   { id: 5, from: 'Anjila', relation: 'Bilsi sissy', content: `Happy birthday\n 🤍 I hope today reminds you of how loved and appreciated you are. hope this year treats you kindly and gives you moments that feel as special as a perfect race weekend for your favorite team . wishing you happiness, peace all the good things today and always 💌\nAnjila 💕`, rotation: -7, size: 0.86, pinPosition: 'tl', folded: false, depth: 2, color: '#fff0f5' },
   { id: 6, from: 'Prajol', relation: 'Bilsi bestie', content: `Hey happy birthday. I am Bilson's bestfriend. Thank you for making him a better person and I hope this message finds you well. If I have to say a piece of advice, it is this : "Now we all have a great need for acceptance, but you must trust that your beliefs are unique.” Again happy birthday from my side, enjoy the day💕\nPrajol 🥂`, rotation: 3, size: 0.84, pinPosition: 'tr', folded: true, depth: 3, color: '#fdfbf7' },
   { id: 7, from: 'Aditi', relation: 'Partner in Crime', content: `Happy Birthday Afrah!\nLove, Aditi 🦋`, rotation: -3, size: 0.9, pinPosition: 'tl', folded: false, depth: 2, color: '#fcfcfc' },
