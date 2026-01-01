@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom'; // Import createPortal
 import { useSceneStore } from '../../lib/stores/useSceneStore';
 import { audioManager } from '../../lib/audioManager';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
@@ -130,9 +131,6 @@ export function GiftsScene() {
       animationRefs.current = [];
 
       giftsRefs.current.forEach((ref, i) => {
-        // Only animate unopened gifts to avoid distraction, 
-        // or animate all if you prefer constant movement.
-        // Currently keeping original behavior: animate if not opened.
         if (ref && !openedGifts.includes(i + 1)) {
           const anim = gsap.to(ref, {
             y: -8,
@@ -169,14 +167,13 @@ export function GiftsScene() {
   }, [openedGifts, settings.reducedMotion, showFinale]);
 
   const openGift = (gift: Gift) => {
-    // If ALREADY opened, just view it immediately without the fanfare
+    // If ALREADY opened, just reopen the card without animation
     if (openedGifts.includes(gift.id)) {
       setSelectedGift(gift);
       return;
     }
 
-    // --- First time opening sequence ---
-
+    // New Open Logic
     const giftIndex = gift.id - 1;
     if (animationRefs.current[giftIndex]) {
       animationRefs.current[giftIndex].kill();
@@ -390,7 +387,6 @@ export function GiftsScene() {
                  <div className="w-16 h-16 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 flex items-center justify-center group-hover:scale-110 transition-all duration-500">
                     <Play className="w-6 h-6 text-white ml-1" />
                  </div>
-                 <span className="text-sm font-elegant text-pink-200/80 tracking-widest uppercase text-[10px]">Play Memory</span>
               </div>
             </button>
           </div>
@@ -524,6 +520,52 @@ export function GiftsScene() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Helper component to render the media overlay via Portal
+  const MediaOverlay = () => {
+    if (!activeMedia) return null;
+
+    return createPortal(
+      <div 
+        className="fixed inset-0 z-[99999] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 sm:p-8 animate-fade-in"
+        onClick={() => setActiveMedia(null)}
+      >
+        <button 
+          onClick={() => setActiveMedia(null)}
+          className="absolute top-4 right-4 sm:top-8 sm:right-8 text-white/50 hover:text-white transition-colors p-2 bg-white/5 rounded-full"
+        >
+          <X className="w-6 h-6 sm:w-8 sm:h-8" />
+        </button>
+        
+        <div 
+          className="relative max-w-5xl w-full max-h-full flex items-center justify-center p-2"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {activeMedia.type === 'image' ? (
+            <div className="relative group">
+              <div className="bg-white p-2 rounded-sm shadow-2xl">
+                  <img 
+                      src={activeMedia.src} 
+                      alt="Memory" 
+                      className="max-h-[85vh] w-auto object-contain bg-black/5"
+                  />
+              </div>
+            </div>
+          ) : (
+            <div className="w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(236,72,153,0.3)] border border-white/10">
+              <video 
+                src={activeMedia.src} 
+                controls 
+                autoPlay 
+                className="w-full h-full"
+              />
+            </div>
+          )}
+        </div>
+      </div>,
+      document.body
+    );
+  };
+
   return (
     <div
       ref={containerRef}
@@ -608,8 +650,6 @@ export function GiftsScene() {
                 onClick={() => openGift(gift)}
                 onMouseEnter={() => setHoveredGift(gift.id)}
                 onMouseLeave={() => setHoveredGift(null)}
-                // Removed disabled={isOpened} so it's always clickable
-                // Adjusted visual styles: less opaque, keep pointer cursor
                 className={`group relative aspect-[4/5] rounded-xl transition-all duration-1000 ease-out
                           ${isOpened 
                             ? 'opacity-60 grayscale-[0.3] scale-100 cursor-pointer hover:opacity-80 hover:scale-[1.02]' 
@@ -725,46 +765,8 @@ export function GiftsScene() {
         </DialogContent>
       </Dialog>
 
-      {/* Increased Z-Index to 99999 to definitely sit above shadcn Dialogs (usually z-50) */}
-      {activeMedia && (
-        <div 
-          className="fixed inset-0 z-[99999] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 sm:p-8 animate-fade-in"
-          onClick={() => setActiveMedia(null)}
-        >
-          <button 
-            onClick={() => setActiveMedia(null)}
-            className="absolute top-4 right-4 sm:top-8 sm:right-8 text-white/50 hover:text-white transition-colors p-2 bg-white/5 rounded-full"
-          >
-            <X className="w-6 h-6 sm:w-8 sm:h-8" />
-          </button>
-          
-          <div 
-            className="relative max-w-5xl w-full max-h-full flex items-center justify-center p-2"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {activeMedia.type === 'image' ? (
-              <div className="relative group">
-                <div className="bg-white p-2 rounded-sm shadow-2xl">
-                    <img 
-                        src={activeMedia.src} 
-                        alt="Memory" 
-                        className="max-h-[85vh] w-auto object-contain bg-black/5"
-                    />
-                </div>
-              </div>
-            ) : (
-              <div className="w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(236,72,153,0.3)] border border-white/10">
-                <video 
-                  src={activeMedia.src} 
-                  controls 
-                  autoPlay 
-                  className="w-full h-full"
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Render the Media Overlay using React Portal to ensure it is always on top */}
+      <MediaOverlay />
     </div>
   );
 }
