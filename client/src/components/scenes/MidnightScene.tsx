@@ -233,7 +233,7 @@ export function MidnightScene() {
                         <div className="absolute inset-0 bg-black/20 rounded-full border border-white/20 backdrop-blur-sm"></div>
                         
                         <span className="relative flex items-center gap-3 text-white font-bold text-lg tracking-wide group-hover:gap-5 transition-all">
-                            ENTER THE MOMENT <ArrowRight className="w-5 h-5" />
+                            ENTER THE EXPERIENCE <ArrowRight className="w-5 h-5" />
                         </span>
                     </button>
                     
@@ -296,7 +296,7 @@ export function MidnightScene() {
                     {/* Bottom Progress Text */}
                     <div className="absolute -bottom-24 text-center space-y-2">
                         <div className="text-pink-200/80 font-serif italic text-xl animate-float">
-                            Almost time...
+                            Almost there...
                         </div>
                     </div>
                 </div>
@@ -315,22 +315,22 @@ export function MidnightScene() {
 
                     {/* Main Title */}
                     <h1 className="text-5xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-br from-yellow-200 via-pink-200 to-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)] mb-4 leading-tight">
-                        HAPPY<br/>20TH!
+                        AFRAH GHAZI<br/>IS
                     </h1>
 
                     <h2 className="text-2xl md:text-4xl font-display text-pink-300 mb-8 tracking-widest border-y border-pink-500/30 py-4">
-                        AFRAH GHAZI
+                        TWENTYYY!!!!!!!!!!!!!!!!
                     </h2>
 
                     <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-2xl">
                          <p className="text-lg md:text-xl text-gray-100 font-light leading-relaxed">
                             "Pop the sugarcane juice champagne! 🍾<br/>
-                            <span className="font-bold text-yellow-300">The Queen has arrived.</span>"
+                            <span className="font-bold text-yellow-300">Let the celebrations begin.</span>"
                         </p>
                     </div>
 
                     <div className="mt-12 opacity-80 animate-pulse">
-                        <p className="text-sm text-purple-300 uppercase tracking-widest">Proceeding to the Royal Chamber...</p>
+                        <p className="text-sm text-purple-300 uppercase tracking-widest">Proceeding to the Birthday Room...</p>
                     </div>
 
                 </div>
