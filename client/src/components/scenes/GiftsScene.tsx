@@ -7,7 +7,10 @@ import { Button } from '../ui/button';
 import { AdaptiveParticleSystem } from '../AdaptiveParticleSystem';
 import gsap from 'gsap';
 import Confetti from 'react-confetti';
-import { Play, Pause, Volume2, X, ExternalLink, Maximize2, Music, Loader2, Sparkles } from 'lucide-react';
+import { 
+  Play, Pause, X, ExternalLink, Maximize2, Music, Loader2, 
+  ChevronLeft, ChevronRight 
+} from 'lucide-react';
 
 // --- Types & Constants ---
 interface Gift {
@@ -21,8 +24,28 @@ interface Gift {
   glowColor: string;
 }
 
+interface MediaItem {
+  type: 'image' | 'video';
+  src: string;
+  thumbnailContent?: React.ReactNode; // Emoji or Icon for the grid view
+}
+
 const GOOGLE_SLIDES_LINK = 'https://docs.google.com/presentation/d/192aK3xvHF8VkuSBFzhxgdMKcER61AhOUfQpVj_681LE/view';
 const GOOGLE_DRIVE_AUDIO_LINK = 'https://drive.google.com/file/d/1pjGcBhQoA5CrEkiLm4bNBdz0fPCfchQW/view?usp=sharing';
+
+// Centralized Media Array for Easy Navigation
+const MEDIA_ITEMS: MediaItem[] = [
+  ...[1, 2, 3, 4, 5].map((i) => ({
+    type: 'image' as const,
+    src: `/assets/gifts/media/img${i}.jpeg`,
+    thumbnailContent: '🌺'
+  })),
+  {
+    type: 'video' as const,
+    src: '/assets/gifts/media/video.mp4',
+    thumbnailContent: <Play className="w-5 h-5 sm:w-6 sm:h-6 text-white ml-1" />
+  }
+];
 
 const GIFTS: Gift[] = [
   { 
@@ -112,8 +135,8 @@ export function GiftsScene() {
   const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [audioError, setAudioError] = useState(false);
   
-  // Media Overlay State
-  const [activeMedia, setActiveMedia] = useState<{ type: 'image' | 'video'; src: string } | null>(null);
+  // Media Overlay State - Now storing INDEX instead of object
+  const [activeMediaIndex, setActiveMediaIndex] = useState<number | null>(null);
   
   // UI State
   const [hoveredGift, setHoveredGift] = useState<number | null>(null);
@@ -350,45 +373,36 @@ export function GiftsScene() {
       case 'media':
         return (
           <div className="space-y-6 px-1">
-            <div className="grid grid-cols-3 gap-3 sm:gap-6">
-              {[1, 2, 3, 4, 5].map((i) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-6">
+              {MEDIA_ITEMS.map((item, i) => (
                 <button
                   key={i}
-                  onClick={() =>
-                    setActiveMedia({
-                      type: 'image',
-                      src: `/assets/gifts/media/img${i}.jpeg`,
-                    })
-                  }
-                  className="group relative aspect-[4/5] bg-white/5 rounded-lg border border-white/10 hover:border-purple-300/40 transition-all duration-300 hover:scale-105 active:scale-95 overflow-hidden"
+                  onClick={() => setActiveMediaIndex(i)}
+                  className={`group relative aspect-[4/5] rounded-lg border border-white/10 hover:border-purple-300/40 transition-all duration-300 hover:scale-105 active:scale-95 overflow-hidden
+                    ${item.type === 'video' ? 'col-span-2 sm:col-span-1 bg-black/40 aspect-video sm:aspect-[4/5]' : 'bg-white/5'}`}
                 >
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-xl sm:text-3xl opacity-70 group-hover:scale-110 transition-transform">🌺</span>
+                  
+                  {item.type === 'image' && (
+                     <img src={item.src} alt="thumbnail" className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:opacity-70 transition-opacity" />
+                  )}
+
+                  <div className="absolute inset-0 flex flex-col items-center justify-center relative z-10">
+                    {typeof item.thumbnailContent === 'string' ? (
+                        <span className="text-xl sm:text-3xl opacity-90 group-hover:scale-110 transition-transform drop-shadow-md">{item.thumbnailContent}</span>
+                    ) : (
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                           {item.thumbnailContent}
+                        </div>
+                    )}
                   </div>
-                  <div className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2">
+
+                  <div className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 z-10">
                     <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
                   </div>
                 </button>
               ))}
             </div>
-            
-            <button
-              onClick={() =>
-                setActiveMedia({
-                  type: 'video',
-                  src: '/assets/gifts/media/video.mp4',
-                })
-              }
-              className="w-full group relative aspect-video bg-black/20 rounded-xl flex items-center justify-center border border-pink-500/20 hover:border-pink-500/50 transition-all duration-300 active:scale-95 overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-pink-900/10 via-transparent to-purple-900/10" />
-              <div className="relative z-10 flex flex-col items-center gap-3">
-                 <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Play className="w-5 h-5 sm:w-6 sm:h-6 text-white ml-1" />
-                 </div>
-              </div>
-            </button>
           </div>
         );
       case 'audio':
@@ -475,25 +489,73 @@ export function GiftsScene() {
     }
   };
 
-  // --- Optimized Media Overlay for Mobile ---
+  // --- Optimized Media Overlay with Swipe Support ---
   const MediaOverlay = () => {
-    if (!activeMedia) return null;
+    // We check if index is not null to render
+    if (activeMediaIndex === null) return null;
+
+    const currentMedia = MEDIA_ITEMS[activeMediaIndex];
+    
+    // Swipe Logic State
+    const [touchStart, setTouchStart] = useState<number | null>(null);
+    const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+    // Minimum swipe distance (in px) 
+    const minSwipeDistance = 50; 
+
+    const onTouchStart = (e: React.TouchEvent) => {
+      setTouchEnd(null); 
+      setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const onTouchMove = (e: React.TouchEvent) => {
+      setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const onTouchEnd = () => {
+      if (!touchStart || !touchEnd) return;
+      const distance = touchStart - touchEnd;
+      const isLeftSwipe = distance > minSwipeDistance;
+      const isRightSwipe = distance < -minSwipeDistance;
+      
+      if (isLeftSwipe) {
+        handleNext();
+      } else if (isRightSwipe) {
+        handlePrev();
+      }
+    };
+
+    const handleNext = (e?: React.MouseEvent) => {
+      e?.stopPropagation();
+      setActiveMediaIndex((prev) => 
+        prev === null ? null : (prev + 1) % MEDIA_ITEMS.length
+      );
+    };
+
+    const handlePrev = (e?: React.MouseEvent) => {
+      e?.stopPropagation();
+      setActiveMediaIndex((prev) => 
+        prev === null ? null : (prev - 1 + MEDIA_ITEMS.length) % MEDIA_ITEMS.length
+      );
+    };
 
     return createPortal(
       <div 
         className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-md animate-in fade-in duration-300"
-        onClick={() => setActiveMedia(null)} // Standard mobile interaction: Tap background to close
-        style={{ touchAction: 'none' }} // Prevent scrolling background
+        onClick={() => setActiveMediaIndex(null)}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        style={{ touchAction: 'none' }} 
       >
-        {/* Close Button - Optimized for Thumb Reach & Visibility */}
+        {/* Close Button */}
         <button 
           onClick={(e) => {
              e.stopPropagation();
-             setActiveMedia(null);
+             setActiveMediaIndex(null);
           }}
           className="absolute top-4 right-4 sm:top-8 sm:right-8 z-[10000] p-3 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white rounded-full backdrop-blur-md transition-all border border-white/10 shadow-lg"
           style={{ 
-             // Ensure it doesn't get hidden behind notches on landscape
              marginRight: 'env(safe-area-inset-right)', 
              marginTop: 'env(safe-area-inset-top)' 
           }}
@@ -501,22 +563,40 @@ export function GiftsScene() {
         >
           <X className="w-6 h-6 sm:w-8 sm:h-8" />
         </button>
+
+        {/* Previous Arrow (Desktop/Tablet) */}
+        <button
+          onClick={handlePrev}
+          className="hidden sm:flex absolute left-4 top-1/2 -translate-y-1/2 z-[10000] p-4 bg-black/20 hover:bg-white/10 text-white/50 hover:text-white rounded-full transition-all backdrop-blur-sm"
+        >
+          <ChevronLeft className="w-8 h-8" />
+        </button>
+
+        {/* Next Arrow (Desktop/Tablet) */}
+        <button
+          onClick={handleNext}
+          className="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 z-[10000] p-4 bg-black/20 hover:bg-white/10 text-white/50 hover:text-white rounded-full transition-all backdrop-blur-sm"
+        >
+          <ChevronRight className="w-8 h-8" />
+        </button>
         
+        {/* Content Container */}
         <div className="w-full h-full flex items-center justify-center p-2 sm:p-4">
           <div 
-            className="relative max-w-full max-h-full flex items-center justify-center"
-            onClick={(e) => e.stopPropagation()} // Clicking the image itself shouldn't close it
+            className="relative max-w-full max-h-full flex items-center justify-center transition-all duration-300"
+            onClick={(e) => e.stopPropagation()}
+            key={activeMediaIndex} // Key forces react to remount on change (restarting video, resetting zoom)
           >
-            {activeMedia.type === 'image' ? (
+            {currentMedia.type === 'image' ? (
               <img 
-                src={activeMedia.src} 
+                src={currentMedia.src} 
                 alt="Memory" 
-                className="max-h-[85vh] max-w-[95vw] w-auto h-auto object-contain rounded-md shadow-2xl bg-black/50"
+                className="max-h-[85vh] max-w-[95vw] w-auto h-auto object-contain rounded-md shadow-2xl bg-black/50 animate-in zoom-in-95 duration-300"
               />
             ) : (
-              <div className="w-[95vw] max-w-5xl aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/10">
+              <div className="w-[95vw] max-w-5xl aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/10 animate-in zoom-in-95 duration-300">
                 <video 
-                  src={activeMedia.src} 
+                  src={currentMedia.src} 
                   controls 
                   autoPlay 
                   playsInline
@@ -525,6 +605,16 @@ export function GiftsScene() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Mobile Swipe Hints (Dots) */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-[10000]">
+          {MEDIA_ITEMS.map((_, idx) => (
+            <div 
+              key={idx}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${idx === activeMediaIndex ? 'bg-white w-4' : 'bg-white/20'}`}
+            />
+          ))}
         </div>
       </div>,
       document.body
