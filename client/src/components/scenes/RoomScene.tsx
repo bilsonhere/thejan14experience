@@ -559,7 +559,7 @@ export function RoomScene() {
             title="Click me!"
           >
             <img 
-              src="/assets/cat.png" 
+              src="/assets/cat.svg" 
               alt="Birthday Cat" 
               className="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-xl"
             />
