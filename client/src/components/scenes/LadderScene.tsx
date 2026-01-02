@@ -791,7 +791,7 @@ export function LadderScene() {
               {/* Decision Buttons */}
               <div className="flex flex-col gap-3">
                 
-                {/* Option 2: YES */}
+                {/* Option 1: YES - Go to CakeScene */}
                 <Button 
                   onClick={() => setScene('cake')} 
                   className="w-full bg-gradient-to-r from-green-400 to-teal-500 hover:from-green-500 hover:to-teal-600 text-white font-black rounded-2xl py-6 text-xl shadow-lg transform transition hover:scale-105 group"
@@ -801,7 +801,7 @@ export function LadderScene() {
                   </span>
                 </Button>
 
-                {/* Option 1: NO */}
+                {/* Option 2: NO - Go back to RoomScene */}
                 <Button 
                   onClick={() => setScene('room')} 
                   className="w-full bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold rounded-2xl py-4 text-base shadow-sm transform transition hover:scale-100"
