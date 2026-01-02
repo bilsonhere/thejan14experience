@@ -359,7 +359,7 @@ const EventPopup = ({ event, onComplete }: { event: LifeEvent, onComplete: () =>
 };
 
 export function LadderScene() {
-  const { updateProgress, settings, setScene } = useSceneStore();
+  const { updateProgress, settings, navigateTo } = useSceneStore();
 
   /* ------------------------------------------------------------------ */
   /* STATE */
@@ -793,7 +793,7 @@ export function LadderScene() {
                 
                 {/* Option 1: YES - Go to CakeScene */}
                 <Button 
-                  onClick={() => setScene('cake')} 
+                  onClick={() => navigateTo('cake')}
                   className="w-full bg-gradient-to-r from-green-400 to-teal-500 hover:from-green-500 hover:to-teal-600 text-white font-black rounded-2xl py-6 text-xl shadow-lg transform transition hover:scale-105 group"
                 >
                   <span className="flex items-center justify-center gap-2">
@@ -803,7 +803,7 @@ export function LadderScene() {
 
                 {/* Option 2: NO - Go back to RoomScene */}
                 <Button 
-                  onClick={() => setScene('room')} 
+                  onClick={() => navigateTo('room')}
                   className="w-full bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold rounded-2xl py-4 text-base shadow-sm transform transition hover:scale-100"
                 >
                   <span className="flex items-center justify-center gap-2">
