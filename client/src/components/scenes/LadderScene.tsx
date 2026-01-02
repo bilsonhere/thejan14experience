@@ -8,14 +8,14 @@ import {
   Trophy, Cloud, Sun, Castle, Crown, Heart, Zap, 
   BookOpen, GraduationCap, Plane, HeartCrack, Mountain, 
   Cat, Music, Star, Gift, PartyPopper, School, Home,
-  Award, Coffee, Users, Book
+  Award, Coffee, Users, Book, ArrowLeft, Check, Cake
 } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
 /* 1. REDESIGNED EVENT SYSTEM */
 /* ------------------------------------------------------------------ */
 
-// AGE FLAVOR - Background vibe text, only shown when no events are active
+// AGE FLAVOR - Background vibe text
 const AGE_FLAVOR: Record<number, string> = {
   0: "Welcome to the world! 👶",
   1: "Learning to walk! 🚶‍♀️",
@@ -50,11 +50,11 @@ interface LifeEvent {
   icon: any;
   color: string;
   age: number;
-  priority: number; // Higher number = appears first at same age
+  priority: number;
   tags: string[];
 }
 
-// EVENT DATABASE - All events organized by age, with priority
+// EVENT DATABASE
 const LIFE_EVENTS_DB: LifeEvent[] = [
   // --- CHILDHOOD (0-12) ---
   {
@@ -253,11 +253,11 @@ const LIFE_EVENTS_DB: LifeEvent[] = [
   }
 ];
 
-// Helper to get events for a specific age, sorted by priority (highest first)
+// Helper to get events for a specific age, sorted by priority
 const getEventsForAge = (age: number): LifeEvent[] => {
   return LIFE_EVENTS_DB
     .filter(event => event.age === age)
-    .sort((a, b) => b.priority - a.priority); // Higher priority first
+    .sort((a, b) => b.priority - a.priority);
 };
 
 const MAX_PROGRESS = 20;
@@ -359,7 +359,7 @@ const EventPopup = ({ event, onComplete }: { event: LifeEvent, onComplete: () =>
 };
 
 export function LadderScene() {
-  const { updateProgress, settings } = useSceneStore();
+  const { updateProgress, settings, setScene } = useSceneStore();
 
   /* ------------------------------------------------------------------ */
   /* STATE */
@@ -430,7 +430,7 @@ export function LadderScene() {
   }, [updateProgress]);
 
   /* ------------------------------------------------------------------ */
-  /* EVENT QUEUE SYSTEM - FIXED */
+  /* EVENT QUEUE SYSTEM */
   /* ------------------------------------------------------------------ */
 
   const processEventQueue = useCallback(() => {
@@ -499,7 +499,7 @@ export function LadderScene() {
   }, [eventQueue]);
 
   /* ------------------------------------------------------------------ */
-  /* GAME LOGIC - FIXED */
+  /* GAME LOGIC */
   /* ------------------------------------------------------------------ */
 
   const triggerShake = () => {
@@ -576,7 +576,8 @@ export function LadderScene() {
     // 8. Win Condition
     if (nextAge >= MAX_PROGRESS) {
       updateProgress({ unlockedGifts: true, ladderProgress: MAX_PROGRESS });
-      setTimeout(() => setShowCompletion(true), 800);
+      // Small delay before celebration to let the climb finish
+      setTimeout(() => setShowCompletion(true), 1200);
     }
   }, [isClimbing, currentEvent, side, settings, getTranslateForProgress, updateProgress, processEventQueue]);
 
@@ -590,8 +591,9 @@ export function LadderScene() {
   // Keyboard support
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (showCompletion) return; // Disable keyboard during victory modal
+      
       if (currentEvent) {
-        // Space or Enter to complete event
         if (e.key === ' ' || e.key === 'Enter') {
           e.preventDefault();
           completeCurrentEvent();
@@ -606,7 +608,7 @@ export function LadderScene() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [climb, currentEvent, completeCurrentEvent]);
+  }, [climb, currentEvent, completeCurrentEvent, showCompletion]);
 
   /* ------------------------------------------------------------------ */
   /* RENDER */
@@ -725,12 +727,12 @@ export function LadderScene() {
             onClick={currentEvent ? completeCurrentEvent : climb}
             disabled={isClimbing || progress >= MAX_PROGRESS}
             className={`w-full max-w-sm mx-auto h-auto py-5 rounded-3xl text-xl font-black tracking-wide shadow-xl transition-all
-                       ${currentEvent 
+                        ${currentEvent 
                            ? 'bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500' 
                            : isClimbing
                              ? 'bg-gray-400 cursor-not-allowed opacity-50'
                              : 'bg-gradient-to-r from-pink-500 via-rose-500 to-pink-500 hover:scale-[1.02] border-b-4 border-pink-800 active:border-b-0 active:translate-y-1'
-                       } text-white`}
+                        } text-white`}
           >
             {progress >= MAX_PROGRESS ? (
               <span className="flex items-center gap-2"><Trophy /> HAPPY 20TH!</span>
@@ -755,22 +757,61 @@ export function LadderScene() {
 
       </div>
 
-      {/* --- VICTORY MODAL --- */}
+      {/* --- VICTORY MODAL & FINAL DECISION --- */}
       {showCompletion && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fade-in">
-          <div className="bg-gradient-to-br from-pink-400 via-purple-400 to-indigo-400 p-1.5 rounded-[2rem] w-full max-w-sm shadow-2xl animate-bounce-in">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md animate-fade-in">
+          {/* CELEBRATION EFFECTS */}
+          <Confetti 
+            width={window.innerWidth} 
+            height={window.innerHeight} 
+            recycle={true}
+            numberOfPieces={400}
+            gravity={0.2}
+          />
+          
+          {/* MODAL CONTENT */}
+          <div className="relative z-[110] bg-gradient-to-br from-pink-400 via-purple-400 to-indigo-400 p-1.5 rounded-[2rem] w-full max-w-sm shadow-2xl animate-bounce-in mx-4">
             <div className="bg-white rounded-[1.8rem] p-8 text-center border-4 border-pink-200">
-              <div className="text-7xl mb-4 animate-bounce">🎂</div>
-              <h2 className="text-3xl font-black text-pink-600 mb-2">HAPPY 20TH AFRAH!</h2>
-              <p className="text-gray-600 font-medium mb-6 leading-relaxed">
-                From first steps to college moves, from school stress to pet cuddles. You made it to 20!
+              
+              {/* Animated Big Icon */}
+              <div className="text-8xl mb-4 animate-bounce filter drop-shadow-lg">🎂</div>
+              
+              {/* Header */}
+              <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-purple-600 mb-4 tracking-tight">
+                HAPPY 20TH!
+              </h2>
+              
+              {/* Question */}
+              <p className="text-xl text-gray-700 font-bold mb-8 leading-relaxed">
+                You've conquered the ladder of life!
+                <br/>
+                <span className="text-pink-600 block mt-2 text-2xl">Shall we cut the cake next?</span>
               </p>
-              <div className="bg-pink-50 p-4 rounded-xl mb-6">
-                <p className="text-sm text-pink-800 font-bold">"Every step was worth it. Alhumdulillah" 💖</p>
+              
+              {/* Decision Buttons */}
+              <div className="flex flex-col gap-3">
+                
+                {/* Option 2: YES */}
+                <Button 
+                  onClick={() => setScene('cake')} 
+                  className="w-full bg-gradient-to-r from-green-400 to-teal-500 hover:from-green-500 hover:to-teal-600 text-white font-black rounded-2xl py-6 text-xl shadow-lg transform transition hover:scale-105 group"
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    Sure, yes! <Cake className="w-6 h-6 group-hover:rotate-12 transition-transform"/>
+                  </span>
+                </Button>
+
+                {/* Option 1: NO */}
+                <Button 
+                  onClick={() => setScene('room')} 
+                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold rounded-2xl py-4 text-base shadow-sm transform transition hover:scale-100"
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <ArrowLeft className="w-4 h-4"/> No, Go Back
+                  </span>
+                </Button>
+
               </div>
-              <Button onClick={() => window.location.reload()} className="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl py-4 text-lg shadow-lg">
-                Replay The Journey 🔄
-              </Button>
             </div>
           </div>
         </div>
@@ -787,9 +828,9 @@ export function LadderScene() {
           50% { transform: translateX(20px) scale(var(--tw-scale-x)); }
         }
         @keyframes bounce-in {
-          0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-          80% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
-          100% { transform: translate(-50%, -50%) scale(1); }
+          0% { transform: scale(0); opacity: 0; }
+          60% { transform: scale(1.1); opacity: 1; }
+          100% { transform: scale(1); }
         }
         @keyframes pop-in {
           0% { transform: scale(0.8); opacity: 0; }
