@@ -64,7 +64,7 @@ export function RoomScene() {
   // --- Interaction: Play Meow ---
   const playMeow = () => {
     // 1. Create audio object (Ensure 'meow.mp3' exists in your /public/assets folder)
-    const audio = new Audio('/assets/meow.mp3');
+    const audio = new Audio('/assets/meow.m4a');
     audio.volume = 0.6; 
     
     // 2. Play Sound
