@@ -1,45 +1,48 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSceneStore } from '../../lib/stores/useSceneStore';
 import gsap from 'gsap';
-import { Cake, Gift, Layers, Clock, PartyPopper, Sparkles, MessageCircleHeart } from 'lucide-react';
+import { Cake, Gift, Layers, Clock, PartyPopper, Sparkles } from 'lucide-react';
 import { MessagesScene } from './MessagesScene';
 
-// --- Helper Component for the Title ---
+// --- Polished Minimal Header Component ---
 const PaperTitle = ({ text }: { text: string }) => {
-  const words = text.split(' ');
+  // Split into characters for the single line effect
+  const characters = text.split('');
   
   return (
-    <div className="flex flex-col items-center gap-2 sm:gap-4 z-20">
-      {words.map((word, wordIndex) => (
-        <div key={wordIndex} className="flex flex-wrap justify-center gap-1 sm:gap-2">
-          {word.split('').map((char, charIndex) => (
-            <div
-              key={`${wordIndex}-${charIndex}`}
-              className="paper-tile relative group"
-            >
-              {/* Glow backing */}
-              <div className="absolute inset-0 bg-pink-500/30 blur-md rounded-lg transform group-hover:scale-125 transition-transform duration-500" />
+    <div className="flex flex-row flex-wrap justify-center items-center gap-1 sm:gap-1.5 z-20 pointer-events-auto select-none">
+      {characters.map((char, index) => {
+        if (char === ' ') {
+          return <div key={index} className="w-2 sm:w-4" />; // Spacer for spaces
+        }
+        return (
+          <div
+            key={index}
+            className="group relative"
+          >
+            {/* Soft Glow backing */}
+            <div className="absolute inset-0 bg-pink-400/20 blur-sm rounded-md transform group-hover:scale-125 transition-transform duration-500" />
+            
+            {/* The Minimal Tile */}
+            <div className="relative w-6 h-8 sm:w-8 sm:h-10 flex items-center justify-center 
+                          bg-gradient-to-b from-[#ffffff] to-[#fff0f5] 
+                          rounded-[4px] sm:rounded-md 
+                          border border-white/60 shadow-[0_2px_4px_rgba(0,0,0,0.05)]
+                          transform transition-all duration-300 
+                          group-hover:-translate-y-1 group-hover:rotate-3 group-hover:shadow-[0_5px_15px_rgba(236,72,153,0.15)]
+                          backface-hidden">
               
-              {/* The Tile */}
-              <div className="relative w-8 h-10 sm:w-10 sm:h-12 md:w-12 md:h-14 flex items-center justify-center 
-                            bg-gradient-to-br from-[#fffbf0] to-[#fce7f3] 
-                            rounded-lg border-t border-l border-white/80 border-b border-r border-pink-200/50
-                            shadow-[0_4px_8px_rgba(0,0,0,0.1),0_0_15px_rgba(236,72,153,0.2)]
-                            transform transition-all duration-300 hover:-translate-y-2 hover:rotate-2 hover:z-10
-                            backdrop-blur-sm">
-                
-                {/* Gloss Shine */}
-                <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/60 to-transparent rounded-t-lg pointer-events-none" />
-                
-                {/* Text */}
-                <span className="font-display font-bold text-xl sm:text-2xl md:text-3xl text-transparent bg-clip-text bg-gradient-to-br from-purple-700 to-pink-600 drop-shadow-sm">
-                  {char}
-                </span>
-              </div>
+              {/* Subtle top gloss */}
+              <div className="absolute top-0 left-0 right-0 h-[40%] bg-gradient-to-b from-white/80 to-transparent rounded-t-[4px]" />
+              
+              {/* Letter */}
+              <span className="font-display font-bold text-sm sm:text-lg text-transparent bg-clip-text bg-gradient-to-br from-slate-700 to-pink-900 uppercase tracking-tight">
+                {char}
+              </span>
             </div>
-          ))}
-        </div>
-      ))}
+          </div>
+        );
+      })}
     </div>
   );
 };
@@ -53,7 +56,7 @@ export function RoomScene() {
   const cakeRef = useRef<HTMLButtonElement>(null);
   const ladderRef = useRef<HTMLButtonElement>(null);
   const giftsRef = useRef<HTMLButtonElement>(null);
-  const catRef = useRef<HTMLDivElement>(null);
+  const catRef = useRef<HTMLButtonElement>(null); // Changed to button for semantics
   const containerRef = useRef<HTMLDivElement>(null);
   const clockRef = useRef<HTMLDivElement>(null);
   const dustContainerRef = useRef<HTMLDivElement>(null);
@@ -75,6 +78,24 @@ export function RoomScene() {
     const x = (clientX / window.innerWidth - 0.5) * 20; // range -10 to 10
     const y = (clientY / window.innerHeight - 0.5) * 20;
     setMousePos({ x, y });
+  };
+
+  // --- Interaction: Play Meow ---
+  const playMeow = () => {
+    // 1. Create audio object (Ensure 'meow.mp3' exists in your /public/assets folder)
+    const audio = new Audio('/assets/meow.mp3');
+    audio.volume = 0.6; // Not too loud
+    
+    // 2. Play Sound
+    audio.play().catch(e => console.error("Audio play failed (user interaction needed first?):", e));
+
+    // 3. Visual Bounce Effect using GSAP
+    if (catRef.current) {
+        gsap.fromTo(catRef.current, 
+            { scale: 0.9, rotate: -5 }, 
+            { scale: 1, rotate: 0, duration: 0.4, ease: "elastic.out(1, 0.3)" }
+        );
+    }
   };
 
   // Apply Parallax via GSAP
@@ -101,7 +122,7 @@ export function RoomScene() {
     const calculateDaysUntilBirthday = () => {
       const now = new Date();
       const currentYear = now.getFullYear();
-      const birthday = new Date(currentYear, 0, 14);
+      const birthday = new Date(currentYear, 0, 14); // Jan 14
       
       const today = new Date();
       const isTodayBirthday = 
@@ -164,7 +185,7 @@ export function RoomScene() {
       mote.style.background = color;
       mote.style.left = `${startX}%`;
       mote.style.top = `${startY}%`;
-      mote.style.boxShadow = `0 0 ${size * 2}px ${color}`; // Add glow
+      mote.style.boxShadow = `0 0 ${size * 2}px ${color}`;
       
       dustContainerRef.current.appendChild(mote);
       
@@ -204,15 +225,14 @@ export function RoomScene() {
 
     const animations: gsap.core.Tween[] = [];
 
-    // Title Tiles Animation (Staggered Pop-in)
+    // Title Animation
     const tiles = document.querySelectorAll('.paper-tile');
     if (tiles.length > 0) {
       gsap.fromTo(tiles, 
-        { y: -50, opacity: 0, rotate: -10 },
+        { y: -20, opacity: 0 },
         { 
           y: 0, 
           opacity: 1, 
-          rotate: (i) => (i % 2 === 0 ? 2 : -2), // Slight random rotation for paper look
           duration: 0.8, 
           stagger: 0.05,
           ease: "back.out(1.7)"
@@ -233,17 +253,21 @@ export function RoomScene() {
       animations.push(anim);
     }
 
-    // Cat swaying
+    // Cat swaying (Independent of click animation)
+    // We animate the SVG wrapper, not the button itself, to allow click transforms to stack nicely
     if (catRef.current) {
-      const anim = gsap.to(catRef.current, {
-        x: 6,
-        rotation: 2,
-        duration: 4,
-        ease: 'sine.inOut',
-        repeat: -1,
-        yoyo: true,
-      });
-      animations.push(anim);
+      const catImage = catRef.current.querySelector('img');
+      if (catImage) {
+        const anim = gsap.to(catImage, {
+            x: 5,
+            rotation: 3,
+            duration: 3,
+            ease: 'sine.inOut',
+            repeat: -1,
+            yoyo: true,
+        });
+        animations.push(anim);
+      }
     }
 
     // Card Hover/Float animations
@@ -377,14 +401,14 @@ export function RoomScene() {
             </div>
         </div>
 
-        {/* Content Container - Flex layout for better vertical responsiveness */}
+        {/* Content Container */}
         <div className="relative w-full h-full flex flex-col justify-evenly items-center p-4 z-10 overflow-hidden">
           
-          {/* Header Area */}
-          <div className="text-center w-full max-w-4xl mx-auto flex-shrink-0 pt-4 sm:pt-0">
-             <PaperTitle text="Happy Birthday Afrah" />
-             <div className="mt-3 sm:mt-5 text-center">
-                <span className="inline-block py-1 px-3 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-[10px] sm:text-xs text-purple-200/80 tracking-[0.2em] uppercase">
+          {/* Header Area - Updated Minimal Style */}
+          <div className="text-center w-full max-w-4xl mx-auto flex-shrink-0 pt-6 sm:pt-0">
+             <PaperTitle text="HAPPY BIRTHDAY AFRAH" />
+             <div className="mt-4 text-center">
+                <span className="inline-block py-1 px-4 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-[9px] sm:text-[10px] text-pink-200/80 tracking-[0.3em] uppercase font-light">
                   ✨ It's All Yours ✨
                 </span>
              </div>
@@ -567,13 +591,22 @@ export function RoomScene() {
             </span>
           </button>
 
-          {/* Animated Cat */}
-          <div 
+          {/* Animated Interactive Cat */}
+          <button 
             ref={catRef}
-            className="fixed bottom-4 left-4 text-3xl sm:text-4xl filter drop-shadow-[0_0_10px_rgba(251,191,36,0.3)] z-20 pointer-events-none opacity-90"
+            onClick={playMeow}
+            className="fixed bottom-4 left-4 z-40 transition-transform active:scale-95 cursor-pointer outline-none hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]"
+            title="Click me!"
           >
-            🐱
-          </div>
+            {/* 1. Please ensure you have a 'cat.svg' in your public/assets/ folder 
+                2. Please ensure you have 'meow.mp3' in your public/assets/ folder
+            */}
+            <img 
+              src="/assets/cat.svg" 
+              alt="Birthday Cat" 
+              className="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-xl"
+            />
+          </button>
         </div>
         
         <style>{`
