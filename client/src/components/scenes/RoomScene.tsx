@@ -4,45 +4,26 @@ import gsap from 'gsap';
 import { Cake, Gift, Layers, Clock, PartyPopper, Sparkles } from 'lucide-react';
 import { MessagesScene } from './MessagesScene';
 
-// --- Polished Minimal Header Component ---
-const PaperTitle = ({ text }: { text: string }) => {
-  // Split into characters for the single line effect
-  const characters = text.split('');
-  
+// --- New Cinematic Header ---
+// Minimal, ambient, wide-spacing, glowing text.
+const CinematicTitle = ({ text }: { text: string }) => {
   return (
-    <div className="flex flex-row flex-wrap justify-center items-center gap-1 sm:gap-1.5 z-20 pointer-events-auto select-none">
-      {characters.map((char, index) => {
-        if (char === ' ') {
-          return <div key={index} className="w-2 sm:w-4" />; // Spacer for spaces
-        }
-        return (
-          <div
-            key={index}
-            className="group relative"
-          >
-            {/* Soft Glow backing */}
-            <div className="absolute inset-0 bg-pink-400/20 blur-sm rounded-md transform group-hover:scale-125 transition-transform duration-500" />
-            
-            {/* The Minimal Tile */}
-            <div className="relative w-6 h-8 sm:w-8 sm:h-10 flex items-center justify-center 
-                          bg-gradient-to-b from-[#ffffff] to-[#fff0f5] 
-                          rounded-[4px] sm:rounded-md 
-                          border border-white/60 shadow-[0_2px_4px_rgba(0,0,0,0.05)]
-                          transform transition-all duration-300 
-                          group-hover:-translate-y-1 group-hover:rotate-3 group-hover:shadow-[0_5px_15px_rgba(236,72,153,0.15)]
-                          backface-hidden">
-              
-              {/* Subtle top gloss */}
-              <div className="absolute top-0 left-0 right-0 h-[40%] bg-gradient-to-b from-white/80 to-transparent rounded-t-[4px]" />
-              
-              {/* Letter */}
-              <span className="font-display font-bold text-sm sm:text-lg text-transparent bg-clip-text bg-gradient-to-br from-slate-700 to-pink-900 uppercase tracking-tight">
-                {char}
-              </span>
-            </div>
-          </div>
-        );
-      })}
+    <div className="relative z-20 flex flex-col items-center justify-center pointer-events-none select-none">
+      {/* Main Text */}
+      <h1 className="text-center">
+        <span className="block font-sans font-light text-xl sm:text-3xl md:text-4xl text-white/90 tracking-[0.3em] sm:tracking-[0.5em] drop-shadow-[0_0_15px_rgba(255,255,255,0.6)] animate-pulse-slow">
+          {text}
+        </span>
+      </h1>
+      
+      {/* Decorative Line & Subtext */}
+      <div className="flex items-center gap-4 mt-3 opacity-60">
+        <div className="h-[1px] w-8 sm:w-16 bg-gradient-to-r from-transparent via-pink-300 to-transparent" />
+        <span className="text-[9px] sm:text-[10px] text-pink-200 uppercase tracking-[0.3em] font-light">
+          It's All Yours
+        </span>
+        <div className="h-[1px] w-8 sm:w-16 bg-gradient-to-r from-transparent via-pink-300 to-transparent" />
+      </div>
     </div>
   );
 };
@@ -56,7 +37,7 @@ export function RoomScene() {
   const cakeRef = useRef<HTMLButtonElement>(null);
   const ladderRef = useRef<HTMLButtonElement>(null);
   const giftsRef = useRef<HTMLButtonElement>(null);
-  const catRef = useRef<HTMLButtonElement>(null); // Changed to button for semantics
+  const catRef = useRef<HTMLButtonElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const clockRef = useRef<HTMLDivElement>(null);
   const dustContainerRef = useRef<HTMLDivElement>(null);
@@ -84,10 +65,10 @@ export function RoomScene() {
   const playMeow = () => {
     // 1. Create audio object (Ensure 'meow.mp3' exists in your /public/assets folder)
     const audio = new Audio('/assets/meow.mp3');
-    audio.volume = 0.6; // Not too loud
+    audio.volume = 0.6; 
     
     // 2. Play Sound
-    audio.play().catch(e => console.error("Audio play failed (user interaction needed first?):", e));
+    audio.play().catch(e => console.error("Audio play failed (interaction needed):", e));
 
     // 3. Visual Bounce Effect using GSAP
     if (catRef.current) {
@@ -225,21 +206,6 @@ export function RoomScene() {
 
     const animations: gsap.core.Tween[] = [];
 
-    // Title Animation
-    const tiles = document.querySelectorAll('.paper-tile');
-    if (tiles.length > 0) {
-      gsap.fromTo(tiles, 
-        { y: -20, opacity: 0 },
-        { 
-          y: 0, 
-          opacity: 1, 
-          duration: 0.8, 
-          stagger: 0.05,
-          ease: "back.out(1.7)"
-        }
-      );
-    }
-
     // Aurora Background Breathing
     if (auroraRef.current) {
       const anim = gsap.to(auroraRef.current, {
@@ -254,7 +220,6 @@ export function RoomScene() {
     }
 
     // Cat swaying (Independent of click animation)
-    // We animate the SVG wrapper, not the button itself, to allow click transforms to stack nicely
     if (catRef.current) {
       const catImage = catRef.current.querySelector('img');
       if (catImage) {
@@ -404,14 +369,9 @@ export function RoomScene() {
         {/* Content Container */}
         <div className="relative w-full h-full flex flex-col justify-evenly items-center p-4 z-10 overflow-hidden">
           
-          {/* Header Area - Updated Minimal Style */}
+          {/* Header - Cinematic Minimal Style */}
           <div className="text-center w-full max-w-4xl mx-auto flex-shrink-0 pt-6 sm:pt-0">
-             <PaperTitle text="HAPPY BIRTHDAY AFRAH" />
-             <div className="mt-4 text-center">
-                <span className="inline-block py-1 px-4 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-[9px] sm:text-[10px] text-pink-200/80 tracking-[0.3em] uppercase font-light">
-                  ✨ It's All Yours ✨
-                </span>
-             </div>
+             <CinematicTitle text="HAPPY BIRTHDAY AFRAH" />
           </div>
 
           {/* Main cards - 3 Column Layout */}
@@ -598,9 +558,6 @@ export function RoomScene() {
             className="fixed bottom-4 left-4 z-40 transition-transform active:scale-95 cursor-pointer outline-none hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]"
             title="Click me!"
           >
-            {/* 1. Please ensure you have a 'cat.svg' in your public/assets/ folder 
-                2. Please ensure you have 'meow.mp3' in your public/assets/ folder
-            */}
             <img 
               src="/assets/cat.svg" 
               alt="Birthday Cat" 
@@ -623,6 +580,14 @@ export function RoomScene() {
           }
           .animate-shine {
             animation: shine 1s;
+          }
+
+          @keyframes pulse-slow {
+             0%, 100% { opacity: 0.9; }
+             50% { opacity: 0.7; }
+          }
+          .animate-pulse-slow {
+             animation: pulse-slow 4s ease-in-out infinite;
           }
           
           .perspective-1000 {
