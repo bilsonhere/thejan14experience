@@ -27,13 +27,12 @@ interface Gift {
 interface MediaItem {
   type: 'image' | 'video';
   src: string;
-  thumbnailContent?: React.ReactNode; // Emoji or Icon for the grid view
+  thumbnailContent?: React.ReactNode; 
 }
 
 const GOOGLE_SLIDES_LINK = 'https://docs.google.com/presentation/d/192aK3xvHF8VkuSBFzhxgdMKcER61AhOUfQpVj_681LE/view';
 const GOOGLE_DRIVE_AUDIO_LINK = 'https://drive.google.com/file/d/1pjGcBhQoA5CrEkiLm4bNBdz0fPCfchQW/view?usp=sharing';
 
-// Centralized Media Array for Easy Navigation
 const MEDIA_ITEMS: MediaItem[] = [
   ...[1, 2, 3, 4, 5].map((i) => ({
     type: 'image' as const,
@@ -135,7 +134,7 @@ export function GiftsScene() {
   const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [audioError, setAudioError] = useState(false);
   
-  // Media Overlay State - Now storing INDEX instead of object
+  // Media Overlay State
   const [activeMediaIndex, setActiveMediaIndex] = useState<number | null>(null);
   
   // UI State
@@ -489,18 +488,15 @@ export function GiftsScene() {
     }
   };
 
-  // --- Optimized Media Overlay with Swipe Support ---
   const MediaOverlay = () => {
-    // We check if index is not null to render
     if (activeMediaIndex === null) return null;
 
     const currentMedia = MEDIA_ITEMS[activeMediaIndex];
     
-    // Swipe Logic State
+    // Swipe Logic
     const [touchStart, setTouchStart] = useState<number | null>(null);
     const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
-    // Minimum swipe distance (in px) 
     const minSwipeDistance = 50; 
 
     const onTouchStart = (e: React.TouchEvent) => {
@@ -548,7 +544,6 @@ export function GiftsScene() {
         onTouchEnd={onTouchEnd}
         style={{ touchAction: 'none' }} 
       >
-        {/* Close Button */}
         <button 
           onClick={(e) => {
              e.stopPropagation();
@@ -564,7 +559,6 @@ export function GiftsScene() {
           <X className="w-6 h-6 sm:w-8 sm:h-8" />
         </button>
 
-        {/* Previous Arrow (Desktop/Tablet) */}
         <button
           onClick={handlePrev}
           className="hidden sm:flex absolute left-4 top-1/2 -translate-y-1/2 z-[10000] p-4 bg-black/20 hover:bg-white/10 text-white/50 hover:text-white rounded-full transition-all backdrop-blur-sm"
@@ -572,7 +566,6 @@ export function GiftsScene() {
           <ChevronLeft className="w-8 h-8" />
         </button>
 
-        {/* Next Arrow (Desktop/Tablet) */}
         <button
           onClick={handleNext}
           className="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 z-[10000] p-4 bg-black/20 hover:bg-white/10 text-white/50 hover:text-white rounded-full transition-all backdrop-blur-sm"
@@ -580,12 +573,11 @@ export function GiftsScene() {
           <ChevronRight className="w-8 h-8" />
         </button>
         
-        {/* Content Container */}
         <div className="w-full h-full flex items-center justify-center p-2 sm:p-4">
           <div 
             className="relative max-w-full max-h-full flex items-center justify-center transition-all duration-300"
             onClick={(e) => e.stopPropagation()}
-            key={activeMediaIndex} // Key forces react to remount on change (restarting video, resetting zoom)
+            key={activeMediaIndex}
           >
             {currentMedia.type === 'image' ? (
               <img 
@@ -607,7 +599,6 @@ export function GiftsScene() {
           </div>
         </div>
 
-        {/* Mobile Swipe Hints (Dots) */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-[10000]">
           {MEDIA_ITEMS.map((_, idx) => (
             <div 
@@ -623,7 +614,6 @@ export function GiftsScene() {
 
   return (
     <div ref={containerRef} className="relative w-full h-full overflow-hidden bg-[#0a0510]">
-      {/* Background Layers */}
       <div className="absolute inset-0 z-0 pointer-events-none" style={{ background: 'radial-gradient(circle at 50% 40%, rgba(60, 30, 80, 0.4) 0%, rgba(10, 5, 16, 0.9) 70%, rgba(0,0,0,1) 100%)' }} />
       <div className="absolute inset-0 transition-all duration-1000 z-0" style={{ backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.15, filter: 'blur(2px) saturate(0.8)' }} />
       <div className="absolute inset-0 pointer-events-none z-[1] opacity-[0.03] mix-blend-overlay bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjY1IiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9IjAuNSIvPjwvc3ZnPg==')]"></div>
@@ -635,7 +625,6 @@ export function GiftsScene() {
         </div>
       )}
 
-      {/* Main Grid */}
       <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-4">
         <div className="text-center mb-6 sm:mb-12 relative">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-light text-white mb-2 tracking-wide drop-shadow-xl">
@@ -672,6 +661,9 @@ export function GiftsScene() {
                     <h3 className={`text-xs sm:text-sm font-medium tracking-widest uppercase ${isOpened ? 'text-white/60' : 'text-white/90'}`}>
                       {gift.title}
                     </h3>
+                    <p className={`text-[10px] sm:text-xs mt-1 font-serif opacity-80 ${isOpened ? 'text-white/40' : 'text-purple-200/60'}`}>
+                      {gift.subtitle}
+                    </p>
                   </div>
                 </div>
                 {isOpened && (
@@ -682,7 +674,6 @@ export function GiftsScene() {
           })}
         </div>
 
-        {/* Progress Bar */}
         {openedGifts.length > 0 && (
           <div className="fixed bottom-0 left-0 right-0 h-1 bg-white/5">
              <div className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-amber-500 transition-all duration-1000 ease-out" style={{ width: `${(openedGifts.length / 5) * 100}%` }} />
@@ -690,7 +681,6 @@ export function GiftsScene() {
         )}
       </div>
 
-      {/* Gift Content Modal */}
       <Dialog open={!!selectedGift} onOpenChange={() => setSelectedGift(null)}>
         <DialogContent 
           ref={dialogRef}
