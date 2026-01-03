@@ -390,10 +390,10 @@ export function RoomScene() {
                   <div className="text-3xl sm:text-5xl mb-2 sm:mb-3 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 drop-shadow-2xl">🪜</div>
                   <div className="flex items-center gap-2 mb-1">
                     <Layers className="w-3 h-3 sm:w-4 sm:h-4 text-cyan-200" />
-                    <h3 className="text-sm sm:text-lg font-display font-bold text-white tracking-wide shadow-black drop-shadow-md">Life Journey</h3>
+                    <h3 className="text-sm sm:text-lg font-display font-bold text-white tracking-wide shadow-black drop-shadow-md">Ladder Game</h3>
                   </div>
                   <p className="text-cyan-100/70 font-elegant text-[10px] sm:text-sm group-hover:text-cyan-50 transition-colors text-center">
-                    Explore your magical journey
+                    Climb to the Top!
                   </p>
                 </div>
               </button>
@@ -412,7 +412,7 @@ export function RoomScene() {
                     <Cake className="w-3 h-3 sm:w-4 sm:h-4 text-pink-200" />
                     <h3 className="text-sm sm:text-lg font-display font-bold text-white tracking-wide shadow-black drop-shadow-md">Cake Time</h3>
                   </div>
-                  <p className="text-pink-100/70 font-elegant text-[10px] sm:text-sm group-hover:text-pink-50 transition-colors">Slice the cake</p>
+                  <p className="text-pink-100/70 font-elegant text-[10px] sm:text-sm group-hover:text-pink-50 transition-colors">Slice the cake:)</p>
                 </div>
                 <div className="absolute -inset-full top-0 block h-full w-1/2 -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 group-hover:animate-shine" />
               </button>
