@@ -21,42 +21,43 @@ export function CakeScene() {
   const slicesRef = useRef<(HTMLDivElement | null)[]>([]);
   const isDraggingRef = useRef(false);
   const lastSliceTimeRef = useRef(0);
-  const sliceCooldown = 300; // Slightly faster cooldown for fun
+  const sliceCooldown = 300; 
   const lastPositionRef = useRef({x: 50, y: 50});
-  const velocityRef = useRef({ vx: 0, vy: 0 }); // For knife physics
+  const velocityRef = useRef({ vx: 0, vy: 0 }); 
 
-  // Update background image when settings change
+  // --- SETTINGS & INITIALIZATION ---
+
   useEffect(() => {
     if (settings.customCakeBackground) {
       setBgImage(settings.customCakeBackground);
     }
   }, [settings.customCakeBackground]);
 
-  // Hide guide after 3 seconds
   useEffect(() => {
-    const timer = setTimeout(() => setShowSliceGuide(false), 3500);
+    const timer = setTimeout(() => setShowSliceGuide(false), 4000);
     return () => clearTimeout(timer);
   }, []);
 
-  // Initialize cake entrance animation
+  // Entrance Animation: A heavy, ceremonial "plonk" onto the table
   useEffect(() => {
     if (!settings.reducedMotion && cakeRef.current) {
       gsap.fromTo(cakeRef.current,
-        { scale: 0, opacity: 0, y: 100, rotation: -20 },
+        { scale: 0.8, opacity: 0, y: -100, rotation: -5 },
         { 
           scale: 1, 
           opacity: 1, 
           y: 0,
           rotation: 0, 
-          duration: 1.2, 
-          ease: 'elastic.out(1, 0.6)' 
+          duration: 1.5, 
+          ease: 'bounce.out' 
         }
       );
     }
   }, [settings.reducedMotion]);
 
+  // --- INTERACTION HANDLERS ---
+
   const handlePointerDown = (e: React.MouseEvent | React.TouchEvent) => {
-    // e.preventDefault(); // Sometimes prevents scrolling on mobile, use carefully
     if (sliceCount >= 8) return;
     isDraggingRef.current = true;
     handlePointerMove(e);
@@ -78,20 +79,20 @@ export function CakeScene() {
     const x = ((clientX - rect.left) / rect.width) * 100;
     const y = ((clientY - rect.top) / rect.height) * 100;
 
-    // Calculate Velocity for dynamic rotation
+    // Calculate Velocity for dynamic rotation logic
     const dx = x - lastPositionRef.current.x;
     const dy = y - lastPositionRef.current.y;
     velocityRef.current = { vx: dx, vy: dy };
 
     updateKnifeVisuals(x, y, dx, dy);
 
-    // Only slice if dragging and logic permits
+    // Slice Logic
     if (isDraggingRef.current && sliceCount < 8 && !isSlicing) {
       const distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
       const currentTime = Date.now();
       
-      // Threshold: Must move fast enough or far enough to cut
-      if (distance > 4 && currentTime - lastSliceTimeRef.current > sliceCooldown) {
+      // Needs momentum to cut
+      if (distance > 3 && currentTime - lastSliceTimeRef.current > sliceCooldown) {
         createSliceLine(lastPositionRef.current.x, lastPositionRef.current.y, x, y);
         performSlice(x, y);
         lastSliceTimeRef.current = currentTime;
@@ -103,24 +104,27 @@ export function CakeScene() {
 
   const handlePointerUp = () => {
     isDraggingRef.current = false;
-    // Reset knife rotation when stopped
     if (knifeRef.current) {
-      gsap.to(knifeRef.current, { rotation: 0, duration: 0.3, ease: 'back.out' });
+      // Return knife to resting rotation
+      gsap.to(knifeRef.current, { rotation: 0, scale: 1, duration: 0.4, ease: 'back.out' });
     }
   };
+
+  // --- VISUAL EFFECTS ---
 
   const updateKnifeVisuals = (x: number, y: number, dx: number, dy: number) => {
     if (!knifeRef.current) return;
     
-    // Dynamic rotation based on movement direction (leaning into the cut)
-    // Clamp rotation between -45 and 45 degrees
-    const targetRotation = Math.max(-45, Math.min(45, dx * 5));
+    // Lean the knife into the turn based on velocity (More realistic handling)
+    const targetRotation = Math.max(-45, Math.min(45, dx * 6));
+    const isMovingFast = Math.abs(dx) > 1 || Math.abs(dy) > 1;
 
     gsap.to(knifeRef.current, {
       left: `${x}%`,
       top: `${y}%`,
       rotation: targetRotation,
-      duration: 0.1, // Quick response
+      scale: isMovingFast ? 0.9 : 1, // Slight squash when moving fast
+      duration: 0.15, 
       ease: 'power2.out',
     });
   };
@@ -131,20 +135,21 @@ export function CakeScene() {
     const id = Date.now();
     setActiveSliceLines(prev => [...prev, { x1, y1, x2, y2, id }]);
     
+    // Line fades out
     setTimeout(() => {
       setActiveSliceLines(prev => prev.filter(line => line.id !== id));
-    }, 600);
+    }, 500);
   };
 
-  // Enhanced "Crumbs" Effect - Physics based falling particles
+  // Enhanced "Crumbs" - Falling sponge cake physics
   const createCrumbsEffect = (x: number, y: number) => {
     if (settings.reducedMotion || !containerRef.current) return;
     
-    const colors = ['#FCD34D', '#FDBA74', '#F9A8D4', '#FFFFFF']; // Cake colors
+    const colors = ['#FCD34D', '#FFF', '#F9A8D4']; // Sponge, Icing, Decoration
     
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 12; i++) {
       const crumb = document.createElement('div');
-      const size = Math.random() * 6 + 4;
+      const size = Math.random() * 8 + 4;
       const color = colors[Math.floor(Math.random() * colors.length)];
       
       crumb.style.cssText = `
@@ -154,25 +159,26 @@ export function CakeScene() {
         width: ${size}px;
         height: ${size}px;
         background-color: ${color};
-        border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+        border-radius: ${Math.random() > 0.5 ? '50%' : '30% 70% 70% 30% / 30% 30% 70% 70%'};
         pointer-events: none;
         z-index: 45;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
       `;
       
       containerRef.current.appendChild(crumb);
 
-      // Physics animation: explode out then fall down
+      // Physics: Explode out, then gravity takes over
       const angle = Math.random() * Math.PI * 2;
-      const velocity = Math.random() * 30 + 10;
+      const velocity = Math.random() * 20 + 5;
       
       gsap.to(crumb, {
-        x: Math.cos(angle) * velocity,
-        y: Math.random() * 100 + 50, // Gravity effect
-        rotation: Math.random() * 360,
+        x: Math.cos(angle) * velocity * 5,
+        y: 200 + Math.random() * 100, // Fall down off screen
+        rotation: Math.random() * 720,
         opacity: 0,
-        duration: 0.8 + Math.random() * 0.4,
-        ease: 'power1.out',
+        scale: 0,
+        duration: 1 + Math.random(),
+        ease: 'power2.in', // Gravity acceleration feeling
         onComplete: () => crumb.remove()
       });
     }
@@ -183,45 +189,39 @@ export function CakeScene() {
 
     setIsSlicing(true);
 
-    // Haptic feedback for mobile
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate(50);
+        navigator.vibrate(40); // Crisper vibration
     }
 
     if (settings.soundEnabled) {
-      audioManager.play('hit'); // Assuming 'hit' or 'slice' sound exists
+      audioManager.play('hit'); 
     }
 
     if (sliceX && sliceY) {
       createCrumbsEffect(sliceX, sliceY);
     }
 
-    // Impact animation on the cake
+    // Impact Physics: Cake squashes slightly when hit
     if (!settings.reducedMotion && cakeRef.current) {
-      gsap.to(cakeRef.current, {
-        scale: 0.95,
-        rotation: (Math.random() - 0.5) * 5,
-        duration: 0.05,
-        yoyo: true,
-        repeat: 1,
-        ease: 'power3.inOut',
-      });
+      gsap.fromTo(cakeRef.current, 
+        { scaleY: 0.95, scaleX: 1.05 },
+        { scaleY: 1, scaleX: 1, duration: 0.5, ease: 'elastic.out(1.5, 0.4)' }
+      );
     }
 
     setTimeout(() => {
       const newCount = sliceCount + 1;
       setSliceCount(newCount);
-
       if (newCount === 1) updateProgress({ cakeSliced: true });
 
-      // Animate the UI counter slice
+      // Animate the specific slice indicator in the HUD
       if (!settings.reducedMotion && slicesRef.current[newCount - 1]) {
-        const sliceElement = slicesRef.current[newCount - 1];
-        gsap.fromTo(sliceElement,
-          { scale: 0, opacity: 0, y: -20 },
-          { scale: 1.3, opacity: 1, y: 0, duration: 0.4, ease: 'back.out(2)' }
+        const sliceIcon = slicesRef.current[newCount - 1];
+        gsap.fromTo(sliceIcon,
+          { scale: 0, rotate: -180 },
+          { scale: 1.2, rotate: 0, duration: 0.5, ease: 'back.out(1.7)' }
         );
-        gsap.to(sliceElement, { scale: 1, duration: 0.2, delay: 0.4 });
+        gsap.to(sliceIcon, { scale: 1, duration: 0.2, delay: 0.5 });
       }
 
       setIsSlicing(false);
@@ -229,41 +229,39 @@ export function CakeScene() {
       if (newCount >= 8) {
         handleCompletion();
       }
-    }, 100);
+    }, 150); // Slight delay for impact feel
   };
 
   const handleCompletion = () => {
     setShowSuccess(true);
     if (settings.soundEnabled) audioManager.play('success');
     
-    // Major celebration animation on the cake
+    // Victory Spin
     if (!settings.reducedMotion && cakeRef.current) {
       gsap.to(cakeRef.current, {
-        scale: 1.1,
-        y: -20,
+        y: -30,
         rotation: 360,
-        duration: 1.5,
-        ease: 'elastic.out(1, 0.5)',
+        duration: 2,
+        ease: 'elastic.out(1, 0.75)',
       });
     }
   };
 
   const handleButtonSlice = () => {
-    const x = 50 + (Math.random() * 30 - 15);
-    const y = 50 + (Math.random() * 30 - 15);
+    const x = 50 + (Math.random() * 20 - 10);
+    const y = 50 + (Math.random() * 20 - 10);
     
-    // Animate knife to position first
     if (knifeRef.current) {
         gsap.to(knifeRef.current, {
             left: `${x}%`,
             top: `${y}%`,
             rotation: -45,
-            duration: 0.3,
+            duration: 0.2,
             onComplete: () => {
                 // Slash motion
                 gsap.to(knifeRef.current, {
-                    left: `${x + 10}%`,
-                    top: `${y + 10}%`, 
+                    left: `${x + 15}%`,
+                    top: `${y + 15}%`, 
                     duration: 0.2,
                     ease: "power4.out"
                 });
@@ -289,52 +287,44 @@ export function CakeScene() {
       onTouchMove={handlePointerMove}
       onTouchEnd={handlePointerUp}
     >
-      {/* --- BACKGROUND LAYERS --- */}
+      {/* --- BACKGROUND STAGE --- */}
       
-      {/* 1. Custom/Base Image */}
+      {/* 1. Base Dark Warmth */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-rose-900/40 via-slate-950 to-slate-950" />
+      
+      {/* 2. Custom BG (faded) */}
       <div
-        className="absolute inset-0 transition-opacity duration-1000"
+        className="absolute inset-0 transition-opacity duration-1000 mix-blend-overlay"
         style={{
           backgroundImage: `url(${bgImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          opacity: 0.3,
+          opacity: 0.2,
         }}
       />
 
-      {/* 2. Deep Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-rose-950/80 via-purple-950/60 to-slate-950/90" />
-
-      {/* 3. Texture (Noise) for "Timeless" feel */}
-      <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none"
-           style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} 
-      />
-
-      {/* 4. Ambient Spotlights */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-pink-500/20 rounded-full blur-[100px] animate-pulse-slow" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-[100px] animate-pulse-slow delay-1000" />
+      {/* 3. The Spotlight (Floor) */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] 
+                      bg-radial-gradient from-indigo-500/10 to-transparent blur-3xl pointer-events-none" />
       
-      {/* 5. Center Spotlight (Focus on Cake) */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] 
-                      bg-radial-gradient from-yellow-200/10 to-transparent blur-2xl pointer-events-none" />
-
-
-      {/* --- DECORATIVE FLOATERS --- */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[15%] left-[10%] text-4xl opacity-10 animate-float">🎂</div>
-        <div className="absolute bottom-[20%] right-[15%] text-3xl opacity-10 animate-float delay-700">🍰</div>
-        <div className="absolute top-[20%] right-[20%] text-2xl opacity-15 animate-ping-slow">✨</div>
+      {/* 4. Ambient Sparkles */}
+      <div className="absolute inset-0 pointer-events-none">
+         <div className="absolute top-1/4 left-1/4 animate-pulse text-yellow-200/20 text-4xl blur-[1px]">✨</div>
+         <div className="absolute bottom-1/3 right-1/4 animate-pulse delay-700 text-pink-200/20 text-2xl blur-[1px]">✨</div>
       </div>
 
 
-      {/* --- GAME LAYERS --- */}
+      {/* --- GAMEPLAY LAYERS --- */}
 
-      {/* Slice Lines SVG */}
+      {/* Slice Lines (Glowing Energy Trails) */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-40">
         <defs>
-          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="2" result="blur" />
-            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+            <feMerge>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
           </filter>
         </defs>
         {activeSliceLines.map((line) => (
@@ -345,98 +335,99 @@ export function CakeScene() {
             x2={`${line.x2}%`}
             y2={`${line.y2}%`}
             stroke="white"
-            strokeWidth="4"
+            strokeWidth="6"
             strokeLinecap="round"
             filter="url(#glow)"
-            className="animate-fade-stroke"
+            className="opacity-80"
           />
         ))}
       </svg>
 
-      {/* Success Confetti */}
+      {/* Confetti on Success */}
       {showSuccess && (
         <div className="absolute inset-0 pointer-events-none z-50">
           <Confetti 
             recycle={false} 
-            numberOfPieces={300} 
-            gravity={0.15}
-            colors={['#F472B6', '#FBBF24', '#818CF8', '#34D399']}
+            numberOfPieces={400} 
+            gravity={0.2}
+            colors={['#F472B6', '#FBBF24', '#FFFFFF', '#A78BFA']}
           />
-          <AdaptiveParticleSystem count={150} color="#FBBF24" speed={1} size={3} />
+          <AdaptiveParticleSystem count={100} color="#FBBF24" speed={0.5} size={2} />
         </div>
       )}
 
-      {/* --- MAIN UI CONTENT --- */}
-      <div className="relative z-30 flex flex-col items-center justify-center w-full h-full px-4 max-w-4xl mx-auto">
+      {/* --- MAIN STAGE UI --- */}
+      <div className="relative z-30 flex flex-col items-center justify-center w-full h-full max-w-4xl mx-auto px-6">
         
-        {/* Header */}
-        <div className="text-center mb-6 sm:mb-10 animate-fade-in-down">
-          <div className="inline-block relative">
-             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-transparent bg-clip-text 
-                            bg-gradient-to-r from-yellow-200 via-pink-200 to-indigo-200
-                            drop-shadow-[0_2px_10px_rgba(236,72,153,0.5)] pb-2 font-handwriting">
-               Let's Cut the Cake!
-             </h1>
-             <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-pink-500/50 to-transparent blur-sm" />
-          </div>
-          
-          <div className={`mt-4 transition-all duration-500 ${showSliceGuide ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform -translate-y-4'}`}>
-            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-pink-100 text-sm font-medium shadow-lg">
-              <span className="animate-bounce">👆</span> Swipe across to slice
-            </span>
-          </div>
+        {/* Header Title */}
+        <div className="text-center mb-8 relative">
+           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-transparent bg-clip-text 
+                          bg-gradient-to-br from-yellow-100 via-pink-200 to-indigo-200 
+                          drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] font-handwriting pb-2">
+             Let's Cut the Cake!
+           </h1>
+           
+           {/* Guide Tooltip */}
+           <div className={`absolute left-0 right-0 -bottom-10 transition-all duration-700 
+                           ${showSliceGuide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-pink-100/80 text-sm backdrop-blur-md shadow-lg">
+               <span className="animate-bounce">👋</span> Swipe quickly to slice
+             </span>
+           </div>
         </div>
 
-        {/* The Cake */}
-        <div className="relative group cursor-crosshair">
-           {/* Plate/Shadow anchor */}
-           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-48 h-12 bg-black/40 blur-xl rounded-[100%] scale-150" />
+        {/* The Cake Interaction Zone */}
+        <div className="relative group cursor-none my-4">
+           {/* The Plate Shadow (Grounding the object) */}
+           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-56 h-12 bg-black/60 blur-xl rounded-[100%] scale-110" />
 
            <div
             ref={cakeRef}
             className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 
-                       transition-transform duration-100 will-change-transform"
+                       transition-transform will-change-transform z-20"
            >
-            {/* Cake Glow Aura */}
-            <div className="absolute inset-0 bg-yellow-500/10 rounded-full blur-3xl scale-90 group-hover:scale-110 transition-transform duration-700" />
+            {/* Hover Glow Aura */}
+            <div className="absolute inset-0 bg-yellow-400/5 rounded-full blur-3xl scale-90 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
             
             <img
               src="/assets/cakes/cake1.svg"
               alt="Birthday Cake"
-              className="relative w-full h-full object-contain drop-shadow-2xl filter brightness-105"
+              className="relative w-full h-full object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.3)] filter brightness-110"
               draggable="false"
             />
           </div>
 
-          {/* Knife Cursor Follower */}
+          {/* Custom Knife Cursor */}
           <div
             ref={knifeRef}
-            className="absolute pointer-events-none z-50 transition-opacity duration-200"
+            className="absolute pointer-events-none z-50 w-16 h-16 flex items-center justify-center transition-opacity duration-200"
             style={{ 
                 left: '50%', 
                 top: '50%', 
                 transform: 'translate(-50%, -50%)',
-                opacity: isDraggingRef.current ? 1 : 0.6
+                opacity: isDraggingRef.current ? 1 : 0.7 
             }}
           >
-            <div className="text-6xl drop-shadow-[0_0_15px_rgba(255,255,255,0.4)] filter grayscale-[0.2]">
-                🔪
-            </div>
+            {/* Shadow for depth */}
+            <div className="absolute text-6xl opacity-30 blur-sm translate-x-2 translate-y-2 filter grayscale">🔪</div>
+            {/* The Actual Knife */}
+            <div className="relative text-6xl filter drop-shadow-md">🔪</div>
           </div>
         </div>
 
-        {/* Progress Section */}
-        <div className="mt-8 sm:mt-12 w-full max-w-md backdrop-blur-lg bg-white/5 rounded-3xl p-6 border border-white/10 shadow-2xl">
-          {/* Icons Grid */}
-          <div className="flex justify-center gap-2 sm:gap-4 mb-4">
+        {/* HUD: Progress & Controls */}
+        <div className="w-full max-w-md mt-8 flex flex-col gap-6">
+          
+          {/* Progress Slices (Scoreboard) */}
+          <div className="flex justify-center items-end gap-2 h-10">
             {Array.from({ length: 8 }).map((_, i) => (
               <div
                 key={i}
                 ref={(el) => (slicesRef.current[i] = el)}
-                className={`text-2xl sm:text-3xl transition-all duration-500 ${
+                className={`text-2xl transition-all duration-300 transform ${
                   i < sliceCount 
-                    ? 'opacity-100 scale-110 grayscale-0 filter drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]' 
-                    : 'opacity-20 scale-90 grayscale'
+                    ? 'opacity-100 scale-110 grayscale-0 filter drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]' 
+                    : 'opacity-20 scale-75 grayscale'
                 }`}
               >
                 🍰
@@ -444,102 +435,61 @@ export function CakeScene() {
             ))}
           </div>
 
-          {/* Glass Bar */}
-          <div className="relative h-4 bg-black/30 rounded-full overflow-hidden shadow-inner border border-white/5">
-            <div 
-              className="absolute inset-y-0 left-0 bg-gradient-to-r from-pink-500 via-rose-500 to-yellow-500 transition-all duration-500 ease-out shadow-[0_0_20px_rgba(236,72,153,0.6)]"
-              style={{ width: `${(sliceCount / 8) * 100}%` }}
-            >
-                <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.2)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.2)_50%,rgba(255,255,255,0.2)_75%,transparent_75%,transparent)] bg-[length:20px_20px] animate-[slide-bg_1s_linear_infinite]" />
-            </div>
-          </div>
-          
-          <div className="flex justify-between mt-2 text-xs text-rose-200/60 font-medium uppercase tracking-wider">
-            <span>Start</span>
-            <span>{sliceCount} / 8 Slices</span>
-            <span>Ready</span>
-          </div>
-        </div>
-
-        {/* Controls */}
-        <div className="mt-6 flex flex-col sm:flex-row gap-4 w-full max-w-md z-40">
-           <Button
-            onClick={(e) => { e.stopPropagation(); handleButtonSlice(); }}
-            disabled={isSlicing || sliceCount >= 8}
-            className={`flex-1 py-6 text-lg rounded-2xl font-bold shadow-xl border border-white/10 relative overflow-hidden group
-                       ${sliceCount >= 8 
-                          ? 'bg-gradient-to-r from-green-500 to-emerald-600 cursor-default' 
-                          : 'bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500'
-                       } transition-all duration-300 hover:scale-[1.02] active:scale-95`}
-          >
-            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 rounded-2xl" />
-            <span className="relative flex items-center justify-center gap-2">
-               {sliceCount >= 8 ? '✨ Perfect!' : '🔪 Slice for Me'}
-            </span>
-          </Button>
-          
-          {sliceCount >= 1 && (
+          {/* Controls */}
+          <div className="flex gap-4">
              <Button
-                onClick={(e) => { e.stopPropagation(); navigateTo('candle'); }}
-                variant="outline"
-                className="py-6 px-8 text-lg rounded-2xl font-bold border-2 border-pink-400/30 text-pink-100 hover:bg-pink-500/20 hover:border-pink-400 backdrop-blur-md transition-all duration-300 hover:scale-[1.02] active:scale-95"
+               onClick={(e) => { e.stopPropagation(); handleButtonSlice(); }}
+               disabled={isSlicing || sliceCount >= 8}
+               className={`flex-1 py-6 rounded-2xl font-bold text-lg shadow-xl border border-white/10 backdrop-blur-sm
+                          transition-all duration-300 hover:-translate-y-1 active:scale-95 active:translate-y-0
+                          ${sliceCount >= 8 
+                            ? 'bg-emerald-500/20 text-emerald-200 border-emerald-500/50' 
+                            : 'bg-gradient-to-r from-rose-600/80 to-pink-600/80 hover:from-rose-500 hover:to-pink-500 text-white'
+                          }`}
              >
-                Next <span className="ml-2">→</span>
+                {sliceCount >= 8 ? 'Perfectly Sliced! ✨' : 'Slice It! 🔪'}
              </Button>
-          )}
+
+             {sliceCount >= 1 && (
+                <Button
+                  onClick={(e) => { e.stopPropagation(); navigateTo('candle'); }}
+                  variant="ghost"
+                  className="px-6 py-6 rounded-2xl text-pink-200 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/20 transition-all"
+                >
+                  Skip →
+                </Button>
+             )}
+          </div>
         </div>
       </div>
 
-      {/* --- SUCCESS MODAL --- */}
+      {/* --- SUCCESS OVERLAY --- */}
       {showSuccess && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-sm bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 border border-white/10 shadow-2xl text-center transform animate-scale-up">
-            <div className="absolute -top-12 left-1/2 -translate-x-1/2 text-7xl filter drop-shadow-xl animate-bounce">
-              🎂
-            </div>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-500">
+          <div className="w-full max-w-sm bg-gradient-to-b from-slate-800 to-slate-900 rounded-[2rem] p-8 border border-white/10 shadow-2xl text-center transform animate-in zoom-in-95 duration-300">
             
-            <h2 className="mt-8 text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-300 mb-2">
-              Slices Ready!
+            <div className="text-7xl mb-6 animate-bounce filter drop-shadow-lg">🎂</div>
+            
+            <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-300 mb-3">
+              Ready to Serve!
             </h2>
-            <p className="text-slate-300 mb-8 leading-relaxed">
-              The cake is perfectly cut. Now comes the magical part... lighting the candles!
+            
+            <p className="text-slate-300 mb-8 leading-relaxed font-light">
+              The hard part is done. Now, let's make a wish and light the candles.
             </p>
             
             <Button
               onClick={() => navigateTo('candle')}
-              className="w-full py-6 text-lg font-bold rounded-2xl bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-white shadow-lg shadow-orange-500/25 transition-all hover:scale-105"
+              className="w-full py-7 text-lg font-bold rounded-2xl bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-white shadow-[0_10px_20px_rgba(245,158,11,0.3)] transition-all hover:scale-[1.02] active:scale-95"
             >
-              Light the Candles 🕯️
+              Light Candles 🕯️
             </Button>
           </div>
         </div>
       )}
-
-      {/* --- STYLES --- */}
+      
       <style>{`
-        .cursor-crosshair { cursor: none; } /* We use custom knife div */
-        @keyframes float {
-          0%, 100% { transform: translateY(0) rotate(0); }
-          50% { transform: translateY(-15px) rotate(5deg); }
-        }
-        @keyframes ping-slow {
-          0%, 100% { transform: scale(1); opacity: 0.15; }
-          50% { transform: scale(1.5); opacity: 0.05; }
-        }
-        @keyframes slide-bg {
-          0% { background-position: 0 0; }
-          100% { background-position: 40px 40px; }
-        }
-        @keyframes fade-stroke {
-          0% { stroke-opacity: 1; stroke-width: 6; }
-          100% { stroke-opacity: 0; stroke-width: 0; }
-        }
-        .animate-float { animation: float 5s ease-in-out infinite; }
-        .animate-ping-slow { animation: ping-slow 3s ease-in-out infinite; }
-        .animate-pulse-slow { animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        .animate-fade-stroke { animation: fade-stroke 0.6s ease-out forwards; }
-        .animate-scale-up { animation: scale-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .font-handwriting { font-family: 'Pacifico', 'Dancing Script', cursive; }
+        .font-handwriting { font-family: 'Pacifico', cursive; }
       `}</style>
     </div>
   );
