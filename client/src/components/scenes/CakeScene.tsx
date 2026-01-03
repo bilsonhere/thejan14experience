@@ -24,7 +24,7 @@ export function CakeScene() {
   
   // 4. Dynamic Icing State
   const [icingSplit, setIcingSplit] = useState(false);
-  const displayText = userName || "Happy Birthday"; // Personalization
+  const displayText = userName || "TWENTY"; // Personalization
 
   const cakeRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
