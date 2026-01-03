@@ -5,13 +5,12 @@ import { Button } from '../ui/button';
 import { AdaptiveParticleSystem } from '../AdaptiveParticleSystem';
 import gsap from 'gsap';
 import Confetti from 'react-confetti';
-import { Sparkles, Scissors, Utensils } from 'lucide-react'; // Added icons
+import { Sparkles, Scissors, Utensils } from 'lucide-react';
 
-// Helper for the swoosh trail
 const TRAIL_LENGTH = 10;
 
 export function CakeScene() {
-  const { updateProgress, navigateTo, settings, userName } = useSceneStore();
+  const { updateProgress, navigateTo, settings } = useSceneStore();
   const [sliceCount, setSliceCount] = useState(0);
   const [isSlicing, setIsSlicing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -24,14 +23,15 @@ export function CakeScene() {
   
   // 4. Dynamic Icing State
   const [icingSplit, setIcingSplit] = useState(false);
-  const displayText = userName || "TWENTY"; // Personalization
+  // CHANGED: Hardcoded to "20" as requested
+  const displayText = "20"; 
 
   const cakeRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const knifeRef = useRef<HTMLDivElement>(null);
   const icingRef = useRef<HTMLDivElement>(null);
   const slicesRef = useRef<(HTMLDivElement | null)[]>([]);
-  const trailPathRef = useRef<SVGPathElement>(null); // For the swoosh
+  const trailPathRef = useRef<SVGPathElement>(null);
   
   const isDraggingRef = useRef(false);
   const lastSliceTimeRef = useRef(0);
@@ -39,6 +39,24 @@ export function CakeScene() {
   const lastPositionRef = useRef({x: 50, y: 50});
   const trailHistory = useRef<{x: number, y: number}[]>([]);
   const velocityRef = useRef({ vx: 0, vy: 0 }); 
+
+  // Helper to create the 3D icing look
+  const renderAestheticIcing = (text: string) => (
+    <div className="relative inline-block filter drop-shadow-md">
+        {/* Deep Shadow Layer */}
+        <span className="absolute inset-0 translate-y-[3px] translate-x-[2px] text-pink-800/60 select-none z-0" aria-hidden="true">
+            {text}
+        </span>
+        {/* Main Body Layer with inner shadow border */}
+        <span className="absolute inset-0 text-pink-500 select-none z-10" style={{ textShadow: '-1px -1px 0px #fce7f3, 1px 1px 0px #be185d' }} aria-hidden="true">
+            {text}
+        </span>
+        {/* Highlight Layer */}
+        <span className="relative text-pink-100/90 select-none z-20 mix-blend-overlay">
+            {text}
+        </span>
+    </div>
+  );
 
   // --- SETTINGS & INITIALIZATION ---
 
@@ -68,11 +86,11 @@ export function CakeScene() {
         }
       );
       
-      // Icing Text Entrance
+      // Icing Text Entrance - Pop in
       if (icingRef.current) {
         gsap.fromTo(icingRef.current, 
-           { opacity: 0, scale: 0.5 },
-           { opacity: 1, scale: 1, duration: 1, delay: 0.8, ease: 'elastic.out(1, 0.6)' }
+           { opacity: 0, scale: 0, rotation: -20 },
+           { opacity: 1, scale: 1, rotation: -5, duration: 0.8, delay: 1, ease: 'elastic.out(1.2, 0.5)' }
         );
       }
     }
@@ -83,7 +101,7 @@ export function CakeScene() {
   const handlePointerDown = (e: React.MouseEvent | React.TouchEvent) => {
     if (sliceCount >= 8) return;
     isDraggingRef.current = true;
-    trailHistory.current = []; // Reset trail
+    trailHistory.current = [];
     handlePointerMove(e);
   };
 
@@ -103,20 +121,18 @@ export function CakeScene() {
     const x = ((clientX - rect.left) / rect.width) * 100;
     const y = ((clientY - rect.top) / rect.height) * 100;
 
-    // Velocity & Trail Logic
     const dx = x - lastPositionRef.current.x;
     const dy = y - lastPositionRef.current.y;
     velocityRef.current = { vx: dx, vy: dy };
 
     updateKnifeVisuals(x, y, dx, dy);
-    updateTrail(x, y); // 2. Update Swoosh
+    updateTrail(x, y);
 
     // Slice Logic
     if (isDraggingRef.current && sliceCount < 8 && !isSlicing) {
       const distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
       const currentTime = Date.now();
       
-      // Needs momentum to cut
       if (distance > 3 && currentTime - lastSliceTimeRef.current > sliceCooldown) {
         createSliceLine(lastPositionRef.current.x, lastPositionRef.current.y, x, y);
         performSlice(x, y);
@@ -129,8 +145,8 @@ export function CakeScene() {
 
   const handlePointerUp = () => {
     isDraggingRef.current = false;
-    trailHistory.current = []; // Clear trail
-    if (trailPathRef.current) trailPathRef.current.setAttribute('d', ''); // Hide trail visual
+    trailHistory.current = [];
+    if (trailPathRef.current) trailPathRef.current.setAttribute('d', '');
     
     if (knifeRef.current) {
       gsap.to(knifeRef.current, { rotation: 0, scale: 1, duration: 0.4, ease: 'back.out' });
@@ -139,7 +155,7 @@ export function CakeScene() {
 
   // --- VISUAL EFFECTS ---
 
-  // 2. The "Swoosh" Motion Trail Implementation
+  // 2. The "Swoosh" Motion Trail
   const updateTrail = (x: number, y: number) => {
     if (settings.reducedMotion) return;
 
@@ -149,17 +165,11 @@ export function CakeScene() {
     }
 
     if (trailPathRef.current && trailHistory.current.length > 1) {
-       // Create a smooth svg path string from points
-       const points = trailHistory.current.map(p => `${p.x},${p.y}`).join(' ');
-       // Using polyline logic for speed, or Bezier for smoothness. Let's do simple polyline for performance.
-       // Actually, constructing a 'd' attribute is better for 'path'.
        let d = `M ${trailHistory.current[0].x} ${trailHistory.current[0].y}`;
        for (let i = 1; i < trailHistory.current.length; i++) {
          d += ` L ${trailHistory.current[i].x} ${trailHistory.current[i].y}`;
        }
        trailPathRef.current.setAttribute('d', d);
-       
-       // Dynamic opacity based on speed could go here, but CSS stroke-dash is easier
     }
   };
 
@@ -185,13 +195,11 @@ export function CakeScene() {
     const id = Date.now();
     const angle = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
 
-    // Add visual glowing line (temporary)
     setActiveSliceLines(prev => [...prev, { x1, y1, x2, y2, id }]);
     
-    // 1. Add Persistent Scar (Dark crevice)
+    // 1. Add Persistent Scar
     setScars(prev => [...prev, { x1, y1, x2, y2, id, rotation: angle }]);
     
-    // Remove glowing line after effect, but keep scar
     setTimeout(() => {
       setActiveSliceLines(prev => prev.filter(line => line.id !== id));
     }, 500);
@@ -243,28 +251,28 @@ export function CakeScene() {
 
     setIsSlicing(true);
     const newCount = sliceCount + 1;
-    const isFinalSlice = newCount === 8; // 3. Check for Grand Finale
+    const isFinalSlice = newCount === 8;
 
     // 4. Dynamic Icing Logic: Split text if we hit the middle roughly
-    if (!icingSplit && sliceX && sliceX > 30 && sliceX < 70 && sliceY && sliceY > 30 && sliceY < 70) {
+    // Changed for "20": Hit the top half of the cake where the icing is
+    if (!icingSplit && sliceX && sliceX > 30 && sliceX < 70 && sliceY && sliceY < 50) {
         setIcingSplit(true);
-        // Animate the split parts
         if (icingRef.current) {
             const leftPart = icingRef.current.querySelector('.icing-left');
             const rightPart = icingRef.current.querySelector('.icing-right');
             if (leftPart && rightPart) {
-                gsap.to(leftPart, { x: -20, rotation: -15, duration: 0.5, ease: 'back.out' });
-                gsap.to(rightPart, { x: 20, rotation: 15, duration: 0.5, ease: 'back.out' });
+                // Split the '2' and the '0' apart
+                gsap.to(leftPart, { x: -25, y: 5, rotation: -25, duration: 0.6, ease: 'back.out(2)' });
+                gsap.to(rightPart, { x: 25, y: -5, rotation: 15, duration: 0.6, ease: 'back.out(2)' });
             }
         }
     }
 
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate(isFinalSlice ? [50, 50, 100] : 40); // Heavier vibration on finale
+        navigator.vibrate(isFinalSlice ? [50, 50, 100] : 40);
     }
 
     if (settings.soundEnabled) {
-      // Muffle sound for finale? Ideally we'd pitch shift, but we'll just play a louder hit
       audioManager.play('hit'); 
     }
 
@@ -274,10 +282,8 @@ export function CakeScene() {
 
     // 3. Grand Finale Slow Motion
     if (isFinalSlice && !settings.reducedMotion) {
-        // Slow down time for drama
         gsap.globalTimeline.timeScale(0.2);
         
-        // Heavy Screen Shake
         gsap.to(containerRef.current, {
             x: 5, y: 5, 
             duration: 0.1, 
@@ -285,19 +291,18 @@ export function CakeScene() {
             yoyo: true, 
             clearProps: "x,y",
             onComplete: () => {
-                 gsap.globalTimeline.timeScale(1); // Resume speed
+                 gsap.globalTimeline.timeScale(1);
             }
         });
 
-        // Flash Effect
         gsap.fromTo("body", { backgroundColor: "white" }, { backgroundColor: "", duration: 0.1, clearProps: "all" });
     }
 
     // Impact Physics
     if (!settings.reducedMotion && cakeRef.current) {
       gsap.fromTo(cakeRef.current, 
-        { scaleY: isFinalSlice ? 0.85 : 0.95, scaleX: isFinalSlice ? 1.15 : 1.05 }, // Heavier squash on finale
-        { scaleY: 1, scaleX: 1, duration: isFinalSlice ? 2.5 : 0.5, ease: 'elastic.out(1.5, 0.4)' } // Slower recovery on finale
+        { scaleY: isFinalSlice ? 0.85 : 0.95, scaleX: isFinalSlice ? 1.15 : 1.05 },
+        { scaleY: 1, scaleX: 1, duration: isFinalSlice ? 2.5 : 0.5, ease: 'elastic.out(1.5, 0.4)' }
       );
     }
 
@@ -319,7 +324,7 @@ export function CakeScene() {
       if (newCount >= 8) {
         handleCompletion();
       }
-    }, isFinalSlice ? 300 : 150); // Longer delay on finale
+    }, isFinalSlice ? 300 : 150);
   };
 
   const handleCompletion = () => {
@@ -338,7 +343,7 @@ export function CakeScene() {
 
   const handleButtonSlice = () => {
     const x = 50 + (Math.random() * 20 - 10);
-    const y = 50 + (Math.random() * 20 - 10);
+    const y = 35 + (Math.random() * 20 - 10); // Aim higher for the button slice to hit icing
     
     if (knifeRef.current) {
         gsap.to(knifeRef.current, {
@@ -407,7 +412,7 @@ export function CakeScene() {
           </filter>
         </defs>
         
-        {/* 2. Motion Trail Path (Behind active lines) */}
+        {/* 2. Motion Trail Path */}
         <path 
            ref={trailPathRef}
            fill="none"
@@ -418,7 +423,7 @@ export function CakeScene() {
            style={{ filter: 'blur(2px)' }}
         />
 
-        {/* 1. Permanent Scars (Dark Crevices) */}
+        {/* 1. Permanent Scars */}
         {scars.map((line) => (
           <line
             key={`scar-${line.id}`}
@@ -426,10 +431,10 @@ export function CakeScene() {
             y1={`${line.y1}%`}
             x2={`${line.x2}%`}
             y2={`${line.y2}%`}
-            stroke="#1a0505" // Dark chocolate/shadow color
-            strokeWidth="4"
+            stroke="#2A0A0A"
+            strokeWidth="3"
             strokeLinecap="round"
-            className="opacity-60"
+            className="opacity-50 mix-blend-overlay"
           />
         ))}
 
@@ -465,7 +470,7 @@ export function CakeScene() {
       {/* --- MAIN STAGE UI --- */}
       <div className="relative z-30 flex flex-col items-center justify-center w-full h-full max-w-4xl mx-auto px-6">
         
-        {/* Enhanced Header Title */}
+        {/* Header Title */}
         <div className="text-center mb-10 relative group">
            <div className="inline-flex items-center justify-center gap-3 mb-2 opacity-80">
               <span className="h-px w-8 bg-gradient-to-r from-transparent to-pink-300/50" />
@@ -507,27 +512,22 @@ export function CakeScene() {
               draggable="false"
             />
             
-            {/* 4. Dynamic Icing Overlay */}
-            <div ref={icingRef} className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none" style={{ top: '-10%' }}>
+            {/* 4. Aesthetic Icing Overlay "20" */}
+            <div ref={icingRef} className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none" 
+                 // Positioned on the top tier, slightly rotated
+                 style={{ top: '-18%', transform: 'rotate(-5deg)' }}>
                 {!icingSplit ? (
-                    // Curved text effect simulation using rotation on span is hard without library, 
-                    // sticking to stylized text block
-                    <div className="text-center transform -rotate-6">
-                        <span className="block font-handwriting text-2xl sm:text-3xl md:text-4xl text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]"
-                              style={{ color: '#FFF0F5', textShadow: '0 0 5px #FF69B4, 2px 2px 0px #C71585' }}>
-                            {displayText}
-                        </span>
+                    <div className="font-handwriting text-6xl sm:text-7xl md:text-8xl font-bold tracking-wider">
+                        {renderAestheticIcing(displayText)}
                     </div>
                 ) : (
-                    <div className="flex gap-4 transform -rotate-6">
-                        <span className="icing-left block font-handwriting text-2xl sm:text-3xl md:text-4xl text-white"
-                             style={{ color: '#FFF0F5', textShadow: '0 0 5px #FF69B4, 2px 2px 0px #C71585' }}>
-                            {displayText.split(' ')[0] || "Happy"}
-                        </span>
-                        <span className="icing-right block font-handwriting text-2xl sm:text-3xl md:text-4xl text-white"
-                             style={{ color: '#FFF0F5', textShadow: '0 0 5px #FF69B4, 2px 2px 0px #C71585' }}>
-                            {displayText.split(' ').slice(1).join(' ') || "Birthday"}
-                        </span>
+                    <div className="flex gap-2 font-handwriting text-6xl sm:text-7xl md:text-8xl font-bold tracking-wider">
+                        <div className="icing-left transform origin-bottom-right">
+                            {renderAestheticIcing("2")}
+                        </div>
+                        <div className="icing-right transform origin-bottom-left">
+                            {renderAestheticIcing("0")}
+                        </div>
                     </div>
                 )}
             </div>
@@ -544,9 +544,7 @@ export function CakeScene() {
                 opacity: isDraggingRef.current ? 1 : 0.7 
             }}
           >
-            {/* Shadow for depth */}
             <div className="absolute text-7xl opacity-20 blur-sm translate-x-4 translate-y-4 rotate-45 text-black">🗡️</div>
-            {/* The Actual Knife - Using Emoji for now but styled bigger */}
             <div className="relative text-7xl filter drop-shadow-xl rotate-45 transform origin-bottom-left">🗡️</div>
           </div>
         </div>
@@ -583,7 +581,6 @@ export function CakeScene() {
                             : 'bg-gradient-to-r from-rose-600 to-pink-600 text-white border-white/20 hover:shadow-pink-500/20'
                           }`}
              >
-                {/* Shine effect */}
                 <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000" />
                 
                 <span className="relative flex items-center justify-center gap-2">
