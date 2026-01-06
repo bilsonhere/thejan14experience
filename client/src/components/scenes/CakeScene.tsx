@@ -5,7 +5,7 @@ import { Button } from '../ui/button';
 import { AdaptiveParticleSystem } from '../AdaptiveParticleSystem';
 import gsap from 'gsap';
 import Confetti from 'react-confetti';
-import { Sparkles, Scissors, Utensils } from 'lucide-react';
+import { Sparkles, Scissors, Utensils, PartyPopper } from 'lucide-react';
 
 const TRAIL_LENGTH = 10;
 
@@ -23,7 +23,6 @@ export function CakeScene() {
   
   // 4. Dynamic Icing State
   const [icingSplit, setIcingSplit] = useState(false);
-  // CHANGED: Hardcoded to "20" as requested
   const displayText = "20"; 
 
   const cakeRef = useRef<HTMLDivElement>(null);
@@ -40,19 +39,23 @@ export function CakeScene() {
   const trailHistory = useRef<{x: number, y: number}[]>([]);
   const velocityRef = useRef({ vx: 0, vy: 0 }); 
 
-  // Helper to create the 3D icing look
+  // Helper to create the 3D icing look (Enhanced for "Thick Frosting" look)
   const renderAestheticIcing = (text: string) => (
-    <div className="relative inline-block filter drop-shadow-md">
+    <div className="relative inline-block filter drop-shadow-lg">
         {/* Deep Shadow Layer */}
-        <span className="absolute inset-0 translate-y-[3px] translate-x-[2px] text-pink-800/60 select-none z-0" aria-hidden="true">
+        <span className="absolute inset-0 translate-y-[4px] translate-x-[3px] text-rose-900/40 select-none z-0 blur-[1px]" aria-hidden="true">
             {text}
         </span>
-        {/* Main Body Layer with inner shadow border */}
-        <span className="absolute inset-0 text-pink-500 select-none z-10" style={{ textShadow: '-1px -1px 0px #fce7f3, 1px 1px 0px #be185d' }} aria-hidden="true">
+        {/* Cream Body */}
+        <span className="absolute inset-0 text-pink-500 select-none z-10" 
+              style={{ 
+                  textShadow: '2px 2px 0px #be185d, -1px -1px 2px #fbcfe8',
+                  filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.3))'
+              }} aria-hidden="true">
             {text}
         </span>
-        {/* Highlight Layer */}
-        <span className="relative text-pink-100/90 select-none z-20 mix-blend-overlay">
+        {/* Specular Highlight (The tasty shine) */}
+        <span className="relative text-white/80 select-none z-20 mix-blend-overlay" style={{ textShadow: '0px 2px 4px rgba(255,255,255,0.5)' }}>
             {text}
         </span>
     </div>
@@ -253,15 +256,13 @@ export function CakeScene() {
     const newCount = sliceCount + 1;
     const isFinalSlice = newCount === 8;
 
-    // 4. Dynamic Icing Logic: Split text if we hit the middle roughly
-    // Changed for "20": Hit the top half of the cake where the icing is
+    // 4. Dynamic Icing Logic
     if (!icingSplit && sliceX && sliceX > 30 && sliceX < 70 && sliceY && sliceY < 50) {
         setIcingSplit(true);
         if (icingRef.current) {
             const leftPart = icingRef.current.querySelector('.icing-left');
             const rightPart = icingRef.current.querySelector('.icing-right');
             if (leftPart && rightPart) {
-                // Split the '2' and the '0' apart
                 gsap.to(leftPart, { x: -25, y: 5, rotation: -25, duration: 0.6, ease: 'back.out(2)' });
                 gsap.to(rightPart, { x: 25, y: -5, rotation: 15, duration: 0.6, ease: 'back.out(2)' });
             }
@@ -291,7 +292,7 @@ export function CakeScene() {
             yoyo: true, 
             clearProps: "x,y",
             onComplete: () => {
-                 gsap.globalTimeline.timeScale(1);
+                  gsap.globalTimeline.timeScale(1);
             }
         });
 
@@ -343,7 +344,7 @@ export function CakeScene() {
 
   const handleButtonSlice = () => {
     const x = 50 + (Math.random() * 20 - 10);
-    const y = 35 + (Math.random() * 20 - 10); // Aim higher for the button slice to hit icing
+    const y = 35 + (Math.random() * 20 - 10); 
     
     if (knifeRef.current) {
         gsap.to(knifeRef.current, {
@@ -371,7 +372,7 @@ export function CakeScene() {
     <div
       ref={containerRef}
       className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden
-                 bg-slate-950 select-none touch-none"
+                 bg-slate-900 select-none touch-none"
       onMouseDown={handlePointerDown}
       onMouseMove={handlePointerMove}
       onMouseUp={handlePointerUp}
@@ -380,23 +381,31 @@ export function CakeScene() {
       onTouchMove={handlePointerMove}
       onTouchEnd={handlePointerUp}
     >
-      {/* --- BACKGROUND STAGE --- */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-rose-900/40 via-slate-950 to-slate-950" />
-      <div
-        className="absolute inset-0 transition-opacity duration-1000 mix-blend-overlay"
-        style={{
-          backgroundImage: `url(${bgImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          opacity: 0.2,
-        }}
-      />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] 
-                      bg-radial-gradient from-indigo-500/10 to-transparent blur-3xl pointer-events-none" />
+      {/* --- BACKGROUND STAGE (IRL ROOM FEEL) --- */}
       
+      {/* 1. Deep Room Colors + "Floor" Horizon */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#1a0b2e] via-[#2d1b4e] to-[#0f0518]" />
+      
+      {/* 2. Spotlight on the Table (Radial Gradient) */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[150vw] h-[50vh] 
+                      bg-[radial-gradient(ellipse_at_center,_rgba(255,100,150,0.15),_transparent_70%)] 
+                      pointer-events-none blur-3xl" />
+
+      {/* 3. Disco / Ambient Lights */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/20 blur-[100px] rounded-full mix-blend-screen animate-pulse" style={{ animationDuration: '4s' }} />
+      <div className="absolute bottom-10 right-10 w-64 h-64 bg-pink-500/10 blur-[80px] rounded-full mix-blend-screen animate-pulse" style={{ animationDuration: '3s', animationDelay: '1s' }} />
+
+      {/* 4. GRAFFITI WALL "20" */}
+      <div className="absolute top-[15%] left-1/2 -translate-x-1/2 w-full flex justify-center pointer-events-none opacity-40 mix-blend-overlay select-none">
+          <div className="text-[12rem] sm:text-[18rem] font-black leading-none tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-pink-600 to-purple-800 rotate-[-5deg]"
+               style={{ textShadow: '0 0 40px rgba(236, 72, 153, 0.5)', WebkitTextStroke: '2px rgba(255,255,255,0.1)' }}>
+            20
+          </div>
+      </div>
+
       <div className="absolute inset-0 pointer-events-none">
-         <div className="absolute top-1/4 left-1/4 animate-pulse text-yellow-200/20 text-4xl blur-[1px]">✨</div>
-         <div className="absolute bottom-1/3 right-1/4 animate-pulse delay-700 text-pink-200/20 text-2xl blur-[1px]">✨</div>
+         <div className="absolute top-1/4 left-1/4 animate-pulse text-yellow-200/40 text-4xl blur-[1px]">✨</div>
+         <div className="absolute bottom-1/3 right-1/4 animate-pulse delay-700 text-pink-200/40 text-2xl blur-[1px]">✨</div>
       </div>
 
       {/* --- GAMEPLAY LAYERS --- */}
@@ -416,11 +425,11 @@ export function CakeScene() {
         <path 
            ref={trailPathRef}
            fill="none"
-           stroke="rgba(255, 255, 255, 0.3)"
+           stroke="rgba(255, 255, 255, 0.6)"
            strokeWidth="12"
            strokeLinecap="round"
            strokeLinejoin="round"
-           style={{ filter: 'blur(2px)' }}
+           style={{ filter: 'drop-shadow(0 0 10px white)' }}
         />
 
         {/* 1. Permanent Scars */}
@@ -431,10 +440,10 @@ export function CakeScene() {
             y1={`${line.y1}%`}
             x2={`${line.x2}%`}
             y2={`${line.y2}%`}
-            stroke="#2A0A0A"
-            strokeWidth="3"
+            stroke="#3f0f18"
+            strokeWidth="4"
             strokeLinecap="round"
-            className="opacity-50 mix-blend-overlay"
+            className="opacity-60 mix-blend-multiply"
           />
         ))}
 
@@ -450,7 +459,7 @@ export function CakeScene() {
             strokeWidth="6"
             strokeLinecap="round"
             filter="url(#glow)"
-            className="opacity-80"
+            className="opacity-90"
           />
         ))}
       </svg>
@@ -471,31 +480,32 @@ export function CakeScene() {
       <div className="relative z-30 flex flex-col items-center justify-center w-full h-full max-w-4xl mx-auto px-6">
         
         {/* Header Title */}
-        <div className="text-center mb-10 relative group">
-           <div className="inline-flex items-center justify-center gap-3 mb-2 opacity-80">
-              <span className="h-px w-8 bg-gradient-to-r from-transparent to-pink-300/50" />
-              <span className="text-xs uppercase tracking-[0.3em] text-pink-200/70 font-medium">Ceremony</span>
-              <span className="h-px w-8 bg-gradient-to-l from-transparent to-pink-300/50" />
+        <div className="text-center mb-6 relative group">
+           <div className="inline-flex items-center justify-center gap-3 mb-2 opacity-90">
+             <span className="h-[2px] w-8 bg-pink-500/50 shadow-[0_0_10px_#ec4899]" />
+             <span className="text-xs uppercase tracking-[0.4em] text-pink-300 font-bold drop-shadow-md">Level 20 Unlocked</span>
+             <span className="h-[2px] w-8 bg-pink-500/50 shadow-[0_0_10px_#ec4899]" />
            </div>
            
-           <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-transparent bg-clip-text 
-                          bg-gradient-to-b from-white via-pink-100 to-rose-200 
-                          drop-shadow-[0_4px_10px_rgba(255,255,255,0.2)] font-serif tracking-tight pb-2
+           <h1 className="text-5xl sm:text-6xl md:text-7xl font-black text-transparent bg-clip-text 
+                          bg-gradient-to-b from-white via-pink-100 to-rose-300 
+                          drop-shadow-[0_4px_10px_rgba(255,255,255,0.2)] tracking-tight pb-2
                           transition-transform duration-500 hover:scale-[1.02]">
-             Slice the Cake
+             CUT THE CAKE
            </h1>
            
            <div className={`absolute left-0 right-0 -bottom-12 transition-all duration-700 
                             ${showSliceGuide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-black/40 border border-white/10 text-white/90 text-sm backdrop-blur-md shadow-lg">
-               <Scissors className="w-4 h-4 animate-pulse text-pink-400" /> Swipe across to cut
+             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-black/60 border border-pink-500/30 text-white/90 text-sm backdrop-blur-md shadow-[0_0_20px_rgba(236,72,153,0.3)]">
+               <Scissors className="w-4 h-4 animate-pulse text-pink-400" /> Swipe to slice!
              </span>
            </div>
         </div>
 
         {/* The Cake Interaction Zone */}
         <div className="relative group cursor-none my-4 perspective-1000">
-           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-56 h-12 bg-black/60 blur-xl rounded-[100%] scale-110" />
+           {/* Real Shadow to Ground the Cake */}
+           <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-64 h-16 bg-black/80 blur-xl rounded-[100%]" />
 
            <div
             ref={cakeRef}
@@ -503,12 +513,12 @@ export function CakeScene() {
                        transition-transform will-change-transform z-20"
            >
             {/* Hover Glow Aura */}
-            <div className="absolute inset-0 bg-rose-500/10 rounded-full blur-3xl scale-90 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            <div className="absolute inset-0 bg-rose-500/20 rounded-full blur-3xl scale-90 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
             
             <img
               src="/assets/cakes/cake1.svg"
               alt="Birthday Cake"
-              className="relative w-full h-full object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.3)] filter brightness-110"
+              className="relative w-full h-full object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] filter brightness-105"
               draggable="false"
             />
             
@@ -550,18 +560,18 @@ export function CakeScene() {
         </div>
 
         {/* HUD: Progress & Controls */}
-        <div className="w-full max-w-md mt-12 flex flex-col gap-8">
+        <div className="w-full max-w-md mt-12 flex flex-col gap-6">
           
-          {/* Progress Slices (Scoreboard) */}
-          <div className="flex justify-center items-end gap-3 h-12 px-4 py-2 bg-white/5 rounded-full backdrop-blur-sm border border-white/5">
+          {/* Progress Slices (Scoreboard Style) */}
+          <div className="flex justify-center items-end gap-3 h-14 px-6 py-2 bg-black/30 rounded-full backdrop-blur-xl border border-white/10 shadow-lg">
             {Array.from({ length: 8 }).map((_, i) => (
               <div
                 key={i}
                 ref={(el) => (slicesRef.current[i] = el)}
-                className={`text-xl sm:text-2xl transition-all duration-500 transform ${
+                className={`text-2xl transition-all duration-500 transform ${
                   i < sliceCount 
-                    ? 'opacity-100 scale-125 filter drop-shadow-[0_0_10px_rgba(251,191,36,0.6)] -translate-y-1' 
-                    : 'opacity-20 scale-90 grayscale blur-[0.5px]'
+                    ? 'opacity-100 scale-110 filter drop-shadow-[0_0_8px_#fcd34d] -translate-y-1' 
+                    : 'opacity-20 scale-90 grayscale blur-[1px]'
                 }`}
               >
                 🍰
@@ -569,23 +579,22 @@ export function CakeScene() {
             ))}
           </div>
 
-          {/* Controls */}
+          {/* Controls - Glassmorphism Buttons */}
           <div className="flex gap-4">
              <Button
                onClick={(e) => { e.stopPropagation(); handleButtonSlice(); }}
                disabled={isSlicing || sliceCount >= 8}
-               className={`flex-1 py-7 rounded-2xl font-bold text-lg shadow-2xl border backdrop-blur-md overflow-hidden relative group
-                          transition-all duration-300 hover:-translate-y-1 active:scale-95 active:translate-y-0
+               className={`flex-1 h-16 rounded-2xl font-bold text-lg shadow-xl backdrop-blur-md border overflow-hidden relative group transition-all duration-300
                           ${sliceCount >= 8 
-                            ? 'bg-emerald-500/20 text-emerald-200 border-emerald-500/50' 
-                            : 'bg-gradient-to-r from-rose-600 to-pink-600 text-white border-white/20 hover:shadow-pink-500/20'
+                            ? 'bg-emerald-500/20 text-emerald-200 border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.2)]' 
+                            : 'bg-white/10 text-white border-white/20 hover:bg-white/20 hover:border-pink-500/50 hover:shadow-[0_0_20px_rgba(236,72,153,0.3)]'
                           }`}
              >
-                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000" />
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
                 
                 <span className="relative flex items-center justify-center gap-2">
                     {sliceCount >= 8 ? <Sparkles className="w-5 h-5" /> : <Utensils className="w-5 h-5" />}
-                    {sliceCount >= 8 ? 'Perfectly Sliced!' : 'Slice It!'}
+                    {sliceCount >= 8 ? 'Slice Complete!' : 'Slice for me'}
                 </span>
              </Button>
 
@@ -593,7 +602,7 @@ export function CakeScene() {
                 <Button
                   onClick={(e) => { e.stopPropagation(); navigateTo('candle'); }}
                   variant="ghost"
-                  className="px-6 py-7 rounded-2xl text-pink-200/60 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10 transition-all"
+                  className="h-16 px-6 rounded-2xl text-pink-200/60 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10 transition-all font-semibold"
                 >
                   Skip
                 </Button>
@@ -604,25 +613,25 @@ export function CakeScene() {
 
       {/* --- SUCCESS OVERLAY --- */}
       {showSuccess && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-700">
-          <div className="w-full max-w-sm bg-gradient-to-b from-slate-900 to-black rounded-[2rem] p-8 border border-white/10 shadow-[0_0_50px_rgba(244,114,182,0.2)] text-center transform animate-in zoom-in-95 duration-500">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-lg animate-in fade-in duration-700">
+          <div className="w-full max-w-sm bg-gradient-to-b from-slate-900 to-black rounded-[2rem] p-8 border border-pink-500/30 shadow-[0_0_50px_rgba(236,72,153,0.3)] text-center transform animate-in zoom-in-95 duration-500">
             
-            <div className="text-8xl mb-8 animate-bounce filter drop-shadow-2xl">🎂</div>
+            <div className="text-8xl mb-6 animate-bounce filter drop-shadow-2xl">🎁</div>
             
-            <h2 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-pink-200 to-purple-200 mb-4 font-serif">
-              Bon Appétit!
+            <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-300 mb-2 font-serif tracking-tight">
+              Happy Birthday!
             </h2>
             
-            <p className="text-slate-400 mb-10 leading-relaxed font-light text-lg">
-              The cake is served. Now for the most magical part...
+            <p className="text-slate-400 mb-10 leading-relaxed font-medium">
+              The cake is ready. Time to make a wish?
             </p>
             
             <Button
               onClick={() => navigateTo('candle')}
-              className="w-full py-8 text-xl font-bold rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-white shadow-[0_0_30px_rgba(245,158,11,0.4)] transition-all hover:scale-[1.02] active:scale-95 group"
+              className="w-full h-16 text-xl font-bold rounded-2xl bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white shadow-[0_0_30px_rgba(236,72,153,0.4)] transition-all hover:scale-[1.02] active:scale-95 group border border-white/20"
             >
               <span className="flex items-center justify-center gap-3">
-                 Light the Candles <span className="group-hover:animate-pulse">🕯️</span>
+                 Light Candles <PartyPopper className="w-5 h-5 group-hover:rotate-12 transition-transform"/>
               </span>
             </Button>
           </div>
