@@ -71,7 +71,7 @@ const LIFE_EVENTS_DB: LifeEvent[] = [
     type: 'MEMORY',
     title: "DNA ROOMIE 1 IS BORNNN",
     description: "SHES JUST LIKE ME FR FR",
-    buttonText: "Welcome Maryammmm💕",
+    buttonText: "Welcome Maryam💕",
     icon: Heart,
     color: "bg-purple-400",
     age: 3,
@@ -98,8 +98,8 @@ const LIFE_EVENTS_DB: LifeEvent[] = [
     buttonText: "Best Week Ever! ✨",
     icon: Heart,
     color: "bg-pink-500",
-    age: 11,
-    priority: 1,
+    age: 16,
+    priority: 3,
     tags: ['family', 'travel', 'celebration']
   },
   {
@@ -229,7 +229,7 @@ const LIFE_EVENTS_DB: LifeEvent[] = [
     type: 'OBSTACLE',
     title: "Moving Out for College",
     description: "Packing my life into suitcases. New Chapter awaits!",
-    buttonText: "Bangalore Here I COMEEE!! 🧳",
+    buttonText: "Bangalore Here I COME!🧳",
     icon: Home,
     color: "bg-rose-500",
     age: 19,
