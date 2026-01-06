@@ -4,14 +4,14 @@ import { AdaptiveParticleSystem } from '../AdaptiveParticleSystem';
 import gsap from 'gsap';
 import { audioManager } from '../../lib/audioManager';
 import Confetti from 'react-confetti';
-import { Crown, ChevronRight } from 'lucide-react';
+import { Crown, ChevronRight, Sparkles, Star } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
-/* HELPER: LUXURY CLOCK HANDS */
+/* SUB-COMPONENT: LUXURY CLOCK HANDS (PRESERVED & POLISHED) */
 /* ------------------------------------------------------------------ */
 const ClockHands = () => (
   <div className="absolute inset-0 z-20 pointer-events-none">
-    {/* Central Pin */}
+    {/* Central Pin mechanism */}
     <div className="absolute top-1/2 left-1/2 w-6 h-6 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-tr from-slate-200 to-slate-400 shadow-[0_0_20px_rgba(255,255,255,0.5)] z-30 border-2 border-slate-500 ring-2 ring-black/20" />
     <div className="absolute top-1/2 left-1/2 w-2 h-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-pink-500 z-40 animate-pulse" />
 
@@ -27,256 +27,156 @@ const ClockHands = () => (
   </div>
 );
 
-/* ------------------------------------------------------------------ */
-/* COMPONENT: MIDNIGHT SCENE */
-/* ------------------------------------------------------------------ */
-type Phase = 'silence' | 'intro' | 'narrative' | 'accelerating' | 'stillness' | 'warp' | 'counting' | 'finale';
+type Phase = 'idle' | 'prologue' | 'accelerating' | 'counting' | 'finale';
 
 export function MidnightScene() {
   const { navigateTo, settings } = useSceneStore();
   
-  // -- State --
-  const [phase, setPhase] = useState<Phase>('silence');
+  // Game State
+  const [phase, setPhase] = useState<Phase>('idle');
   const [countdown, setCountdown] = useState<number | null>(null);
-  const [warpSpeed, setWarpSpeed] = useState(0.2); 
-  const [warpColor, setWarpColor] = useState("#1a1a2e");
-  const [particleCount, setParticleCount] = useState(20);
-  const [currentText, setCurrentText] = useState<string>('');
+  
+  // Visual State
+  const [warpSpeed, setWarpSpeed] = useState(0.1); // Start very slow (stars)
+  const [warpColor, setWarpColor] = useState("#A78BFA");
+  const [filmGrainOpacity, setFilmGrainOpacity] = useState(0.05);
 
-  // -- Refs --
+  // Refs
   const containerRef = useRef<HTMLDivElement>(null);
   const clockContainerRef = useRef<HTMLDivElement>(null);
   const numberRingRef = useRef<HTMLDivElement>(null);
-  const cinematicContainerRef = useRef<HTMLDivElement>(null);
   const titleGroupRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
+  const cinematicTextRef = useRef<HTMLDivElement>(null);
 
   /* ------------------------------------------------------------------ */
-  /* ACT I: SILENCE & DARKNESS */
+  /* SETUP & IDLE */
   /* ------------------------------------------------------------------ */
   useEffect(() => {
-    // Initial setup - total darkness
     if (containerRef.current) {
-      gsap.set(containerRef.current, { opacity: 0 });
-      
-      // Start with ambient sound
-      if (settings.soundEnabled) {
-        audioManager.play('ambient', { loop: true, volume: 0.3 });
-      }
-      
-      // Slowly fade in grain/noise
-      setTimeout(() => {
-        setPhase('intro');
-        gsap.to(containerRef.current, { 
-          opacity: 1, 
-          duration: 8, 
-          ease: 'power2.inOut',
-          onComplete: () => startNarrativeSequence()
-        });
-      }, 2000);
+      gsap.fromTo(containerRef.current, { opacity: 0 }, { opacity: 1, duration: 2 });
     }
-    
-    // Ambient particles
-    const interval = setInterval(() => {
-      setParticleCount(prev => prev + (prev < 80 ? 1 : 0));
-    }, 100);
-    
-    return () => clearInterval(interval);
-  }, [settings.soundEnabled]);
+  }, []);
 
   /* ------------------------------------------------------------------ */
-  /* ACT II: NARRATIVE & TIME FEELING */
+  /* SEQUENCE 1: THE CINEMATIC PROLOGUE ("20 Years Ago...") */
   /* ------------------------------------------------------------------ */
-  const startNarrativeSequence = () => {
-    setPhase('narrative');
-    
-    const texts = [
-      "BEFORE TIME",
-      "THERE WAS DARKNESS",
-      "AND FROM THE DARKNESS",
-      "A HEARTBEAT",
-      "20 YEARS AGO..."
-    ];
-    
-    let textIndex = 0;
-    
-    const showNextText = () => {
-      if (textIndex >= texts.length) {
-        // End of narrative, wait for interaction
-        setPhase('intro');
-        return;
-      }
-      
-      setCurrentText(texts[textIndex]);
-      textIndex++;
-      
-      // Longer pause for dramatic effect
-      setTimeout(() => {
-        setCurrentText('');
-        setTimeout(showNextText, 1000); // Silence between lines
-      }, 3000);
-    };
-    
-    showNextText();
-    
-    // Slowly increase particle drift to simulate "coming to life"
-    gsap.to({}, {
-      duration: 20,
-      onUpdate: () => {
-        setWarpSpeed(prev => Math.min(prev + 0.01, 0.5));
-        setWarpColor(`rgb(${40 + textIndex * 10}, ${20 + textIndex * 5}, ${80 + textIndex * 20})`);
-      }
-    });
-  };
-
-  /* ------------------------------------------------------------------ */
-  /* TRANSITION: APPROACHING THE MOMENT */
-  /* ------------------------------------------------------------------ */
-  const startApproachSequence = () => {
-    setPhase('accelerating');
-    
-    if (settings.soundEnabled) {
-      audioManager.stop('ambient');
-      audioManager.play('click');
-    }
+  const startCinematicSequence = () => {
+    setPhase('prologue');
+    if (settings.soundEnabled) audioManager.play('click'); 
 
     const tl = gsap.timeline({
-      onComplete: () => setPhase('stillness')
+        onComplete: () => startWarpSequence() // Trigger warp after text
     });
 
-    // 1. Hide UI with cinematic dissolve
-    tl.to('.start-ui', { 
-      opacity: 0, 
-      scale: 0.9, 
-      duration: 1.5, 
-      ease: 'power2.inOut',
-      filter: 'blur(20px)'
-    });
+    // 1. Fade out UI
+    tl.to('.start-ui', { opacity: 0, y: 20, duration: 1, ease: 'power2.inOut' });
 
-    // 2. Negative space expansion
-    tl.to(containerRef.current, {
-      scale: 1.2,
-      duration: 4,
-      ease: 'power2.inOut'
-    }, "-=1");
-
-    // 3. Warp speed build-up
-    tl.to({}, {
-      duration: 3,
-      onUpdate: function() {
-        const progress = this.progress();
-        setWarpSpeed(progress * 30);
-        setParticleCount(Math.floor(80 + progress * 300));
-        setWarpColor(`rgb(${255}, ${255 - progress * 200}, ${255})`);
-      }
+    // 2. Increase Film Grain for "Flashback" feel
+    tl.to({}, { 
+        duration: 1, 
+        onUpdate: function() { setFilmGrainOpacity(0.15 + (this.progress() * 0.1)) } // Ramp up noise
     }, "<");
 
-    // 4. Cinematic text during acceleration
-    const accelerationTexts = ["LEAVING 19", "APPROACHING", "THE MOMENT"];
+    // 3. Cinematic Text Series
+    const narrative = [
+        "20 YEARS AGO...",
+        "A JOURNEY BEGAN",
+        "MOMENTS BECAME MEMORIES",
+        "AND TODAY...",
+        "WE CELEBRATE YOU"
+    ];
     
-    accelerationTexts.forEach((text, i) => {
-      const el = document.createElement('div');
-      el.innerText = text;
-      el.className = `absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
-        text-5xl md:text-8xl font-thin text-transparent bg-clip-text 
-        bg-gradient-to-b from-white/90 to-white/40 
-        tracking-[0.3em] uppercase opacity-0 blur-sm 
-        whitespace-nowrap z-40 font-disletter`;
-      
-      cinematicContainerRef.current?.appendChild(el);
-      
-      const offset = i * 1.5;
-      
-      tl.to(el, {
-        opacity: 1,
-        blur: 0,
-        scale: 1.05,
-        duration: 0.6,
-        ease: "power2.out"
-      }, `+=${offset}`);
-      
-      tl.to(el, {
-        opacity: 0,
-        blur: 20,
-        scale: 1.8,
-        duration: 0.4,
-        ease: "power2.in"
-      }, `+=0.8`);
-    });
+    if (cinematicTextRef.current) {
+        narrative.forEach((text, i) => {
+            const el = document.createElement('div');
+            el.innerText = text;
+            // Elegant Serif for the flashback feel
+            el.className = "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl md:text-5xl font-serif italic text-white/90 tracking-widest opacity-0 blur-sm whitespace-nowrap z-40";
+            cinematicTextRef.current?.appendChild(el);
 
-    // 5. Final buildup to stillness
-    tl.to(containerRef.current, {
-      backgroundColor: '#0a0a0a',
-      duration: 1,
-      onComplete: () => {
-        setTimeout(() => {
-          setPhase('warp');
-          triggerWarpCut();
-        }, 1500);
-      }
-    });
+            // Smooth Fade In/Out - Not rushed
+            tl.to(el, { 
+                opacity: 1, 
+                blur: 0, 
+                scale: 1.1, 
+                duration: 1.5, // Slow read time
+                ease: "power2.out" 
+            });
+            
+            tl.to(el, { 
+                opacity: 0, 
+                blur: 5, 
+                scale: 1.2, 
+                duration: 1, 
+                ease: "power2.in" 
+            }, ">+0.5"); // Pause for reading
+        });
+    }
   };
 
   /* ------------------------------------------------------------------ */
-  /* THE WARP CUT */
+  /* SEQUENCE 2: THE WARP (Transition to Present) */
   /* ------------------------------------------------------------------ */
-  const triggerWarpCut = () => {
-    // Immediate effect - like a film cut
-    if (containerRef.current) {
-      gsap.to(containerRef.current, {
-        backgroundColor: '#ffffff',
-        duration: 0.05,
-        onComplete: () => {
-          gsap.to(containerRef.current, {
-            backgroundColor: '#05030a',
-            duration: 0.8,
-            onComplete: revealClock
-          });
+  const startWarpSequence = () => {
+    setPhase('accelerating');
+    
+    // Clear text container just in case
+    if (cinematicTextRef.current) cinematicTextRef.current.innerHTML = '';
+
+    const tl = gsap.timeline({
+        onComplete: () => startClockSequence()
+    });
+
+    // 1. Clean up grain (Moving to clean modern digital look)
+    tl.to({}, { 
+        duration: 2, 
+        onUpdate: function() { setFilmGrainOpacity(0.15 - (this.progress() * 0.12)) }
+    });
+
+    // 2. Ramp up Warp Speed
+    tl.to({}, { 
+        duration: 3, 
+        ease: "expo.in", 
+        onStart: () => setWarpColor("#FFFFFF"),
+        onUpdate: function() { 
+            const progress = this.progress();
+            setWarpSpeed(0.2 + (progress * 40)); 
         }
-      });
-    }
-    
-    // Screen shake
-    gsap.to(containerRef.current, {
-      x: -10,
-      y: 10,
-      duration: 0.05,
-      repeat: 5,
-      yoyo: true,
-      ease: 'power4.inOut'
-    });
-    
-    // Sound effect for warp
-    if (settings.soundEnabled) {
-      audioManager.play('success');
-    }
+    }, "<");
+
+    // 3. Whiteout Flash
+    tl.to(containerRef.current, { backgroundColor: '#ffffff', duration: 0.2, ease: 'power4.in' });
+    tl.to(containerRef.current, { backgroundColor: '#05030a', duration: 0.5 }, ">");
   };
 
   /* ------------------------------------------------------------------ */
-  /* SEQUENCE 3: THE CLOCK REVEAL & COUNTDOWN */
+  /* SEQUENCE 3: THE CLOCK REVEAL */
   /* ------------------------------------------------------------------ */
-  const revealClock = () => {
+  const startClockSequence = () => {
     setPhase('counting');
-    setWarpSpeed(0.5); // Calm down particles
-    setWarpColor("#A78BFA"); // Back to purple
-    if (cinematicContainerRef.current) cinematicContainerRef.current.innerHTML = '';
-
-    // Animate Clock In
+    setWarpSpeed(0.5); // Calm background
+    setWarpColor("#A78BFA"); 
+    
+    // Dramatic Entry of the Clock
     if (clockContainerRef.current) {
         gsap.fromTo(clockContainerRef.current, 
-            { scale: 5, opacity: 0, rotateZ: -90 },
-            { scale: 1, opacity: 1, rotateZ: 0, duration: 2, ease: 'elastic.out(1, 0.75)' }
+            { scale: 3, opacity: 0, rotate: -15 },
+            { 
+                scale: 1, 
+                opacity: 1, 
+                rotate: 0, 
+                duration: 2, 
+                ease: 'elastic.out(1, 0.8)', 
+            }
         );
         
-        // Spin hands initially
+        // Spin hands
         gsap.to('.clock-hand-second', { rotation: 360, duration: 2, repeat: -1, ease: 'linear', transformOrigin: 'bottom center' });
-        gsap.to('.clock-hand-minute', { rotation: 360, duration: 60, repeat: -1, ease: 'linear', transformOrigin: 'bottom center' });
+        gsap.to('.clock-hand-minute', { rotation: 360, duration: 20, repeat: -1, ease: 'linear', transformOrigin: 'bottom center' });
     }
 
-    // Begin Counting
+    // Start Countdown
     let count = 0;
-    const intervalTime = 800; // slightly faster than a second for excitement
-    
     const timer = setInterval(() => {
         count++;
         setCountdown(count);
@@ -286,27 +186,26 @@ export function MidnightScene() {
             clearInterval(timer);
             triggerFinale();
         }
-    }, intervalTime); 
+    }, 800); 
   };
 
   const handleTick = (num: number) => {
     if (settings.soundEnabled) audioManager.play('hit'); 
 
-    // Rotate ring
     if (numberRingRef.current) {
         const rotationAngle = -(num - 1) * (360 / 20); 
         gsap.to(numberRingRef.current, {
             rotation: rotationAngle,
-            duration: 0.6,
-            ease: 'back.out(1.7)' 
+            duration: 0.8,
+            ease: 'elastic.out(1.2, 0.5)' 
         });
     }
 
-    // Pulse clock
+    // Heartbeat Effect on Clock
     if (clockContainerRef.current) {
         gsap.fromTo(clockContainerRef.current, 
-            { scale: 1.05, boxShadow: '0 0 80px rgba(167,139,250,0.3)' },
-            { scale: 1, boxShadow: '0 0 40px rgba(0,0,0,0.5)', duration: 0.4 }
+            { scale: 1.02, boxShadow: '0 0 80px rgba(168,85,247,0.3)' },
+            { scale: 1, boxShadow: '0 0 40px rgba(0,0,0,0.5)', duration: 0.4, ease: 'power2.out' }
         );
     }
   };
@@ -319,209 +218,192 @@ export function MidnightScene() {
         setPhase('finale');
         if (settings.soundEnabled) audioManager.play('success');
 
+        // Explosion Background
+        gsap.to(containerRef.current, { backgroundColor: '#ffffff', duration: 0.1, yoyo: true, repeat: 1 });
         gsap.to(containerRef.current, { 
-            background: 'radial-gradient(circle at center, #581c87 0%, #000000 100%)', 
+            background: 'radial-gradient(circle at center, #831843 0%, #4c1d95 40%, #000000 100%)', 
             duration: 3 
         });
 
-        setTimeout(() => navigateTo('room'), 6000);
-    }, 600);
+        if (titleGroupRef.current) {
+            const tl = gsap.timeline();
+            tl.fromTo(titleGroupRef.current.children, 
+                { y: 50, opacity: 0, filter: 'blur(10px)' },
+                { y: 0, opacity: 1, filter: 'blur(0px)', stagger: 0.15, duration: 1.5, ease: 'power3.out' }
+            );
+        }
+        
+        setTimeout(() => navigateTo('room'), 8000);
+    }, 800);
   };
 
-  // Helper for dimming numbers that aren't active
+  // Helper for Clock visuals
   const getNumberOpacity = (index: number) => {
-      if (!countdown) return 0.1;
-      const target = index + 1;
-      if (target === countdown) return 1;
-      // Show neighbors slightly
-      const diff = Math.abs(target - countdown);
-      if (diff === 1 || diff === 19) return 0.3;
+      if (!countdown) return 0.15;
+      const diff = Math.abs((index + 1) - countdown);
+      if (diff === 0) return 1;
+      if (diff === 1 || diff === 19) return 0.4;
       return 0.05; 
   };
 
   return (
-    <div ref={containerRef} className="relative w-full h-full overflow-hidden flex items-center justify-center bg-black transition-all duration-1000 font-display">
-
-      {/* --- ACT I: DARKNESS & GRAIN --- */}
-      <div className={`absolute inset-0 z-0 transition-opacity duration-3000 ${phase === 'silence' ? 'opacity-10' : 'opacity-30'}`}>
-        {/* Film grain texture */}
-        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
+    <div ref={containerRef} className="relative w-full h-full overflow-hidden flex items-center justify-center bg-[#05030a] transition-colors duration-1000 perspective-1000 font-display">
         
-        {/* Cosmic dust */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.02)_0%,transparent_50%)]" />
-      </div>
-
-      {/* --- NEGATIVE SPACE VIGNETTE --- */}
-      <div className={`absolute inset-0 z-5 transition-all duration-2000 ${
-        phase === 'accelerating' ? 'bg-[radial-gradient(circle_at_center,transparent_10%,#000000_90%)] scale-150' :
-        phase === 'silence' ? 'bg-[radial-gradient(circle_at_center,transparent_30%,#000000_80%)]' :
-        'bg-[radial-gradient(circle_at_center,transparent_40%,#000000_70%)]'
-      }`} />
-
-      {/* --- CINEMATIC TEXT OVERLAY --- */}
-      <div ref={cinematicContainerRef} className="absolute inset-0 z-40 pointer-events-none" />
-      {currentText && phase === 'narrative' && (
-        <div className="absolute inset-0 z-45 pointer-events-none flex items-center justify-center">
-          <div className="animate-text-emerge">
-            <span className="text-3xl md:text-5xl font-light tracking-[0.8em] text-white/70 uppercase px-8 text-center leading-relaxed">
-              {currentText}
-            </span>
-          </div>
+        {/* --- DYNAMIC BACKGROUND LAYER --- */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+             {/* Film Grain / Noise - Dynamic Opacity */}
+             <div 
+                className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay transition-opacity duration-1000" 
+                style={{ opacity: filmGrainOpacity }} 
+             />
+             
+             {/* Vignette */}
+             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000000_100%)] opacity-80" />
+             
+             {/* Nebula Glow */}
+             <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150vw] h-[150vw] bg-[radial-gradient(circle,rgba(76,29,149,0.2)_0%,transparent_70%)] blur-[80px] transition-all duration-1000 ${phase === 'finale' ? 'opacity-0' : 'opacity-100'}`} />
         </div>
-      )}
 
-      {/* --- INTERACTIVE PARTICLES --- */}
-      <AdaptiveParticleSystem 
-        count={particleCount}
-        color={warpColor}
-        speed={warpSpeed}
-        size={phase === 'accelerating' ? 4 : phase === 'counting' ? 1.2 : 1}
-        className={`z-10 transition-opacity duration-1000 ${
-          phase === 'counting' ? 'opacity-40' :
-          phase === 'silence' ? 'opacity-20' :
-          'opacity-60'
-        }`}
-        shape={phase === 'accelerating' ? 'star' : 'circle'}
-      />
+        {/* --- PARTICLES --- */}
+        <AdaptiveParticleSystem 
+            count={phase === 'accelerating' ? 400 : 100} 
+            color={warpColor} 
+            speed={warpSpeed}
+            size={phase === 'accelerating' ? 3 : 1.5}
+            className={`z-10 transition-opacity duration-1000 ${phase === 'counting' ? 'opacity-40' : 'opacity-100'}`}
+        />
 
-      {/* --- ROTATING NEBULA BACKGROUND --- */}
-      {phase !== 'silence' && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300vw] h-[300vw] opacity-10 mix-blend-screen bg-[conic-gradient(from_0deg,transparent_0deg,#4c1d95_100deg,transparent_200deg,#db2777_300deg,transparent_360deg)] blur-[150px] animate-spin-very-slow" />
-      )}
+        {/* --- CINEMATIC TEXT CONTAINER --- */}
+        <div ref={cinematicTextRef} className="absolute inset-0 z-50 pointer-events-none flex items-center justify-center drop-shadow-2xl" />
 
-      {/* --- CONFETTI (Finale) --- */}
-      {phase === 'finale' && (
-        <div className="fixed inset-0 z-50 pointer-events-none">
-            <Confetti width={window.innerWidth} height={window.innerHeight} recycle={false} numberOfPieces={500} colors={['#FCD34D', '#E879F9', '#818CF8']} />
+        {/* --- CONFETTI --- */}
+        {phase === 'finale' && (
+            <div className="fixed inset-0 z-50 pointer-events-none">
+                <Confetti width={window.innerWidth} height={window.innerHeight} recycle={false} numberOfPieces={500} colors={['#FCD34D', '#F472B6', '#818CF8', '#FFFFFF']} gravity={0.15} />
+            </div>
+        )}
+
+        {/* --- MAIN CONTENT --- */}
+        <div className="relative z-20 w-full h-full flex flex-col items-center justify-center px-4">
+            
+            {/* 1. ELEGANT START SCREEN */}
+            {phase === 'idle' && (
+                <div className="start-ui text-center space-y-12 animate-fade-in-up max-w-2xl mx-auto">
+                    
+                    {/* Floating Ornament */}
+                    <div className="flex justify-center mb-8">
+                        <Sparkles className="w-8 h-8 text-purple-300/50 animate-pulse" />
+                    </div>
+
+                    <div className="space-y-6 relative">
+                        <h2 className="text-xs md:text-sm font-medium tracking-[0.8em] text-purple-200/70 uppercase">
+                            The Prelude
+                        </h2>
+                        <h1 className="text-5xl md:text-7xl font-serif text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-purple-200 tracking-wider drop-shadow-2xl">
+                            Midnight
+                        </h1>
+                        <p className="text-white/40 font-light tracking-widest text-sm max-w-md mx-auto leading-relaxed">
+                            A cinematic journey through time waiting to unfold.
+                        </p>
+                    </div>
+
+                    <div className="pt-8">
+                        <button
+                            onClick={startCinematicSequence}
+                            className="group relative flex items-center justify-center gap-3 px-8 py-4 mx-auto transition-all duration-700 hover:scale-105"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                            <div className="absolute inset-0 border border-white/10 bg-white/5 backdrop-blur-sm transition-all duration-500 group-hover:bg-white/10 group-hover:border-white/20" />
+                            
+                            <span className="relative z-10 text-white font-light text-sm tracking-[0.3em] group-hover:tracking-[0.5em] transition-all duration-500">
+                                BEGIN JOURNEY
+                            </span>
+                            <ChevronRight className="relative z-10 w-4 h-4 text-purple-300 opacity-50 group-hover:translate-x-1 transition-transform" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* 2. THE MAGICAL CLOCK */}
+            {phase === 'counting' && (
+                <div className="relative w-full max-w-[min(85vw,420px)] aspect-square flex items-center justify-center">
+                    <div ref={clockContainerRef} className="relative w-full h-full rounded-full">
+                        {/* Outer Glow */}
+                        <div className="absolute inset-[-20px] bg-purple-500/20 blur-3xl rounded-full" />
+                        
+                        {/* Outer Rim */}
+                        <div className="absolute inset-[-10px] rounded-full bg-gradient-to-b from-gray-700 to-black shadow-[0_0_50px_rgba(0,0,0,0.9)] z-0" />
+                        
+                        {/* Glass Face */}
+                        <div className="absolute inset-0 rounded-full bg-[#1a1b26] border border-white/10 shadow-[inset_0_0_60px_rgba(0,0,0,0.9)] z-10 overflow-hidden ring-1 ring-white/10">
+                            <div className="absolute inset-2 rounded-full border border-white/5 opacity-50" />
+                            
+                            {/* Numbers */}
+                            <div ref={numberRingRef} className="absolute inset-0 rounded-full z-10 will-change-transform">
+                                {Array.from({ length: 20 }).map((_, i) => (
+                                    <div key={i} className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1/2 origin-bottom pt-5" style={{ transform: `rotate(${i * (360/20)}deg)` }}>
+                                        <div className="flex flex-col items-center justify-start h-full">
+                                            <span className={`block text-3xl font-display font-bold transition-all duration-200 ${countdown === i + 1 ? 'text-white scale-150 drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]' : 'text-white/10'}`}
+                                                style={{ opacity: getNumberOpacity(i), transform: `rotate(${-i * (360/20)}deg)` }}>
+                                                {i + 1}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <ClockHands />
+                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent rounded-full pointer-events-none z-50 mix-blend-overlay" />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 3. FINALE */}
+            {phase === 'finale' && (
+                <div ref={titleGroupRef} className="text-center w-full max-w-4xl px-4 z-40">
+                    <div className="mb-6 flex justify-center">
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-yellow-400 blur-2xl opacity-40 animate-pulse" />
+                            <Crown className="relative w-20 h-20 text-yellow-300 drop-shadow-[0_0_20px_rgba(253,224,71,0.6)] animate-float" />
+                        </div>
+                    </div>
+                    
+                    <h1 className="text-5xl md:text-8xl font-black text-white mb-4 tracking-tight drop-shadow-2xl">
+                        AFRAH GHAZI
+                    </h1>
+                    
+                    <div className="flex items-center justify-center gap-4 text-purple-200 mb-8 opacity-90">
+                        <div className="h-px w-12 bg-purple-300/50" />
+                        <span className="text-xl md:text-2xl font-light tracking-[0.4em] uppercase">Is Now</span>
+                        <div className="h-px w-12 bg-purple-300/50" />
+                    </div>
+                    
+                    <div className="relative inline-block">
+                        <h2 className="text-8xl md:text-[10rem] leading-none font-display font-bold text-transparent bg-clip-text bg-gradient-to-br from-yellow-200 via-pink-400 to-purple-600 drop-shadow-2xl">
+                            20
+                        </h2>
+                        <Star className="absolute -top-4 -right-8 w-12 h-12 text-yellow-200 animate-spin-slow opacity-80" />
+                    </div>
+                    
+                    <div className="mt-16 max-w-xl mx-auto">
+                        <div className="p-8 border border-white/10 bg-white/5 backdrop-blur-md rounded-xl shadow-2xl transform hover:scale-105 transition-transform duration-500">
+                             <p className="text-xl md:text-2xl text-gray-100 font-serif italic leading-relaxed">
+                                "Pop the sugarcane juice champagne! <span className="not-italic">🍾</span>"
+                             </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
-      )}
 
-      {/* --- MAIN CONTENT AREA --- */}
-      <div className="relative z-30 w-full h-full flex flex-col items-center justify-center px-6">
-          
-          {/* 1. START SCREEN (After narrative) */}
-          {(phase === 'intro' || phase === 'narrative') && !currentText && (
-              <div className="start-ui text-center space-y-16 max-w-2xl mx-auto animate-fade-in-very-slow">
-                  <div className="space-y-8">
-                      <div className="inline-block px-4 py-1 rounded-full border border-purple-500/30 bg-purple-900/10 backdrop-blur-md mb-4">
-                          <span className="text-xs tracking-[0.4em] text-purple-300 uppercase">Interactive Experience</span>
-                      </div>
-                      <h1 className="text-5xl md:text-8xl font-serif text-transparent bg-clip-text bg-gradient-to-b from-white to-purple-200 tracking-wide drop-shadow-2xl">
-                          MIDNIGHT
-                      </h1>
-                      <p className="text-white/40 font-light tracking-[0.2em] text-sm md:text-base max-w-md mx-auto leading-relaxed">
-                          A journey through time, leading to this very moment.
-                      </p>
-                  </div>
-
-                  <button
-                      ref={buttonRef}
-                      onClick={startApproachSequence}
-                      className="group relative inline-flex items-center justify-center gap-3 px-12 py-4 overflow-hidden rounded-full transition-all duration-500 hover:scale-105"
-                  >
-                      <div className="absolute inset-0 bg-gradient-to-r from-purple-900/40 to-pink-900/40 backdrop-blur-md border border-white/10 group-hover:border-white/30 transition-all duration-500" />
-                      <div className="absolute inset-0 opacity-0 group-hover:opacity-20 bg-gradient-to-r from-purple-400 to-pink-400 blur-xl transition-opacity duration-700" />
-                      
-                      <span className="relative z-10 text-white text-sm tracking-[0.3em] font-medium">BEGIN JOURNEY</span>
-                      <ChevronRight className="relative z-10 w-4 h-4 text-purple-300 group-hover:translate-x-1 transition-transform" />
-                  </button>
-              </div>
-          )}
-
-          {/* 2. THE CLOCK */}
-          {phase === 'counting' && (
-              <div className="relative w-full max-w-[400px] aspect-square flex items-center justify-center animate-fade-in">
-                  <div ref={clockContainerRef} className="relative w-full h-full">
-                      {/* Clock Body */}
-                      <div className="absolute inset-0 rounded-full bg-[#0f172a] border-4 border-slate-700 shadow-2xl overflow-hidden">
-                          {/* Inner Gradient */}
-                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#1e293b_0%,#020617_100%)]" />
-                          
-                          {/* The Moving Number Ring */}
-                          <div ref={numberRingRef} className="absolute inset-0 rounded-full z-10">
-                              {Array.from({ length: 20 }).map((_, i) => (
-                                  <div key={i} className="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-1/2 origin-bottom pt-4" 
-                                       style={{ transform: `rotate(${i * (360/20)}deg)` }}>
-                                      <div className="flex justify-center h-full">
-                                          <span 
-                                              className={`text-2xl md:text-3xl font-serif font-bold transition-all duration-300 ${countdown === i+1 ? 'text-white scale-125 drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]' : 'text-slate-600'}`}
-                                              style={{ opacity: getNumberOpacity(i), transform: `rotate(${-i * (360/20)}deg)` }}
-                                          >
-                                              {i + 1}
-                                          </span>
-                                      </div>
-                                  </div>
-                              ))}
-                          </div>
-
-                          <ClockHands />
-                          
-                          {/* Glass Reflection */}
-                          <div className="absolute inset-0 bg-gradient-to-tr from-white/5 via-transparent to-transparent rounded-full pointer-events-none z-50" />
-                      </div>
-                  </div>
-              </div>
-          )}
-
-          {/* 3. FINAL TITLE */}
-          {phase === 'finale' && (
-              <div ref={titleGroupRef} className="text-center z-50 animate-fade-in-up">
-                  <Crown className="w-20 h-20 mx-auto text-yellow-400 mb-6 drop-shadow-[0_0_30px_rgba(250,204,21,0.6)] animate-bounce-slow" />
-                  <h1 className="text-6xl md:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-pink-400 to-purple-500 mb-4 tracking-tighter filter drop-shadow-lg">
-                      20
-                  </h1>
-                  <p className="text-2xl text-white font-serif tracking-widest italic opacity-90">
-                      Happy Birthday Afrah
-                  </p>
-              </div>
-          )}
-      </div>
-
-      <style>{`
-          @keyframes spin-very-slow {
-            from { transform: translate(-50%, -50%) rotate(0deg); }
-            to { transform: translate(-50%, -50%) rotate(360deg); }
-          }
-          
-          @keyframes text-emerge {
-            0% { 
-              opacity: 0;
-              transform: translateY(20px) scale(0.95);
-              filter: blur(10px);
-            }
-            100% { 
-              opacity: 1;
-              transform: translateY(0) scale(1);
-              filter: blur(0px);
-            }
-          }
-          
-          @keyframes fade-in-very-slow {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-          }
-          
-          .animate-spin-very-slow {
-            animation: spin-very-slow 240s linear infinite;
-          }
-          
-          .animate-text-emerge {
-            animation: text-emerge 2s ease-out forwards;
-          }
-          
-          .animate-fade-in-very-slow {
-            animation: fade-in-very-slow 4s ease-out forwards;
-          }
-          
-          .animate-pulse-slow { animation: pulse 8s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-          .animate-bounce-slow { animation: bounce 3s infinite; }
-          @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-          
-          .font-disletter {
-            font-family: 'Times New Roman', Times, serif;
-            font-variant: small-caps;
-          }
-      `}</style>
+        <style>{`
+            .font-display { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+            .animate-spin-slow { animation: spin 12s linear infinite; }
+            @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+            @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+            .animate-float { animation: float 5s ease-in-out infinite; }
+        `}</style>
     </div>
   );
 }
