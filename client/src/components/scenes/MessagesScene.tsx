@@ -295,7 +295,7 @@ export function MessagesScene({ onClose, roomImage }: MessagesSceneProps) {
       <div className="relative z-30 pt-8 sm:pt-12 text-center pointer-events-none">
         <div className="inline-block relative">
             <h1 className="font-cursive text-4xl sm:text-5xl text-orange-50 drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
-            Birthday Wishes
+            Birthday Messages
             </h1>
             <Sparkles className="absolute -top-4 -right-6 w-6 h-6 text-yellow-200 animate-spin-slow opacity-80" />
             <div className="h-0.5 w-full bg-gradient-to-r from-transparent via-orange-200/50 to-transparent mt-2" />
