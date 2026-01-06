@@ -619,7 +619,7 @@ export function CakeScene() {
             <div className="text-8xl mb-6 animate-bounce filter drop-shadow-2xl">🎁</div>
             
             <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-300 mb-2 font-serif tracking-tight">
-              Happy Birthday!
+              BON APETIT!!
             </h2>
             
             <p className="text-slate-400 mb-10 leading-relaxed font-medium">
