@@ -539,7 +539,16 @@ export function RoomScene() {
           {/* Messages Button (Float Right) */}
           <button
             onClick={() => setShowMessages(true)}
-            className="absolute top-4 right-4 sm:top-auto sm:bottom-8 sm:right-8 group cursor-pointer z-30 p-3 sm:p-4 rounded-full bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 transition-all hover:scale-110"
+            className="
+  fixed
+  bottom-4
+  right-4
+  sm:bottom-8
+  sm:right-8
+  z-30
+  p-4
+  rounded-full
+ bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 transition-all hover:scale-110"
             aria-label="Messages"
           >
             <div className="relative text-2xl sm:text-3xl">
