@@ -4,7 +4,7 @@ import { AdaptiveParticleSystem } from '../AdaptiveParticleSystem';
 import gsap from 'gsap';
 import { audioManager } from '../../lib/audioManager';
 import Confetti from 'react-confetti';
-import { Sparkles, Crown, ArrowRight, Stars, Clock as ClockIcon } from 'lucide-react';
+import { Sparkles, Crown, ArrowRight, Clock as ClockIcon, Footprints } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
 /* SUB-COMPONENT: LUXURY CLOCK HANDS */
@@ -15,26 +15,26 @@ const ClockHands = () => (
     <div className="absolute top-1/2 left-1/2 w-6 h-6 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-tr from-slate-200 to-slate-400 shadow-[0_0_20px_rgba(255,255,255,0.5)] z-30 border-2 border-slate-500 ring-2 ring-black/20" />
     <div className="absolute top-1/2 left-1/2 w-2 h-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-pink-500 z-40 animate-pulse" />
 
-    {/* Hour Hand - Heavy, Industrial */}
+    {/* Hour Hand */}
     <div className="clock-hand-hour absolute top-1/2 left-1/2 w-2 h-16 sm:h-20 -translate-x-1/2 -translate-y-[90%] bg-gradient-to-t from-slate-300 to-slate-100 rounded-full origin-bottom z-10 shadow-lg" 
          style={{ clipPath: 'polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%)' }} />
 
-    {/* Minute Hand - Elegant, Long */}
+    {/* Minute Hand */}
     <div className="clock-hand-minute absolute top-1/2 left-1/2 w-1 h-24 sm:h-28 -translate-x-1/2 -translate-y-[92%] bg-gradient-to-t from-pink-300 to-purple-200 rounded-full origin-bottom z-20 shadow-[0_0_10px_rgba(236,72,153,0.4)]" />
 
-    {/* Second Hand - Laser-like */}
+    {/* Second Hand */}
     <div className="clock-hand-second absolute top-1/2 left-1/2 w-[2px] h-28 sm:h-36 -translate-x-1/2 -translate-y-[85%] bg-gradient-to-t from-yellow-300 via-yellow-100 to-transparent origin-bottom z-20 shadow-[0_0_15px_rgba(253,224,71,0.8)]" />
   </div>
 );
+
+type Phase = 'idle' | 'walking' | 'counting' | 'finale';
 
 export function MidnightScene() {
   const { navigateTo, settings } = useSceneStore();
   
   // Game State
+  const [phase, setPhase] = useState<Phase>('idle');
   const [countdown, setCountdown] = useState<number | null>(null);
-  const [showFinale, setShowFinale] = useState(false);
-  const [started, setStarted] = useState(false);
-  const [celebrateMode, setCelebrateMode] = useState(false);
   
   // Refs
   const containerRef = useRef<HTMLDivElement>(null);
@@ -43,6 +43,8 @@ export function MidnightScene() {
   const titleGroupRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const nebulaRef = useRef<HTMLDivElement>(null);
+  const tunnelRef = useRef<HTMLDivElement>(null);
+  const walkTextRef = useRef<HTMLDivElement>(null);
 
   /* ------------------------------------------------------------------ */
   /* SETUP & ENTRANCE */
@@ -53,7 +55,7 @@ export function MidnightScene() {
       gsap.fromTo(containerRef.current, { opacity: 0 }, { opacity: 1, duration: 2, ease: 'power2.out' });
     }
 
-    // Nebula Movement
+    // Nebula Movement (Slow background rotation)
     if (nebulaRef.current) {
         gsap.to(nebulaRef.current, {
             rotation: 360,
@@ -65,29 +67,84 @@ export function MidnightScene() {
     }
 
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' && !started) startSequence();
+      if (e.key === 'Enter' && phase === 'idle') startWalkSequence();
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [started]);
+  }, [phase]);
 
   /* ------------------------------------------------------------------ */
-  /* LOGIC: THE SEQUENCE */
+  /* LOGIC: THE WALK SEQUENCE (New) */
   /* ------------------------------------------------------------------ */
-  
-  const startSequence = () => {
-    if (started) return;
-    setStarted(true);
-    
-    // 1. Audio Start
+  const startWalkSequence = () => {
+    setPhase('walking');
     if (settings.soundEnabled) audioManager.play('click'); 
 
-    // 2. Animate Button Out
+    const tl = gsap.timeline({
+        onComplete: () => startClockSequence()
+    });
+
+    // 1. Hide Start Screen
     if (buttonRef.current) {
-        gsap.to(buttonRef.current, { scale: 0.8, opacity: 0, duration: 0.5, ease: 'back.in(2)' });
+        tl.to('.start-screen-content', { opacity: 0, scale: 0.9, duration: 0.5, ease: 'power2.in' });
     }
 
-    // 3. Reveal Clock (Dramatic Entry)
+    // 2. The Tunnel Effect (Simulating walking forward)
+    if (tunnelRef.current) {
+        // Prepare tunnel
+        tl.set(tunnelRef.current, { opacity: 1, scale: 0.1 });
+        
+        // "Walk" forward - Zooming into the light
+        tl.to(tunnelRef.current, { 
+            scale: 4, 
+            opacity: 1, 
+            duration: 4, 
+            ease: 'expo.in' 
+        }, "<");
+    }
+
+    // 3. Narrative Text during the walk
+    const messages = ["Leaving the past...", "Approaching the moment...", "It's time."];
+    const textContainer = walkTextRef.current;
+    
+    if (textContainer) {
+        messages.forEach((msg, i) => {
+            // Create element on the fly or utilize pre-existing
+            const textElement = document.createElement("div");
+            textElement.innerText = msg;
+            textElement.className = "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl md:text-4xl text-white font-light tracking-[0.3em] uppercase whitespace-nowrap opacity-0 filter blur-sm";
+            textContainer.appendChild(textElement);
+
+            // Animate text flying past
+            tl.to(textElement, { 
+                opacity: 1, 
+                blur: 0, 
+                scale: 1.2, 
+                duration: 0.8, 
+                ease: 'power2.out' 
+            }, `-=${i === 0 ? 3.5 : 0.6}`); // Overlap carefully
+
+            tl.to(textElement, { 
+                opacity: 0, 
+                scale: 1.5, 
+                blur: 10, 
+                duration: 0.4 
+            }, ">-0.2");
+        });
+    }
+
+    // 4. Whiteout Flash at the end of the walk
+    tl.to(containerRef.current, { backgroundColor: '#ffffff', duration: 0.1, ease: 'power1.inOut' });
+    tl.to(containerRef.current, { backgroundColor: '#05030a', duration: 0.8 });
+  };
+
+  /* ------------------------------------------------------------------ */
+  /* LOGIC: THE CLOCK SEQUENCE */
+  /* ------------------------------------------------------------------ */
+  const startClockSequence = () => {
+    setPhase('counting');
+    
+    // Reveal Clock (Dramatic Entry out of the flash)
     if (clockContainerRef.current) {
         gsap.fromTo(clockContainerRef.current, 
             { scale: 0.5, opacity: 0, rotate: -180, filter: 'blur(20px)' },
@@ -98,7 +155,6 @@ export function MidnightScene() {
                 filter: 'blur(0px)', 
                 duration: 1.5, 
                 ease: 'elastic.out(1, 0.7)', 
-                delay: 0.2 
             }
         );
         
@@ -107,7 +163,7 @@ export function MidnightScene() {
         gsap.to('.clock-hand-minute', { rotation: 360, duration: 20, repeat: -1, ease: 'linear', transformOrigin: 'bottom center' });
     }
 
-    // 4. Begin Countdown Loop
+    // Begin Countdown Loop
     let count = 0;
     const timer = setInterval(() => {
         count++;
@@ -130,11 +186,11 @@ export function MidnightScene() {
         gsap.to(numberRingRef.current, {
             rotation: rotationAngle,
             duration: 0.8,
-            ease: 'elastic.out(1.2, 0.5)' // Bouncy mechanical lock
+            ease: 'elastic.out(1.2, 0.5)' 
         });
     }
 
-    // Pulse the clock & background
+    // Pulse the clock
     if (clockContainerRef.current) {
         gsap.fromTo(clockContainerRef.current, 
             { scale: 1.05, boxShadow: '0 0 100px rgba(255,255,255,0.2)' },
@@ -142,10 +198,10 @@ export function MidnightScene() {
         );
     }
     
-    // Ambient Background Flash
+    // Background Pulse
     if (containerRef.current) {
         gsap.to(containerRef.current, {
-            backgroundColor: '#1a103c', // Lighter purple flash
+            backgroundColor: '#1a103c', 
             duration: 0.1,
             yoyo: true,
             repeat: 1,
@@ -156,14 +212,13 @@ export function MidnightScene() {
 
   const triggerFinale = () => {
     setTimeout(() => {
-        setShowFinale(true);
-        setCelebrateMode(true);
+        setPhase('finale');
         if (settings.soundEnabled) audioManager.play('success');
 
         // Whiteout Flash
         gsap.to(containerRef.current, { backgroundColor: '#ffffff', duration: 0.1, yoyo: true, repeat: 1 });
 
-        // Change Background to Celebration Mode
+        // Change Background
         gsap.to(containerRef.current, { 
             background: 'radial-gradient(circle at center, #831843 0%, #4c1d95 40%, #000000 100%)', 
             duration: 2.5 
@@ -192,31 +247,39 @@ export function MidnightScene() {
   };
 
   return (
-    <div ref={containerRef} className="relative w-full h-full overflow-hidden flex items-center justify-center bg-[#05030a] transition-colors duration-1000">
+    <div ref={containerRef} className="relative w-full h-full overflow-hidden flex items-center justify-center bg-[#05030a] transition-colors duration-1000 perspective-1000">
         
         {/* --- AMBIENT BACKGROUND LAYERS --- */}
         <div className="absolute inset-0 z-0 pointer-events-none">
-             {/* 1. Grain/Noise Texture for "Film" look */}
              <div className="absolute inset-0 opacity-[0.07] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
-             
-             {/* 2. Deep Vignette */}
              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000000_90%)]" />
-
-             {/* 3. Rotating Nebula */}
              <div ref={nebulaRef} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200vw] h-[200vw] opacity-30 mix-blend-screen bg-[conic-gradient(from_0deg,transparent_0deg,#4c1d95_100deg,transparent_200deg,#db2777_300deg,transparent_360deg)] blur-[100px]" />
         </div>
 
-        {/* --- PARTICLES --- */}
-        <AdaptiveParticleSystem 
-            count={celebrateMode ? 150 : 60} 
-            color={celebrateMode ? "#FCD34D" : "#A78BFA"} 
-            speed={celebrateMode ? 1.5 : 0.4}
-            size={celebrateMode ? 3 : 1.5}
-            className="z-10"
-        />
+        {/* --- WALKING TUNNEL VISUALS --- */}
+        <div ref={tunnelRef} className="absolute inset-0 z-10 opacity-0 pointer-events-none flex items-center justify-center">
+            {/* The Light at the end of the tunnel */}
+            <div className="w-16 h-16 bg-white rounded-full blur-[50px] shadow-[0_0_100px_rgba(255,255,255,0.8)]" />
+            {/* Speed lines / Star streak effect */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle,transparent_20%,#000_120%)]" />
+            <AdaptiveParticleSystem count={300} speed={15} color="#fff" size={2} className="opacity-50" />
+        </div>
+
+        <div ref={walkTextRef} className="absolute inset-0 z-30 pointer-events-none" />
+
+        {/* --- NORMAL PARTICLES --- */}
+        {phase !== 'walking' && (
+            <AdaptiveParticleSystem 
+                count={phase === 'finale' ? 150 : 60} 
+                color={phase === 'finale' ? "#FCD34D" : "#A78BFA"} 
+                speed={phase === 'finale' ? 1.5 : 0.4}
+                size={phase === 'finale' ? 3 : 1.5}
+                className="z-10"
+            />
+        )}
 
         {/* --- CONFETTI (FINALE) --- */}
-        {showFinale && (
+        {phase === 'finale' && (
             <div className="fixed inset-0 z-50 pointer-events-none">
                 <Confetti 
                     width={window.innerWidth} 
@@ -224,21 +287,19 @@ export function MidnightScene() {
                     recycle={false} 
                     numberOfPieces={400}
                     gravity={0.15}
-                    initialVelocityX={10}
-                    initialVelocityY={20}
                     colors={['#FCD34D', '#F472B6', '#818CF8', '#FFFFFF']} 
                 />
             </div>
         )}
 
         {/* --- CONTENT LAYER --- */}
-        <div className="relative z-20 w-full h-full flex flex-col items-center justify-center px-4 perspective-[1000px]">
+        <div className="relative z-20 w-full h-full flex flex-col items-center justify-center px-4">
             
             {/* 1. START SCREEN */}
-            {!started && !showFinale && (
-                <div className="text-center space-y-12 animate-fade-in-up">
+            {phase === 'idle' && (
+                <div className="start-screen-content text-center space-y-12 animate-fade-in-up">
                     <div className="space-y-6 relative">
-                        {/* Glowing backdrop for text */}
+                        {/* Glowing backdrop */}
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-500/20 blur-[80px] rounded-full" />
                         
                         <div className="relative inline-flex p-4 rounded-2xl bg-gradient-to-br from-white/10 to-transparent backdrop-blur-md border border-white/10 mb-6 animate-float shadow-2xl">
@@ -262,31 +323,31 @@ export function MidnightScene() {
 
                     <button
                         ref={buttonRef}
-                        onClick={startSequence}
+                        onClick={startWalkSequence}
                         className="group relative px-12 py-4 bg-transparent overflow-hidden rounded-full transition-all duration-500 hover:scale-105 cursor-pointer"
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 group-hover:opacity-100 blur-md transition-opacity duration-500"></div>
                         <div className="absolute inset-[1px] bg-[#05030a] rounded-full z-10"></div>
                         
                         <span className="relative z-20 flex items-center gap-3 text-white font-medium text-sm md:text-base tracking-[0.2em] group-hover:tracking-[0.3em] transition-all duration-500">
-                            ENTER <ArrowRight className="w-4 h-4 text-pink-400" />
+                            BEGIN THE JOURNEY <Footprints className="w-4 h-4 text-pink-400 rotate-90" />
                         </span>
                     </button>
                     
                     <p className="text-[10px] text-white/20 fixed bottom-8 left-0 w-full text-center uppercase tracking-widest">
-                        Press [Enter] to begin
+                        Press [Enter] to start walking
                     </p>
                 </div>
             )}
 
             {/* 2. THE MAGICAL CLOCK */}
-            {started && !showFinale && (
+            {phase === 'counting' && (
                 <div className="relative w-full max-w-[min(85vw,420px)] aspect-square flex items-center justify-center">
                     
                     {/* Clock Container */}
                     <div ref={clockContainerRef} className="relative w-full h-full rounded-full">
                         
-                        {/* Outer Rim (Metallic) */}
+                        {/* Outer Rim */}
                         <div className="absolute inset-[-10px] rounded-full bg-gradient-to-b from-gray-700 to-black shadow-[0_0_30px_rgba(0,0,0,0.8)] z-0" />
                         
                         {/* Glass Face */}
@@ -304,26 +365,21 @@ export function MidnightScene() {
                                         className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1/2 origin-bottom pt-4 md:pt-6"
                                         style={{ transform: `rotate(${i * (360/20)}deg)` }}
                                     >
-                                        <div 
-                                            className="flex flex-col items-center justify-start h-full"
-                                            // Counter-rotate text to keep it somewhat readable/oriented or just keep radial
-                                        >
-                                           <span 
+                                        <div className="flex flex-col items-center justify-start h-full">
+                                            <span 
                                                 className={`block text-2xl md:text-4xl font-display font-bold transition-all duration-300 transform
                                                 ${countdown === i + 1 
                                                     ? 'text-yellow-100 drop-shadow-[0_0_15px_rgba(253,224,71,0.8)] scale-125' 
                                                     : 'text-white/20'}`}
                                                 style={{ 
                                                     opacity: getNumberOpacity(i),
-                                                    // Optional: rotate text to face inward
                                                     transform: `rotate(${-i * (360/20)}deg)`
                                                 }}
-                                           >
+                                            >
                                                 {i + 1}
-                                           </span>
-                                           
-                                           {/* Tick Mark under number */}
-                                           <div className={`mt-2 w-0.5 h-2 rounded-full transition-colors duration-300 ${countdown === i + 1 ? 'bg-pink-500' : 'bg-white/10'}`} />
+                                            </span>
+                                            
+                                            <div className={`mt-2 w-0.5 h-2 rounded-full transition-colors duration-300 ${countdown === i + 1 ? 'bg-pink-500' : 'bg-white/10'}`} />
                                         </div>
                                     </div>
                                 ))}
@@ -352,10 +408,9 @@ export function MidnightScene() {
             )}
 
             {/* 3. GRAND FINALE */}
-            {showFinale && (
+            {phase === 'finale' && (
                 <div ref={titleGroupRef} className="text-center w-full max-w-4xl px-4 z-40">
                     
-                    {/* Glowing Crown */}
                     <div className="mb-8 flex justify-center">
                         <div className="relative">
                             <div className="absolute inset-0 bg-yellow-400 blur-3xl opacity-40 animate-pulse-slow" />
@@ -374,7 +429,6 @@ export function MidnightScene() {
                          <h2 className="text-5xl md:text-8xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-pink-500 to-purple-500 animate-shimmer bg-[length:200%_auto] py-2">
                             TWENTYYY!!!!!!!!!!!!!!!!
                         </h2>
-                        {/* Decorative sparkles around text */}
                         <Sparkles className="absolute -top-8 -right-8 w-12 h-12 text-yellow-300 animate-spin-slow" />
                         <Sparkles className="absolute -bottom-4 -left-8 w-8 h-8 text-pink-400 animate-bounce-slow" />
                     </div>
