@@ -23,7 +23,7 @@ const PROLOGUE_LINES = [
 ];
 
 // Placeholder for the photo reveal
-const CLOCK_PHOTO_SRC = "/assets/afrah.jpg"; 
+const CLOCK_PHOTO_SRC = "/assets/afrah.png"; 
 
 /* ------------------------------------------------------------------ */
 /* UTILS */
