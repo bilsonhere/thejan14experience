@@ -103,11 +103,11 @@ export function RoomScene() {
     const calculateDaysUntilBirthday = () => {
       const now = new Date();
       const currentYear = now.getFullYear();
-      const birthday = new Date(currentYear, 0, 14); // Jan 14
+      const birthday = new Date(currentYear, 0, 7); // Jan 14
       
       const today = new Date();
       const isTodayBirthday = 
-        today.getDate() === 14 && 
+        today.getDate() === 7 && 
         today.getMonth() === 0;
       
       setIsBirthday(isTodayBirthday);
