@@ -15,6 +15,7 @@ const PROLOGUE_LINES = [
   "Beneath the same dark sky",
   "A single heartbeat",
   "Then another",
+  "Then another and another and another...",
   "Everything shifted",
   "Time hesitated",
   "The clock awakened",
