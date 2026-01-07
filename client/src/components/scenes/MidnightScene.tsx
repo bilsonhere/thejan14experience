@@ -22,7 +22,7 @@ const PROLOGUE_LINES = [
 ];
 
 // Placeholder for the photo reveal
-const CLOCK_PHOTO_SRC = "/assets/childhood-placeholder.jpg"; 
+const CLOCK_PHOTO_SRC = "/assets/afrah.jpg"; 
 
 /* ------------------------------------------------------------------ */
 /* UTILS */
@@ -141,7 +141,7 @@ export function MidnightScene() {
   }, [stage]);
 
   /* ------------------------------------------------------------------ */
-  /* PROLOGUE SEQUENCE */
+  /* PROLOGUE SEQUENCE (UPDATED) */
   /* ------------------------------------------------------------------ */
   const startPrologue = () => {
     setStage('prologue');
@@ -158,34 +158,41 @@ export function MidnightScene() {
 
     if (prologueContainerRef.current) {
         const lines = prologueContainerRef.current.children;
-        Array.from(lines).forEach((line, index) => {
+        
+        Array.from(lines).forEach((lineWrapper, index) => {
             const isLast = index === lines.length - 1;
-            const isHeartbeat = index === 3 || index === 4; // "A single heartbeat", "Then another"
+            const isHeartbeat = index === 3 || index === 4; 
+            
+            // Find the character spans inside the line wrapper
+            const chars = lineWrapper.querySelectorAll('.char');
 
-            // Text Animations
-            tl.fromTo(line, 
-                { opacity: 0, y: 30, filter: 'blur(15px)', scale: 0.98 }, 
+            // 1. Reveal Wrapper
+            tl.set(lineWrapper, { opacity: 1 });
+
+            // 2. Typewriter Animation (One by One)
+            tl.fromTo(chars, 
+                { opacity: 0, y: 10, filter: 'blur(4px)' }, 
                 { 
                     opacity: 1, 
                     y: 0, 
                     filter: 'blur(0px)', 
-                    scale: 1, 
-                    duration: 2.0, 
-                    ease: 'power3.out',
+                    duration: 0.8, // Slightly faster per char overall feel
+                    stagger: 0.04, // Typing speed (adjust to make faster/slower)
+                    ease: 'power2.out',
                     onStart: () => {
-                        // Haptic Sync on Heartbeat lines
-                        if (isHeartbeat) triggerHaptic([30, 50, 30]);
+                         if (isHeartbeat) triggerHaptic([30, 50, 30]);
                     }
                 }
             )
-            .to(line, { 
+            
+            // 3. Fade Out Line (Reduced hold time via position parameter)
+            .to(lineWrapper, { 
                 opacity: 0, 
                 y: -15, 
-                filter: 'blur(15px)', 
-                duration: 1.5, 
+                filter: 'blur(10px)', 
+                duration: 1.0, 
                 ease: 'power2.inOut' 
-            }, `>+${isLast ? 3.5 : 3.0}`)
-            .set({}, {}, `>+${isLast ? 1.0 : 1.2}`); 
+            }, `>+${isLast ? 1.5 : 0.8}`); // Reduced delay here (was 3.0/3.5)
         });
     }
   };
@@ -219,9 +226,6 @@ export function MidnightScene() {
             triggerFinale();
         } else {
             // Calculate delay: Starts at 1000ms, decays to ~150ms
-            // Formula: Base * (DecayFactor ^ index)
-            // Or simpler: map range 1..20 to 1000ms..100ms
-            const progress = currentCount / 20;
             const nextDelay = 1000 * Math.pow(0.85, currentCount * 0.4); // Exponential acceleration
             const clampedDelay = Math.max(150, nextDelay); // Don't go faster than 150ms
             
@@ -423,13 +427,17 @@ export function MidnightScene() {
                 </div>
             )}
 
-            {/* 3. PROLOGUE */}
+            {/* 3. PROLOGUE (MODIFIED JSX) */}
             <div ref={prologueContainerRef} className={`absolute inset-0 w-full h-full flex items-center justify-center pointer-events-none ${stage === 'prologue' ? 'block' : 'hidden'}`}>
                 {PROLOGUE_LINES.map((line, i) => (
                     <div key={i} className="absolute inset-0 flex items-center justify-center opacity-0 px-6">
-                        {/* Added glitch-effect class for subtle chromatic aberration */}
-                        <h2 className="glitch-effect text-3xl md:text-5xl font-garamond italic text-white/90 tracking-widest leading-loose text-center">
-                            {line}
+                        <h2 className="glitch-effect text-3xl md:text-5xl font-garamond italic text-white/90 tracking-widest leading-loose text-center flex flex-wrap justify-center gap-x-2">
+                            {/* Split text into characters for typing animation */}
+                            {line.split("").map((char, charIndex) => (
+                                <span key={charIndex} className="char inline-block opacity-0">
+                                    {char === " " ? "\u00A0" : char}
+                                </span>
+                            ))}
                         </h2>
                     </div>
                 ))}
