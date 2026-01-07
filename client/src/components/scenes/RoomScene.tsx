@@ -530,7 +530,7 @@ export function RoomScene() {
               <div className="inline-flex items-center gap-1.5 animate-pulse">
                 <Sparkles className="w-3 h-3 text-purple-300" />
                 <span className="text-[9px] sm:text-[10px] text-purple-200 font-mono tracking-widest uppercase">
-                  {isBirthday ? '✨ Magical Day ✨' : 'Live Timer'}
+                  {isBirthday ? '✨ Celebrate with Pride ✨' : 'Live Timer'}
                 </span>
               </div>
             </div>
