@@ -4,110 +4,144 @@ import { AdaptiveParticleSystem } from '../AdaptiveParticleSystem';
 import gsap from 'gsap';
 import { audioManager } from '../../lib/audioManager';
 import Confetti from 'react-confetti';
-import { Sparkles, Crown, ArrowRight, Stars, Clock as ClockIcon } from 'lucide-react';
+import { Sparkles, Crown, ArrowRight, Stars, Clock as ClockIcon, Film } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
-/* SUB-COMPONENT: LUXURY CLOCK HANDS */
+/* SUB-COMPONENT: CINEMATIC CLOCK HANDS */
 /* ------------------------------------------------------------------ */
 const ClockHands = () => (
   <div className="absolute inset-0 z-20 pointer-events-none">
-    {/* Central Pin mechanism */}
-    <div className="absolute top-1/2 left-1/2 w-6 h-6 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-tr from-slate-200 to-slate-400 shadow-[0_0_20px_rgba(255,255,255,0.5)] z-30 border-2 border-slate-500 ring-2 ring-black/20" />
-    <div className="absolute top-1/2 left-1/2 w-2 h-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-pink-500 z-40 animate-pulse" />
+    {/* Central Pin mechanism - Detailed metallic look */}
+    <div className="absolute top-1/2 left-1/2 w-6 h-6 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[conic-gradient(from_45deg,#94a3b8,#e2e8f0,#94a3b8)] shadow-[0_0_20px_rgba(255,255,255,0.3)] z-30 border border-slate-600" />
+    <div className="absolute top-1/2 left-1/2 w-1.5 h-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-pink-500 z-40 animate-pulse shadow-[0_0_10px_#ec4899]" />
 
-    {/* Hour Hand - Heavy, Industrial */}
-    <div className="clock-hand-hour absolute top-1/2 left-1/2 w-2 h-16 sm:h-20 -translate-x-1/2 -translate-y-[90%] bg-gradient-to-t from-slate-300 to-slate-100 rounded-full origin-bottom z-10 shadow-lg" 
+    {/* Hour Hand - Heavy, Industrial, Shadow casting */}
+    <div className="clock-hand-hour absolute top-1/2 left-1/2 w-2.5 h-16 sm:h-20 -translate-x-1/2 -translate-y-[90%] bg-gradient-to-t from-slate-400 to-slate-200 rounded-full origin-bottom z-10 shadow-[-4px_4px_10px_rgba(0,0,0,0.5)]" 
          style={{ clipPath: 'polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%)' }} />
 
     {/* Minute Hand - Elegant, Long */}
-    <div className="clock-hand-minute absolute top-1/2 left-1/2 w-1 h-24 sm:h-28 -translate-x-1/2 -translate-y-[92%] bg-gradient-to-t from-pink-300 to-purple-200 rounded-full origin-bottom z-20 shadow-[0_0_10px_rgba(236,72,153,0.4)]" />
+    <div className="clock-hand-minute absolute top-1/2 left-1/2 w-1 h-24 sm:h-28 -translate-x-1/2 -translate-y-[92%] bg-gradient-to-t from-pink-300 via-purple-200 to-white rounded-full origin-bottom z-20 shadow-[-2px_2px_8px_rgba(0,0,0,0.4)]" />
 
-    {/* Second Hand - Laser-like */}
-    <div className="clock-hand-second absolute top-1/2 left-1/2 w-[2px] h-28 sm:h-36 -translate-x-1/2 -translate-y-[85%] bg-gradient-to-t from-yellow-300 via-yellow-100 to-transparent origin-bottom z-20 shadow-[0_0_15px_rgba(253,224,71,0.8)]" />
+    {/* Second Hand - Laser-like, glowing */}
+    <div className="clock-hand-second absolute top-1/2 left-1/2 w-[1px] h-28 sm:h-36 -translate-x-1/2 -translate-y-[85%] bg-gradient-to-t from-yellow-400 via-yellow-100 to-transparent origin-bottom z-20 shadow-[0_0_15px_rgba(253,224,71,0.6)] mix-blend-screen" />
   </div>
 );
 
+/* ------------------------------------------------------------------ */
+/* MAIN COMPONENT */
+/* ------------------------------------------------------------------ */
 export function MidnightScene() {
   const { navigateTo, settings } = useSceneStore();
   
-  // Game State
+  // Stages: 'idle' -> 'prologue' -> 'counting' -> 'finale'
+  const [stage, setStage] = useState<'idle' | 'prologue' | 'counting' | 'finale'>('idle');
   const [countdown, setCountdown] = useState<number | null>(null);
-  const [showFinale, setShowFinale] = useState(false);
-  const [started, setStarted] = useState(false);
-  const [celebrateMode, setCelebrateMode] = useState(false);
   
   // Refs
   const containerRef = useRef<HTMLDivElement>(null);
   const clockContainerRef = useRef<HTMLDivElement>(null);
   const numberRingRef = useRef<HTMLDivElement>(null);
+  const prologueRef = useRef<HTMLDivElement>(null);
   const titleGroupRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const nebulaRef = useRef<HTMLDivElement>(null);
+  const lightLeakRef = useRef<HTMLDivElement>(null);
 
   /* ------------------------------------------------------------------ */
-  /* SETUP & ENTRANCE */
+  /* ATMOSPHERE & AMBIENCE (On Mount) */
   /* ------------------------------------------------------------------ */
   useEffect(() => {
-    // Initial Fade In
-    if (containerRef.current) {
-      gsap.fromTo(containerRef.current, { opacity: 0 }, { opacity: 1, duration: 2, ease: 'power2.out' });
-    }
+    // 1. Scene Entrance (Slow fade from black)
+    gsap.fromTo(containerRef.current, { opacity: 0 }, { opacity: 1, duration: 3, ease: 'power2.out' });
 
-    // Nebula Movement
-    if (nebulaRef.current) {
-        gsap.to(nebulaRef.current, {
+    // 2. Light Leaks Animation (Cinematic background movement)
+    if (lightLeakRef.current) {
+        gsap.to(lightLeakRef.current, {
             rotation: 360,
-            scale: 1.5,
-            duration: 120,
+            scale: 1.2,
+            duration: 60,
             repeat: -1,
-            ease: "linear"
+            yoyo: true,
+            ease: "sine.inOut"
         });
     }
 
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' && !started) startSequence();
+      if (e.key === 'Enter' && stage === 'idle') startPrologue();
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [started]);
+  }, [stage]);
 
   /* ------------------------------------------------------------------ */
-  /* LOGIC: THE SEQUENCE */
+  /* PHASE 1: THE PROLOGUE */
   /* ------------------------------------------------------------------ */
-  
-  const startSequence = () => {
-    if (started) return;
-    setStarted(true);
-    
-    // 1. Audio Start
+  const startPrologue = () => {
+    if (stage !== 'idle') return;
+    setStage('prologue');
     if (settings.soundEnabled) audioManager.play('click'); 
 
-    // 2. Animate Button Out
-    if (buttonRef.current) {
-        gsap.to(buttonRef.current, { scale: 0.8, opacity: 0, duration: 0.5, ease: 'back.in(2)' });
-    }
+    const tl = gsap.timeline({
+        onComplete: () => startCountdownSequence()
+    });
 
-    // 3. Reveal Clock (Dramatic Entry)
-    if (clockContainerRef.current) {
-        gsap.fromTo(clockContainerRef.current, 
-            { scale: 0.5, opacity: 0, rotate: -180, filter: 'blur(20px)' },
-            { 
-                scale: 1, 
-                opacity: 1, 
-                rotate: 0, 
-                filter: 'blur(0px)', 
-                duration: 1.5, 
-                ease: 'elastic.out(1, 0.7)', 
-                delay: 0.2 
-            }
-        );
+    // Fade out Idle UI
+    tl.to('.idle-ui', { opacity: 0, duration: 1, ease: 'power2.in' });
+
+    // Prologue Text Sequence
+    if (prologueRef.current) {
+        // Deepen background
+        tl.to(containerRef.current, { backgroundColor: '#020105', duration: 2 }, "<");
         
-        // Continuous rotation for hands
-        gsap.to('.clock-hand-second', { rotation: 360, duration: 2, repeat: -1, ease: 'linear', transformOrigin: 'bottom center' });
-        gsap.to('.clock-hand-minute', { rotation: 360, duration: 20, repeat: -1, ease: 'linear', transformOrigin: 'bottom center' });
+        // Text 1: "At the stroke of midnight..."
+        tl.fromTo(prologueRef.current, 
+            { opacity: 0, y: 20, filter: 'blur(10px)' }, 
+            { opacity: 1, y: 0, filter: 'blur(0px)', duration: 2.5, ease: 'power2.out' }
+        );
+        tl.to(prologueRef.current, { 
+            opacity: 0, 
+            scale: 1.1, 
+            filter: 'blur(20px)', 
+            duration: 2, 
+            ease: 'power2.in',
+            delay: 1.5 
+        });
+    }
+  };
+
+  /* ------------------------------------------------------------------ */
+  /* PHASE 2: THE AWAKENING (CLOCK REVEAL & COUNT) */
+  /* ------------------------------------------------------------------ */
+  const startCountdownSequence = () => {
+    setStage('counting');
+
+    // 1. Dramatic Clock Reveal
+    if (clockContainerRef.current) {
+        const tl = gsap.timeline();
+        
+        // Initial silhouette
+        tl.set(clockContainerRef.current, { opacity: 0, scale: 0.6, rotateX: 45, filter: 'brightness(0) blur(10px)' });
+        
+        // Rim light reveal
+        tl.to(clockContainerRef.current, { 
+            opacity: 1, 
+            duration: 2, 
+            ease: 'power3.out' 
+        });
+        
+        // Full detail & rotation correction
+        tl.to(clockContainerRef.current, {
+            scale: 1,
+            rotateX: 0,
+            filter: 'brightness(1) blur(0px)',
+            duration: 2.5,
+            ease: 'elastic.out(1, 0.5)'
+        }, "-=1.5");
+
+        // Continuous delicate rotation for hands
+        gsap.to('.clock-hand-second', { rotation: 360, duration: 4, repeat: -1, ease: 'linear', transformOrigin: 'bottom center' });
+        gsap.to('.clock-hand-minute', { rotation: 360, duration: 40, repeat: -1, ease: 'linear', transformOrigin: 'bottom center' });
     }
 
-    // 4. Begin Countdown Loop
+    // 2. Start the Ticking Logic
     let count = 0;
     const timer = setInterval(() => {
         count++;
@@ -124,57 +158,66 @@ export function MidnightScene() {
   const handleTick = (num: number) => {
     if (settings.soundEnabled) audioManager.play('hit'); 
 
-    // Rotate the ring: "Locking" mechanism feel
+    // Mechanical Ring Rotation (The Lock Mechanism)
     if (numberRingRef.current) {
         const rotationAngle = -(num - 1) * (360 / 20); 
         gsap.to(numberRingRef.current, {
             rotation: rotationAngle,
             duration: 0.8,
-            ease: 'elastic.out(1.2, 0.5)' // Bouncy mechanical lock
+            ease: 'back.out(1.7)' // Snappy mechanical movement
         });
     }
 
-    // Pulse the clock & background
+    // Atmospheric Pulse (Intensifies as we get closer to 20)
+    const intensity = num / 20; // 0.0 to 1.0
+    
+    // Clock Heartbeat
     if (clockContainerRef.current) {
         gsap.fromTo(clockContainerRef.current, 
-            { scale: 1.05, boxShadow: '0 0 100px rgba(255,255,255,0.2)' },
-            { scale: 1, boxShadow: '0 0 50px rgba(0,0,0,0.5)', duration: 0.5, ease: 'power2.out' }
+            { scale: 1 + (0.05 * intensity) },
+            { scale: 1, duration: 0.4, ease: 'power2.out' }
         );
     }
     
-    // Ambient Background Flash
+    // Background Color Shift (Deep Purple -> Hot Pink/White flash)
     if (containerRef.current) {
+        // Subtle ambient flash
         gsap.to(containerRef.current, {
-            backgroundColor: '#1a103c', // Lighter purple flash
+            backgroundColor: num > 15 ? '#2e1065' : '#05030a', // Gets brighter purple near end
             duration: 0.1,
             yoyo: true,
             repeat: 1,
-            onComplete: () => gsap.to(containerRef.current, { backgroundColor: '#05030a', duration: 0.5 })
         });
     }
   };
 
+  /* ------------------------------------------------------------------ */
+  /* PHASE 3: THE FINALE */
+  /* ------------------------------------------------------------------ */
   const triggerFinale = () => {
     setTimeout(() => {
-        setShowFinale(true);
-        setCelebrateMode(true);
+        setStage('finale');
         if (settings.soundEnabled) audioManager.play('success');
 
-        // Whiteout Flash
-        gsap.to(containerRef.current, { backgroundColor: '#ffffff', duration: 0.1, yoyo: true, repeat: 1 });
+        // Cinematic Whiteout Flash
+        const tl = gsap.timeline();
+        tl.to(containerRef.current, { backgroundColor: '#ffffff', duration: 0.15, ease: 'power4.in' })
+          .to(containerRef.current, { 
+              background: 'radial-gradient(circle at center, #be185d 0%, #4c1d95 50%, #000000 100%)', 
+              duration: 2 
+          });
 
-        // Change Background to Celebration Mode
-        gsap.to(containerRef.current, { 
-            background: 'radial-gradient(circle at center, #831843 0%, #4c1d95 40%, #000000 100%)', 
-            duration: 2.5 
-        });
+        // Hide Clock (Implode or Fade)
+        if (clockContainerRef.current) {
+            gsap.to(clockContainerRef.current, { scale: 2, opacity: 0, duration: 0.5, ease: 'power2.in' });
+        }
 
-        // Animate Title In
+        // Animate Title Sequence
         if (titleGroupRef.current) {
-            const tl = gsap.timeline();
             tl.fromTo(titleGroupRef.current.children, 
-                { y: 100, opacity: 0, filter: 'blur(10px)' },
-                { y: 0, opacity: 1, filter: 'blur(0px)', stagger: 0.2, duration: 1.2, ease: 'power4.out' }
+                { y: 50, opacity: 0, scale: 0.9 },
+                { y: 0, opacity: 1, scale: 1, stagger: 0.15, duration: 1.2, ease: 'back.out(1.7)' },
+                "-=1.5"
             );
         }
         
@@ -182,148 +225,140 @@ export function MidnightScene() {
     }, 800);
   };
 
-  // Helper: Ring Opacity Logic
+  // Helper: Visual clarity for active numbers
   const getNumberOpacity = (index: number) => {
-      if (!countdown) return 0.15;
+      if (!countdown) return 0.1;
       const diff = Math.abs((index + 1) - countdown);
       if (diff === 0) return 1;
-      if (diff === 1 || diff === 19) return 0.4;
+      if (diff === 1 || diff === 19) return 0.3;
       return 0.05; 
   };
 
   return (
-    <div ref={containerRef} className="relative w-full h-full overflow-hidden flex items-center justify-center bg-[#05030a] transition-colors duration-1000">
+    <div ref={containerRef} className="relative w-full h-full overflow-hidden flex items-center justify-center bg-[#020105] text-slate-100 font-sans">
         
-        {/* --- AMBIENT BACKGROUND LAYERS --- */}
-        <div className="absolute inset-0 z-0 pointer-events-none">
-             {/* 1. Grain/Noise Texture for "Film" look */}
-             <div className="absolute inset-0 opacity-[0.07] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
-             
-             {/* 2. Deep Vignette */}
-             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000000_90%)]" />
+        {/* --- CINEMATIC LAYERS --- */}
+        
+        {/* 1. Vignette (Heavy) */}
+        <div className="absolute inset-0 z-10 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_20%,#000000_100%)] opacity-80" />
 
-             {/* 3. Rotating Nebula */}
-             <div ref={nebulaRef} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200vw] h-[200vw] opacity-30 mix-blend-screen bg-[conic-gradient(from_0deg,transparent_0deg,#4c1d95_100deg,transparent_200deg,#db2777_300deg,transparent_360deg)] blur-[100px]" />
+        {/* 2. Film Grain / Noise */}
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.08] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+
+        {/* 3. Light Leaks / Nebula (Atmosphere) */}
+        <div ref={lightLeakRef} className="absolute inset-[-50%] z-0 opacity-40 mix-blend-screen pointer-events-none blur-[120px]">
+            <div className="absolute top-1/4 left-1/4 w-[50vw] h-[50vw] bg-purple-900 rounded-full mix-blend-multiply animate-pulse-slow" />
+            <div className="absolute bottom-1/4 right-1/4 w-[60vw] h-[60vw] bg-pink-900 rounded-full mix-blend-multiply" />
         </div>
 
         {/* --- PARTICLES --- */}
         <AdaptiveParticleSystem 
-            count={celebrateMode ? 150 : 60} 
-            color={celebrateMode ? "#FCD34D" : "#A78BFA"} 
-            speed={celebrateMode ? 1.5 : 0.4}
-            size={celebrateMode ? 3 : 1.5}
-            className="z-10"
+            count={stage === 'finale' ? 150 : 40} 
+            color={stage === 'finale' ? "#FCD34D" : "#e2e8f0"} 
+            speed={stage === 'finale' ? 1.5 : 0.2} // Slower dust motes initially
+            size={stage === 'finale' ? 3 : 1}
+            className="z-5 pointer-events-none"
         />
 
         {/* --- CONFETTI (FINALE) --- */}
-        {showFinale && (
+        {stage === 'finale' && (
             <div className="fixed inset-0 z-50 pointer-events-none">
                 <Confetti 
                     width={window.innerWidth} 
                     height={window.innerHeight}
                     recycle={false} 
-                    numberOfPieces={400}
-                    gravity={0.15}
-                    initialVelocityX={10}
-                    initialVelocityY={20}
+                    numberOfPieces={500}
+                    gravity={0.12}
                     colors={['#FCD34D', '#F472B6', '#818CF8', '#FFFFFF']} 
                 />
             </div>
         )}
 
         {/* --- CONTENT LAYER --- */}
-        <div className="relative z-20 w-full h-full flex flex-col items-center justify-center px-4 perspective-[1000px]">
+        <div className="relative z-20 w-full h-full flex flex-col items-center justify-center px-4 perspective-[1200px]">
             
-            {/* 1. START SCREEN */}
-            {!started && !showFinale && (
-                <div className="text-center space-y-12 animate-fade-in-up">
-                    <div className="space-y-6 relative">
-                        {/* Glowing backdrop for text */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-500/20 blur-[80px] rounded-full" />
-                        
-                        <div className="relative inline-flex p-4 rounded-2xl bg-gradient-to-br from-white/10 to-transparent backdrop-blur-md border border-white/10 mb-6 animate-float shadow-2xl">
-                            <ClockIcon className="w-10 h-10 text-pink-300 drop-shadow-[0_0_15px_rgba(244,114,182,0.6)]" />
+            {/* STAGE: IDLE (Start Screen) */}
+            {stage === 'idle' && (
+                <div className="idle-ui text-center space-y-10">
+                    <div className="space-y-4">
+                        <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-[10px] tracking-[0.3em] uppercase text-white/40">
+                            <Film className="w-3 h-3" /> Cinematic Mode
                         </div>
-                        
-                        <div>
-                            <h1 className="text-5xl md:text-7xl font-display font-thin text-white tracking-[0.2em] drop-shadow-2xl">
-                                MIDNIGHT
-                            </h1>
-                            <div className="h-px w-32 mx-auto bg-gradient-to-r from-transparent via-pink-400 to-transparent my-4 opacity-50" />
-                            <h2 className="text-2xl md:text-3xl font-light text-purple-200 tracking-widest uppercase">
-                                Awaits
-                            </h2>
-                        </div>
-                        
-                        <p className="text-white/40 font-mono text-xs tracking-[0.3em] uppercase">
-                            The transition to 20
+                        <h1 className="text-4xl md:text-6xl font-display font-thin text-transparent bg-clip-text bg-gradient-to-b from-white via-white/80 to-transparent tracking-[0.2em] drop-shadow-2xl">
+                            MIDNIGHT
+                        </h1>
+                        <p className="text-xs md:text-sm font-mono text-pink-200/50 tracking-widest uppercase">
+                            A temporal transition
                         </p>
                     </div>
 
                     <button
-                        ref={buttonRef}
-                        onClick={startSequence}
-                        className="group relative px-12 py-4 bg-transparent overflow-hidden rounded-full transition-all duration-500 hover:scale-105 cursor-pointer"
+                        onClick={startPrologue}
+                        className="group relative px-10 py-3 bg-transparent overflow-hidden rounded-sm transition-all duration-500 hover:tracking-[0.3em] cursor-pointer"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 group-hover:opacity-100 blur-md transition-opacity duration-500"></div>
-                        <div className="absolute inset-[1px] bg-[#05030a] rounded-full z-10"></div>
-                        
-                        <span className="relative z-20 flex items-center gap-3 text-white font-medium text-sm md:text-base tracking-[0.2em] group-hover:tracking-[0.3em] transition-all duration-500">
-                            ENTER <ArrowRight className="w-4 h-4 text-pink-400" />
+                        <div className="absolute inset-0 border-y border-white/20 scale-x-0 group-hover:scale-x-100 transition-transform duration-700 ease-out origin-center" />
+                        <span className="relative z-20 flex items-center justify-center gap-3 text-white/70 group-hover:text-white font-light text-sm tracking-[0.2em] transition-all duration-500">
+                            BEGIN SEQUENCE
                         </span>
                     </button>
-                    
-                    <p className="text-[10px] text-white/20 fixed bottom-8 left-0 w-full text-center uppercase tracking-widest">
-                        Press [Enter] to begin
-                    </p>
                 </div>
             )}
 
-            {/* 2. THE MAGICAL CLOCK */}
-            {started && !showFinale && (
-                <div className="relative w-full max-w-[min(85vw,420px)] aspect-square flex items-center justify-center">
-                    
-                    {/* Clock Container */}
-                    <div ref={clockContainerRef} className="relative w-full h-full rounded-full">
-                        
-                        {/* Outer Rim (Metallic) */}
-                        <div className="absolute inset-[-10px] rounded-full bg-gradient-to-b from-gray-700 to-black shadow-[0_0_30px_rgba(0,0,0,0.8)] z-0" />
-                        
-                        {/* Glass Face */}
-                        <div className="absolute inset-0 rounded-full bg-[#1a1b26]/80 backdrop-blur-md border border-white/10 shadow-[inset_0_0_40px_rgba(0,0,0,0.8),_0_0_20px_rgba(168,85,247,0.1)] z-10 overflow-hidden ring-1 ring-white/5">
-                            
-                            {/* Inner Glow Ring */}
-                            <div className="absolute inset-2 rounded-full border border-white/5 opacity-50" />
-                            <div className="absolute inset-8 rounded-full border border-white/5 opacity-30" />
+            {/* STAGE: PROLOGUE (Intertitles) */}
+            <div ref={prologueRef} className={`absolute inset-0 flex items-center justify-center pointer-events-none ${stage === 'prologue' ? 'opacity-100' : 'opacity-0'}`}>
+                <div className="text-center">
+                    <h2 className="text-2xl md:text-4xl font-serif italic text-white/90 tracking-widest leading-loose drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                        "At the stroke of midnight..."
+                    </h2>
+                    <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-pink-500 to-transparent mx-auto mt-6 opacity-50" />
+                </div>
+            </div>
 
-                            {/* The Rotating Number Ring */}
+            {/* STAGE: COUNTING (The Clock) */}
+            {stage === 'counting' && (
+                <div className="relative w-full max-w-[min(85vw,450px)] aspect-square flex items-center justify-center">
+                    
+                    {/* Clock Container with 3D feel */}
+                    <div ref={clockContainerRef} className="relative w-full h-full rounded-full transform-style-3d">
+                        
+                        {/* Back Glow */}
+                        <div className="absolute inset-4 rounded-full bg-purple-600/20 blur-[60px] animate-pulse-slow" />
+
+                        {/* Outer Rim (Metallic & Heavy) */}
+                        <div className="absolute inset-[-15px] rounded-full bg-gradient-to-br from-[#1e293b] via-[#0f172a] to-black shadow-[0_0_50px_rgba(0,0,0,0.9),inset_0_1px_1px_rgba(255,255,255,0.1)] z-0 ring-1 ring-white/5" />
+                        
+                        {/* The Face */}
+                        <div className="absolute inset-0 rounded-full bg-[#0a0a0a] shadow-[inset_0_0_60px_rgba(0,0,0,0.9)] z-10 overflow-hidden border border-white/5">
+                            
+                            {/* Inner ambient details */}
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.05),transparent_70%)]" />
+                            <div className="absolute inset-10 rounded-full border border-white/5 opacity-20" />
+
+                            {/* ROTATING NUMBERS */}
                             <div ref={numberRingRef} className="absolute inset-0 rounded-full z-10 will-change-transform">
                                 {Array.from({ length: 20 }).map((_, i) => (
                                     <div 
                                         key={i} 
-                                        className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1/2 origin-bottom pt-4 md:pt-6"
+                                        className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1/2 origin-bottom pt-5 md:pt-8"
                                         style={{ transform: `rotate(${i * (360/20)}deg)` }}
                                     >
-                                        <div 
-                                            className="flex flex-col items-center justify-start h-full"
-                                            // Counter-rotate text to keep it somewhat readable/oriented or just keep radial
-                                        >
-                                           <span 
-                                                className={`block text-2xl md:text-4xl font-display font-bold transition-all duration-300 transform
+                                        <div className="flex flex-col items-center justify-start h-full">
+                                            <span className={`block text-xl md:text-3xl font-display font-bold transition-all duration-300
                                                 ${countdown === i + 1 
-                                                    ? 'text-yellow-100 drop-shadow-[0_0_15px_rgba(253,224,71,0.8)] scale-125' 
-                                                    : 'text-white/20'}`}
+                                                    ? 'text-white scale-150 drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]' 
+                                                    : 'text-white/30'}`}
                                                 style={{ 
                                                     opacity: getNumberOpacity(i),
-                                                    // Optional: rotate text to face inward
-                                                    transform: `rotate(${-i * (360/20)}deg)`
+                                                    transform: `rotate(${-i * (360/20)}deg)` // Keep numbers upright? Or radial? Let's keep radial for clock feel, but maybe counter-rotate for readability. Actually radial looks better for a dial.
                                                 }}
-                                           >
+                                            >
                                                 {i + 1}
-                                           </span>
-                                           
-                                           {/* Tick Mark under number */}
-                                           <div className={`mt-2 w-0.5 h-2 rounded-full transition-colors duration-300 ${countdown === i + 1 ? 'bg-pink-500' : 'bg-white/10'}`} />
+                                            </span>
+                                            
+                                            {/* Tick Mark */}
+                                            <div className={`mt-2 w-[1px] h-3 rounded-full transition-all duration-300 
+                                                ${countdown === i + 1 ? 'bg-pink-500 h-6 shadow-[0_0_10px_#ec4899]' : 'bg-white/5'}`} 
+                                            />
                                         </div>
                                     </div>
                                 ))}
@@ -331,105 +366,95 @@ export function MidnightScene() {
 
                             <ClockHands />
                             
-                            {/* Reflection Gloss */}
-                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent rounded-full pointer-events-none z-50" />
+                            {/* Glass Reflection overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent rounded-full pointer-events-none z-50 mix-blend-overlay" />
                         </div>
                     </div>
 
-                    {/* Ambient Progress Indicator */}
-                    <div className="absolute -bottom-20 flex flex-col items-center space-y-2 opacity-80">
-                         <div className="w-16 h-1 rounded-full bg-gray-800 overflow-hidden">
-                            <div 
-                                className="h-full bg-pink-500 shadow-[0_0_10px_#ec4899] transition-all duration-300"
-                                style={{ width: `${(countdown || 0) / 20 * 100}%` }}
-                            />
-                         </div>
-                        <div className="text-pink-200/60 font-mono text-[10px] tracking-widest uppercase animate-pulse">
-                            Synchronizing...
-                        </div>
+                    {/* Minimal Progress Bar below clock */}
+                    <div className="absolute -bottom-24 w-32 h-[2px] bg-white/10 rounded-full overflow-hidden">
+                         <div 
+                            className="h-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-[0_0_10px_#ec4899] transition-all duration-300 ease-linear"
+                            style={{ width: `${(countdown || 0) / 20 * 100}%` }}
+                        />
                     </div>
                 </div>
             )}
 
-            {/* 3. GRAND FINALE */}
-            {showFinale && (
-                <div ref={titleGroupRef} className="text-center w-full max-w-4xl px-4 z-40">
+            {/* STAGE: FINALE (Celebration) */}
+            {stage === 'finale' && (
+                <div ref={titleGroupRef} className="text-center w-full max-w-5xl px-4 z-40">
                     
-                    {/* Glowing Crown */}
-                    <div className="mb-8 flex justify-center">
-                        <div className="relative">
-                            <div className="absolute inset-0 bg-yellow-400 blur-3xl opacity-40 animate-pulse-slow" />
-                            <Crown className="relative w-20 h-20 text-yellow-300 drop-shadow-[0_0_20px_rgba(253,224,71,0.8)] animate-float" />
+                    {/* Glowing Crown Icon */}
+                    <div className="mb-6 flex justify-center">
+                        <div className="relative p-4 bg-gradient-to-b from-white/10 to-transparent rounded-full border border-white/20 backdrop-blur-md animate-float">
+                             <Crown className="w-16 h-16 text-yellow-300 drop-shadow-[0_0_25px_rgba(253,224,71,0.6)]" />
                         </div>
                     </div>
 
-                    <h1 className="text-6xl md:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-pink-100 to-pink-300 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] mb-2 leading-none tracking-tight">
+                    <h1 className="text-5xl md:text-8xl font-black text-white drop-shadow-xl mb-4 tracking-tight leading-none">
                         AFRAH GHAZI
                     </h1>
-                    <div className="text-2xl md:text-4xl font-light text-white/80 tracking-[0.5em] mb-10">
-                        IS
+                    
+                    <div className="flex items-center justify-center gap-4 text-2xl md:text-3xl font-light text-pink-200/80 tracking-[0.3em] mb-8">
+                        <span className="w-12 h-[1px] bg-pink-500/50" />
+                        IS OFFICIALLY
+                        <span className="w-12 h-[1px] bg-pink-500/50" />
                     </div>
 
-                    <div className="relative inline-block">
-                         <h2 className="text-5xl md:text-8xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-pink-500 to-purple-500 animate-shimmer bg-[length:200%_auto] py-2">
-                            TWENTYYY!!!!!!!!!!!!!!!!
+                    <div className="relative inline-block perspective-[500px]">
+                         <h2 className="text-6xl md:text-9xl font-display font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-pink-400 to-purple-400 animate-shimmer bg-[length:200%_auto] py-4 transform rotate-x-12">
+                            TWENTYYY!
                         </h2>
-                        {/* Decorative sparkles around text */}
-                        <Sparkles className="absolute -top-8 -right-8 w-12 h-12 text-yellow-300 animate-spin-slow" />
-                        <Sparkles className="absolute -bottom-4 -left-8 w-8 h-8 text-pink-400 animate-bounce-slow" />
+                        <Sparkles className="absolute -top-4 -right-8 w-10 h-10 text-white animate-spin-slow" />
+                        <Sparkles className="absolute top-1/2 -left-12 w-8 h-8 text-yellow-300 animate-pulse" />
                     </div>
 
-                    <div className="mt-12 bg-black/20 backdrop-blur-md rounded-xl p-8 border border-white/10 shadow-2xl max-w-2xl mx-auto transform transition hover:scale-105 duration-500">
-                         <p className="text-xl md:text-2xl text-gray-100 font-serif italic leading-relaxed">
+                    <div className="mt-12 bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/10 shadow-2xl max-w-3xl mx-auto transform transition hover:scale-105 duration-700">
+                         <p className="text-lg md:text-2xl text-slate-200 font-serif italic leading-relaxed">
                             "Pop the sugarcane juice champagne! 🍾<br/>
-                            <span className="not-italic font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-amber-400">
-                                Let the celebrations begin.
+                            <span className="not-italic font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-amber-300">
+                                A new decade of magic begins.
                             </span>"
                         </p>
                     </div>
 
-                    <div className="mt-16 flex items-center justify-center gap-2 opacity-60">
+                    <div className="mt-16 flex items-center justify-center gap-3 opacity-70">
                         <div className="w-2 h-2 bg-pink-500 rounded-full animate-ping" />
-                        <p className="text-xs text-pink-200 uppercase tracking-widest font-mono">
-                            Proceeding to the Birthday Room
+                        <p className="text-xs text-pink-100 uppercase tracking-widest font-mono">
+                            Teleporting to Birthday Room
                         </p>
                     </div>
-
                 </div>
             )}
 
         </div>
 
-        {/* --- CUSTOM STYLES --- */}
+        {/* --- CUSTOM CSS ANIMATIONS --- */}
         <style>{`
             @keyframes float {
                 0%, 100% { transform: translateY(0px); }
                 50% { transform: translateY(-15px); }
             }
             @keyframes pulse-slow {
-                0%, 100% { opacity: 0.4; transform: scale(1); }
-                50% { opacity: 0.8; transform: scale(1.1); }
+                0%, 100% { opacity: 0.3; transform: scale(1); }
+                50% { opacity: 0.6; transform: scale(1.05); }
             }
             @keyframes spin-slow {
                 from { transform: rotate(0deg); }
                 to { transform: rotate(360deg); }
-            }
-            @keyframes bounce-slow {
-                0%, 100% { transform: translateY(0); }
-                50% { transform: translateY(-10px); }
             }
             @keyframes shimmer {
                 0% { background-position: 200% 0; }
                 100% { background-position: -200% 0; }
             }
             .animate-float { animation: float 6s ease-in-out infinite; }
-            .animate-pulse-slow { animation: pulse-slow 3s ease-in-out infinite; }
-            .animate-spin-slow { animation: spin-slow 8s linear infinite; }
-            .animate-bounce-slow { animation: bounce-slow 2.5s ease-in-out infinite; }
+            .animate-pulse-slow { animation: pulse-slow 4s ease-in-out infinite; }
+            .animate-spin-slow { animation: spin-slow 10s linear infinite; }
             .animate-shimmer { animation: shimmer 3s linear infinite; }
             
-            .font-display { font-family: system-ui, sans-serif; }
-            .perspective-1000 { perspective: 1000px; }
+            .font-display { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+            .transform-style-3d { transform-style: preserve-3d; }
         `}</style>
     </div>
   );
