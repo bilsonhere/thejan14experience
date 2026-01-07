@@ -1,31 +1,49 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, memo } from 'react';
 import { useSceneStore } from '../../lib/stores/useSceneStore';
 import { AdaptiveParticleSystem } from '../AdaptiveParticleSystem';
 import gsap from 'gsap';
 import { audioManager } from '../../lib/audioManager';
 import Confetti from 'react-confetti';
-import { Sparkles, Crown, ArrowRight, Stars, Clock as ClockIcon, Film } from 'lucide-react';
+import { Sparkles, Crown, Film } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
-/* SUB-COMPONENT: CINEMATIC CLOCK HANDS */
+/* CONFIG: PROLOGUE TEXTS */
 /* ------------------------------------------------------------------ */
-const ClockHands = () => (
+const PROLOGUE_LINES = [
+  "Twenty years ago.",
+  "On a cold night in Riyadh.",
+  "Beneath the same dark sky.",
+  "A single heartbeat.",
+  "Then another.",
+  "Everything shifted.",
+  "Time hesitated.",
+  "The clock awakened.",
+  "And so it begins."
+];
+
+/* ------------------------------------------------------------------ */
+/* SUB-COMPONENT: CINEMATIC CLOCK HANDS (MEMOIZED FOR PERFORMANCE) */
+/* ------------------------------------------------------------------ */
+// Wrapped in memo() so it doesn't re-render with every countdown tick
+const ClockHands = memo(() => (
   <div className="absolute inset-0 z-20 pointer-events-none">
-    {/* Central Pin mechanism - Detailed metallic look */}
+    {/* Central Pin mechanism */}
     <div className="absolute top-1/2 left-1/2 w-6 h-6 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[conic-gradient(from_45deg,#94a3b8,#e2e8f0,#94a3b8)] shadow-[0_0_20px_rgba(255,255,255,0.3)] z-30 border border-slate-600" />
     <div className="absolute top-1/2 left-1/2 w-1.5 h-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-pink-500 z-40 animate-pulse shadow-[0_0_10px_#ec4899]" />
 
-    {/* Hour Hand - Heavy, Industrial, Shadow casting */}
+    {/* Hour Hand */}
     <div className="clock-hand-hour absolute top-1/2 left-1/2 w-2.5 h-16 sm:h-20 -translate-x-1/2 -translate-y-[90%] bg-gradient-to-t from-slate-400 to-slate-200 rounded-full origin-bottom z-10 shadow-[-4px_4px_10px_rgba(0,0,0,0.5)]" 
          style={{ clipPath: 'polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%)' }} />
 
-    {/* Minute Hand - Elegant, Long */}
+    {/* Minute Hand */}
     <div className="clock-hand-minute absolute top-1/2 left-1/2 w-1 h-24 sm:h-28 -translate-x-1/2 -translate-y-[92%] bg-gradient-to-t from-pink-300 via-purple-200 to-white rounded-full origin-bottom z-20 shadow-[-2px_2px_8px_rgba(0,0,0,0.4)]" />
 
-    {/* Second Hand - Laser-like, glowing */}
-    <div className="clock-hand-second absolute top-1/2 left-1/2 w-[1px] h-28 sm:h-36 -translate-x-1/2 -translate-y-[85%] bg-gradient-to-t from-yellow-400 via-yellow-100 to-transparent origin-bottom z-20 shadow-[0_0_15px_rgba(253,224,71,0.6)] mix-blend-screen" />
+    {/* Second Hand - Optimized shadow for performance */}
+    <div className="clock-hand-second absolute top-1/2 left-1/2 w-[1px] h-28 sm:h-36 -translate-x-1/2 -translate-y-[85%] bg-gradient-to-t from-yellow-400 via-yellow-100 to-transparent origin-bottom z-20 shadow-[0_0_10px_rgba(253,224,71,0.5)] mix-blend-screen" />
   </div>
-);
+));
+
+ClockHands.displayName = 'ClockHands';
 
 /* ------------------------------------------------------------------ */
 /* MAIN COMPONENT */
@@ -41,18 +59,18 @@ export function MidnightScene() {
   const containerRef = useRef<HTMLDivElement>(null);
   const clockContainerRef = useRef<HTMLDivElement>(null);
   const numberRingRef = useRef<HTMLDivElement>(null);
-  const prologueRef = useRef<HTMLDivElement>(null);
+  const prologueContainerRef = useRef<HTMLDivElement>(null); // Parent of text lines
   const titleGroupRef = useRef<HTMLDivElement>(null);
   const lightLeakRef = useRef<HTMLDivElement>(null);
 
   /* ------------------------------------------------------------------ */
-  /* ATMOSPHERE & AMBIENCE (On Mount) */
+  /* ATMOSPHERE & AMBIENCE */
   /* ------------------------------------------------------------------ */
   useEffect(() => {
-    // 1. Scene Entrance (Slow fade from black)
+    // 1. Scene Entrance
     gsap.fromTo(containerRef.current, { opacity: 0 }, { opacity: 1, duration: 3, ease: 'power2.out' });
 
-    // 2. Light Leaks Animation (Cinematic background movement)
+    // 2. Light Leaks Animation
     if (lightLeakRef.current) {
         gsap.to(lightLeakRef.current, {
             rotation: 360,
@@ -72,7 +90,7 @@ export function MidnightScene() {
   }, [stage]);
 
   /* ------------------------------------------------------------------ */
-  /* PHASE 1: THE PROLOGUE */
+  /* PHASE 1: THE PROLOGUE (SEQUENTIAL) */
   /* ------------------------------------------------------------------ */
   const startPrologue = () => {
     if (stage !== 'idle') return;
@@ -85,24 +103,30 @@ export function MidnightScene() {
 
     // Fade out Idle UI
     tl.to('.idle-ui', { opacity: 0, duration: 1, ease: 'power2.in' });
+    tl.to(containerRef.current, { backgroundColor: '#020105', duration: 2 }, "<");
 
-    // Prologue Text Sequence
-    if (prologueRef.current) {
-        // Deepen background
-        tl.to(containerRef.current, { backgroundColor: '#020105', duration: 2 }, "<");
+    // Get all text lines
+    if (prologueContainerRef.current) {
+        const lines = prologueContainerRef.current.children;
         
-        // Text 1: "At the stroke of midnight..."
-        tl.fromTo(prologueRef.current, 
-            { opacity: 0, y: 20, filter: 'blur(10px)' }, 
-            { opacity: 1, y: 0, filter: 'blur(0px)', duration: 2.5, ease: 'power2.out' }
-        );
-        tl.to(prologueRef.current, { 
-            opacity: 0, 
-            scale: 1.1, 
-            filter: 'blur(20px)', 
-            duration: 2, 
-            ease: 'power2.in',
-            delay: 1.5 
+        // Loop through each line to create the sequence
+        Array.from(lines).forEach((line, index) => {
+            // Calculate timing based on text length or dramatic effect
+            // The last few lines ("Time hesitated", "The clock awakened") go slightly faster
+            const isLast = index === lines.length - 1;
+            const displayDuration = isLast ? 2.5 : 2; 
+
+            tl.fromTo(line, 
+                { opacity: 0, y: 25, filter: 'blur(12px)', scale: 0.95 }, 
+                { opacity: 1, y: 0, filter: 'blur(0px)', scale: 1, duration: 1.5, ease: 'power3.out' }
+            )
+            .to(line, { 
+                opacity: 0, 
+                y: -10, 
+                filter: 'blur(10px)', 
+                duration: 1, 
+                ease: 'power2.in' 
+            }, `>+${displayDuration === 2.5 ? 0.5 : 0.2}`); // Small pause before fading out
         });
     }
   };
@@ -136,9 +160,9 @@ export function MidnightScene() {
             ease: 'elastic.out(1, 0.5)'
         }, "-=1.5");
 
-        // Continuous delicate rotation for hands
-        gsap.to('.clock-hand-second', { rotation: 360, duration: 4, repeat: -1, ease: 'linear', transformOrigin: 'bottom center' });
-        gsap.to('.clock-hand-minute', { rotation: 360, duration: 40, repeat: -1, ease: 'linear', transformOrigin: 'bottom center' });
+        // Continuous delicate rotation for hands - Triggered once, runs forever independently of React state
+        gsap.to('.clock-hand-second', { rotation: 360, duration: 6, repeat: -1, ease: 'linear', transformOrigin: 'bottom center' });
+        gsap.to('.clock-hand-minute', { rotation: 360, duration: 60, repeat: -1, ease: 'linear', transformOrigin: 'bottom center' });
     }
 
     // 2. Start the Ticking Logic
@@ -168,8 +192,8 @@ export function MidnightScene() {
         });
     }
 
-    // Atmospheric Pulse (Intensifies as we get closer to 20)
-    const intensity = num / 20; // 0.0 to 1.0
+    // Atmospheric Pulse
+    const intensity = num / 20;
     
     // Clock Heartbeat
     if (clockContainerRef.current) {
@@ -179,11 +203,10 @@ export function MidnightScene() {
         );
     }
     
-    // Background Color Shift (Deep Purple -> Hot Pink/White flash)
+    // Background Color Shift
     if (containerRef.current) {
-        // Subtle ambient flash
         gsap.to(containerRef.current, {
-            backgroundColor: num > 15 ? '#2e1065' : '#05030a', // Gets brighter purple near end
+            backgroundColor: num > 15 ? '#2e1065' : '#05030a', 
             duration: 0.1,
             yoyo: true,
             repeat: 1,
@@ -207,7 +230,7 @@ export function MidnightScene() {
               duration: 2 
           });
 
-        // Hide Clock (Implode or Fade)
+        // Hide Clock
         if (clockContainerRef.current) {
             gsap.to(clockContainerRef.current, { scale: 2, opacity: 0, duration: 0.5, ease: 'power2.in' });
         }
@@ -238,14 +261,10 @@ export function MidnightScene() {
     <div ref={containerRef} className="relative w-full h-full overflow-hidden flex items-center justify-center bg-[#020105] text-slate-100 font-sans">
         
         {/* --- CINEMATIC LAYERS --- */}
-        
-        {/* 1. Vignette (Heavy) */}
         <div className="absolute inset-0 z-10 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_20%,#000000_100%)] opacity-80" />
-
-        {/* 2. Film Grain / Noise */}
         <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.08] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
 
-        {/* 3. Light Leaks / Nebula (Atmosphere) */}
+        {/* Nebula/Light Leaks */}
         <div ref={lightLeakRef} className="absolute inset-[-50%] z-0 opacity-40 mix-blend-screen pointer-events-none blur-[120px]">
             <div className="absolute top-1/4 left-1/4 w-[50vw] h-[50vw] bg-purple-900 rounded-full mix-blend-multiply animate-pulse-slow" />
             <div className="absolute bottom-1/4 right-1/4 w-[60vw] h-[60vw] bg-pink-900 rounded-full mix-blend-multiply" />
@@ -255,7 +274,7 @@ export function MidnightScene() {
         <AdaptiveParticleSystem 
             count={stage === 'finale' ? 150 : 40} 
             color={stage === 'finale' ? "#FCD34D" : "#e2e8f0"} 
-            speed={stage === 'finale' ? 1.5 : 0.2} // Slower dust motes initially
+            speed={stage === 'finale' ? 1.5 : 0.2}
             size={stage === 'finale' ? 3 : 1}
             className="z-5 pointer-events-none"
         />
@@ -282,10 +301,10 @@ export function MidnightScene() {
                 <div className="idle-ui text-center space-y-10">
                     <div className="space-y-4">
                         <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-[10px] tracking-[0.3em] uppercase text-white/40">
-                            <Film className="w-3 h-3" /> Cinematic Mode
+                            <Film className="w-3 h-3" /> TWO DECADES IN
                         </div>
                         <h1 className="text-4xl md:text-6xl font-display font-thin text-transparent bg-clip-text bg-gradient-to-b from-white via-white/80 to-transparent tracking-[0.2em] drop-shadow-2xl">
-                            MIDNIGHT
+                           ITS MIDNIGHT
                         </h1>
                         <p className="text-xs md:text-sm font-mono text-pink-200/50 tracking-widest uppercase">
                             A temporal transition
@@ -304,33 +323,37 @@ export function MidnightScene() {
                 </div>
             )}
 
-            {/* STAGE: PROLOGUE (Intertitles) */}
-            <div ref={prologueRef} className={`absolute inset-0 flex items-center justify-center pointer-events-none ${stage === 'prologue' ? 'opacity-100' : 'opacity-0'}`}>
-                <div className="text-center">
-                    <h2 className="text-2xl md:text-4xl font-serif italic text-white/90 tracking-widest leading-loose drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
-                        "At the stroke of midnight..."
-                    </h2>
-                    <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-pink-500 to-transparent mx-auto mt-6 opacity-50" />
-                </div>
+            {/* STAGE: PROLOGUE (Sequential Text) */}
+            {/* We render all texts, but they are hidden by opacity:0 initially. GSAP reveals them one by one. */}
+            <div 
+                ref={prologueContainerRef} 
+                className={`absolute inset-0 w-full h-full flex items-center justify-center pointer-events-none ${stage === 'prologue' ? 'block' : 'hidden'}`}
+            >
+                {PROLOGUE_LINES.map((line, i) => (
+                    <div key={i} className="absolute inset-0 flex items-center justify-center opacity-0">
+                         <h2 className="text-xl md:text-4xl font-serif italic text-white/90 tracking-widest leading-loose drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] text-center px-4">
+                            {line}
+                        </h2>
+                    </div>
+                ))}
             </div>
 
             {/* STAGE: COUNTING (The Clock) */}
             {stage === 'counting' && (
                 <div className="relative w-full max-w-[min(85vw,450px)] aspect-square flex items-center justify-center">
                     
-                    {/* Clock Container with 3D feel */}
+                    {/* Clock Container */}
                     <div ref={clockContainerRef} className="relative w-full h-full rounded-full transform-style-3d">
                         
                         {/* Back Glow */}
                         <div className="absolute inset-4 rounded-full bg-purple-600/20 blur-[60px] animate-pulse-slow" />
 
-                        {/* Outer Rim (Metallic & Heavy) */}
+                        {/* Outer Rim */}
                         <div className="absolute inset-[-15px] rounded-full bg-gradient-to-br from-[#1e293b] via-[#0f172a] to-black shadow-[0_0_50px_rgba(0,0,0,0.9),inset_0_1px_1px_rgba(255,255,255,0.1)] z-0 ring-1 ring-white/5" />
                         
                         {/* The Face */}
                         <div className="absolute inset-0 rounded-full bg-[#0a0a0a] shadow-[inset_0_0_60px_rgba(0,0,0,0.9)] z-10 overflow-hidden border border-white/5">
                             
-                            {/* Inner ambient details */}
                             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.05),transparent_70%)]" />
                             <div className="absolute inset-10 rounded-full border border-white/5 opacity-20" />
 
@@ -349,7 +372,7 @@ export function MidnightScene() {
                                                     : 'text-white/30'}`}
                                                 style={{ 
                                                     opacity: getNumberOpacity(i),
-                                                    transform: `rotate(${-i * (360/20)}deg)` // Keep numbers upright? Or radial? Let's keep radial for clock feel, but maybe counter-rotate for readability. Actually radial looks better for a dial.
+                                                    transform: `rotate(${-i * (360/20)}deg)` 
                                                 }}
                                             >
                                                 {i + 1}
@@ -364,14 +387,15 @@ export function MidnightScene() {
                                 ))}
                             </div>
 
+                            {/* MEMOIZED CLOCK HANDS */}
                             <ClockHands />
                             
-                            {/* Glass Reflection overlay */}
+                            {/* Glass Reflection */}
                             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent rounded-full pointer-events-none z-50 mix-blend-overlay" />
                         </div>
                     </div>
 
-                    {/* Minimal Progress Bar below clock */}
+                    {/* Progress Bar */}
                     <div className="absolute -bottom-24 w-32 h-[2px] bg-white/10 rounded-full overflow-hidden">
                          <div 
                             className="h-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-[0_0_10px_#ec4899] transition-all duration-300 ease-linear"
@@ -385,7 +409,6 @@ export function MidnightScene() {
             {stage === 'finale' && (
                 <div ref={titleGroupRef} className="text-center w-full max-w-5xl px-4 z-40">
                     
-                    {/* Glowing Crown Icon */}
                     <div className="mb-6 flex justify-center">
                         <div className="relative p-4 bg-gradient-to-b from-white/10 to-transparent rounded-full border border-white/20 backdrop-blur-md animate-float">
                              <Crown className="w-16 h-16 text-yellow-300 drop-shadow-[0_0_25px_rgba(253,224,71,0.6)]" />
