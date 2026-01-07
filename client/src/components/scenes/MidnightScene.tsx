@@ -4,27 +4,27 @@ import { AdaptiveParticleSystem } from '../AdaptiveParticleSystem';
 import gsap from 'gsap';
 import { audioManager } from '../../lib/audioManager';
 import Confetti from 'react-confetti';
-import { Sparkles, Crown, Film } from 'lucide-react';
+import { Sparkles, Crown, Film, Lock, ArrowRight, X } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
 /* CONFIG: PROLOGUE TEXTS */
 /* ------------------------------------------------------------------ */
+// Periods removed, text style will be EB Garamond
 const PROLOGUE_LINES = [
-  "Twenty years ago.",
-  "On a cold night in Riyadh.",
-  "Beneath the same dark sky.",
-  "A single heartbeat.",
-  "Then another.",
-  "Everything shifted.",
-  "Time hesitated.",
-  "The clock awakened.",
-  "And so it begins."
+  "Twenty years ago",
+  "On a cold night in Riyadh",
+  "Beneath the same dark sky",
+  "A single heartbeat",
+  "Then another",
+  "Everything shifted",
+  "Time hesitated",
+  "The clock awakened",
+  "And so it begins"
 ];
 
 /* ------------------------------------------------------------------ */
-/* SUB-COMPONENT: CINEMATIC CLOCK HANDS (MEMOIZED FOR PERFORMANCE) */
+/* SUB-COMPONENT: CINEMATIC CLOCK HANDS (MEMOIZED) */
 /* ------------------------------------------------------------------ */
-// Wrapped in memo() so it doesn't re-render with every countdown tick
 const ClockHands = memo(() => (
   <div className="absolute inset-0 z-20 pointer-events-none">
     {/* Central Pin mechanism */}
@@ -38,7 +38,7 @@ const ClockHands = memo(() => (
     {/* Minute Hand */}
     <div className="clock-hand-minute absolute top-1/2 left-1/2 w-1 h-24 sm:h-28 -translate-x-1/2 -translate-y-[92%] bg-gradient-to-t from-pink-300 via-purple-200 to-white rounded-full origin-bottom z-20 shadow-[-2px_2px_8px_rgba(0,0,0,0.4)]" />
 
-    {/* Second Hand - Optimized shadow for performance */}
+    {/* Second Hand */}
     <div className="clock-hand-second absolute top-1/2 left-1/2 w-[1px] h-28 sm:h-36 -translate-x-1/2 -translate-y-[85%] bg-gradient-to-t from-yellow-400 via-yellow-100 to-transparent origin-bottom z-20 shadow-[0_0_10px_rgba(253,224,71,0.5)] mix-blend-screen" />
   </div>
 ));
@@ -51,15 +51,15 @@ ClockHands.displayName = 'ClockHands';
 export function MidnightScene() {
   const { navigateTo, settings } = useSceneStore();
   
-  // Stages: 'idle' -> 'prologue' -> 'counting' -> 'finale'
-  const [stage, setStage] = useState<'idle' | 'prologue' | 'counting' | 'finale'>('idle');
+  // Stages: 'lock' -> 'idle' -> 'prologue' -> 'counting' -> 'finale'
+  const [stage, setStage] = useState<'lock' | 'idle' | 'prologue' | 'counting' | 'finale'>('lock');
   const [countdown, setCountdown] = useState<number | null>(null);
   
   // Refs
   const containerRef = useRef<HTMLDivElement>(null);
   const clockContainerRef = useRef<HTMLDivElement>(null);
   const numberRingRef = useRef<HTMLDivElement>(null);
-  const prologueContainerRef = useRef<HTMLDivElement>(null); // Parent of text lines
+  const prologueContainerRef = useRef<HTMLDivElement>(null); 
   const titleGroupRef = useRef<HTMLDivElement>(null);
   const lightLeakRef = useRef<HTMLDivElement>(null);
 
@@ -90,6 +90,21 @@ export function MidnightScene() {
   }, [stage]);
 
   /* ------------------------------------------------------------------ */
+  /* PHASE 0: THE LOCK (DATE CHECK) */
+  /* ------------------------------------------------------------------ */
+  const handleLockAnswer = (isToday: boolean) => {
+    if (isToday) {
+        // If Yes: Go to Idle (which allows starting the Prologue)
+        if (settings.soundEnabled) audioManager.play('click');
+        setStage('idle');
+    } else {
+        // If No: Skip everything, go directly to room
+        // Using the safe navigation method from store
+        navigateTo('room');
+    }
+  };
+
+  /* ------------------------------------------------------------------ */
   /* PHASE 1: THE PROLOGUE (SEQUENTIAL) */
   /* ------------------------------------------------------------------ */
   const startPrologue = () => {
@@ -102,7 +117,7 @@ export function MidnightScene() {
     });
 
     // Fade out Idle UI
-    tl.to('.idle-ui', { opacity: 0, duration: 1, ease: 'power2.in' });
+    tl.to('.idle-ui', { opacity: 0, duration: 1.5, ease: 'power2.in' });
     tl.to(containerRef.current, { backgroundColor: '#020105', duration: 2 }, "<");
 
     // Get all text lines
@@ -111,22 +126,26 @@ export function MidnightScene() {
         
         // Loop through each line to create the sequence
         Array.from(lines).forEach((line, index) => {
-            // Calculate timing based on text length or dramatic effect
-            // The last few lines ("Time hesitated", "The clock awakened") go slightly faster
+            // SLOWER TIMING LOGIC
             const isLast = index === lines.length - 1;
-            const displayDuration = isLast ? 2.5 : 2; 
+            
+            // Increased duration for reading
+            const displayDuration = isLast ? 3.5 : 3.0; 
+            // Increased silence between lines
+            const silenceDuration = isLast ? 1.0 : 1.2;
 
             tl.fromTo(line, 
-                { opacity: 0, y: 25, filter: 'blur(12px)', scale: 0.95 }, 
-                { opacity: 1, y: 0, filter: 'blur(0px)', scale: 1, duration: 1.5, ease: 'power3.out' }
+                { opacity: 0, y: 30, filter: 'blur(15px)', scale: 0.98 }, 
+                { opacity: 1, y: 0, filter: 'blur(0px)', scale: 1, duration: 2.0, ease: 'power3.out' }
             )
             .to(line, { 
                 opacity: 0, 
-                y: -10, 
-                filter: 'blur(10px)', 
-                duration: 1, 
-                ease: 'power2.in' 
-            }, `>+${displayDuration === 2.5 ? 0.5 : 0.2}`); // Small pause before fading out
+                y: -15, 
+                filter: 'blur(15px)', 
+                duration: 1.5, 
+                ease: 'power2.inOut' 
+            }, `>+${displayDuration}`) // Hold text longer
+            .set({}, {}, `>+${silenceDuration}`); // Add silence/gap before next line starts
         });
     }
   };
@@ -160,7 +179,7 @@ export function MidnightScene() {
             ease: 'elastic.out(1, 0.5)'
         }, "-=1.5");
 
-        // Continuous delicate rotation for hands - Triggered once, runs forever independently of React state
+        // Continuous delicate rotation for hands
         gsap.to('.clock-hand-second', { rotation: 360, duration: 6, repeat: -1, ease: 'linear', transformOrigin: 'bottom center' });
         gsap.to('.clock-hand-minute', { rotation: 360, duration: 60, repeat: -1, ease: 'linear', transformOrigin: 'bottom center' });
     }
@@ -244,6 +263,7 @@ export function MidnightScene() {
             );
         }
         
+        // --- SAFE NAVIGATION TO ROOM ---
         setTimeout(() => navigateTo('room'), 7000);
     }, 800);
   };
@@ -296,9 +316,37 @@ export function MidnightScene() {
         {/* --- CONTENT LAYER --- */}
         <div className="relative z-20 w-full h-full flex flex-col items-center justify-center px-4 perspective-[1200px]">
             
+            {/* STAGE: LOCK (Date Check) */}
+            {stage === 'lock' && (
+                <div className="idle-ui flex flex-col items-center space-y-8 animate-in fade-in duration-1000">
+                    <div className="p-4 bg-white/5 rounded-full border border-white/10 mb-4 shadow-[0_0_30px_rgba(255,255,255,0.05)]">
+                        <Lock className="w-8 h-8 text-white/50" />
+                    </div>
+                    <h2 className="text-2xl md:text-3xl font-light tracking-widest text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 font-garamond italic">
+                        Is it January 14 today?
+                    </h2>
+                    <div className="flex items-center gap-6 pt-4">
+                        <button 
+                            onClick={() => handleLockAnswer(true)}
+                            className="group flex items-center gap-2 px-8 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-sm transition-all duration-300 hover:scale-105"
+                        >
+                            <span className="text-xs tracking-[0.2em] text-white/80">YES</span>
+                            <ArrowRight className="w-3 h-3 text-white/50 group-hover:translate-x-1 transition-transform" />
+                        </button>
+                        <button 
+                            onClick={() => handleLockAnswer(false)}
+                            className="group flex items-center gap-2 px-8 py-3 bg-transparent hover:bg-white/5 border border-white/5 hover:border-white/10 rounded-sm transition-all duration-300 opacity-60 hover:opacity-100"
+                        >
+                            <span className="text-xs tracking-[0.2em] text-white/50">NO</span>
+                            <X className="w-3 h-3 text-white/30 group-hover:text-white/50" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* STAGE: IDLE (Start Screen) */}
             {stage === 'idle' && (
-                <div className="idle-ui text-center space-y-10">
+                <div className="idle-ui text-center space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
                     <div className="space-y-4">
                         <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-[10px] tracking-[0.3em] uppercase text-white/40">
                             <Film className="w-3 h-3" /> TWO DECADES IN
@@ -324,14 +372,14 @@ export function MidnightScene() {
             )}
 
             {/* STAGE: PROLOGUE (Sequential Text) */}
-            {/* We render all texts, but they are hidden by opacity:0 initially. GSAP reveals them one by one. */}
+            {/* Using EB Garamond font as requested */}
             <div 
                 ref={prologueContainerRef} 
                 className={`absolute inset-0 w-full h-full flex items-center justify-center pointer-events-none ${stage === 'prologue' ? 'block' : 'hidden'}`}
             >
                 {PROLOGUE_LINES.map((line, i) => (
                     <div key={i} className="absolute inset-0 flex items-center justify-center opacity-0">
-                         <h2 className="text-xl md:text-4xl font-serif italic text-white/90 tracking-widest leading-loose drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] text-center px-4">
+                         <h2 className="text-2xl md:text-5xl font-garamond italic text-white/90 tracking-widest leading-loose drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] text-center px-4">
                             {line}
                         </h2>
                     </div>
@@ -453,8 +501,12 @@ export function MidnightScene() {
 
         </div>
 
-        {/* --- CUSTOM CSS ANIMATIONS --- */}
+        {/* --- CUSTOM CSS ANIMATIONS & FONT --- */}
         <style>{`
+            @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap');
+
+            .font-garamond { font-family: 'EB Garamond', serif; }
+
             @keyframes float {
                 0%, 100% { transform: translateY(0px); }
                 50% { transform: translateY(-15px); }
