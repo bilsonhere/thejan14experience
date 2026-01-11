@@ -120,7 +120,8 @@ May this year be your most beautiful yet.
 And the next one more beautiful.
 And so on,
 
-Forever. 💖`;
+
+Wishing you well. Always in my Duas!`;
 
 // --- Helper Component: Typewriter ---
 const TypewriterText = ({ text, onComplete }: { text: string; onComplete?: () => void }) => {
@@ -173,23 +174,7 @@ export function GiftsScene() {
 
   // --- Effects ---
 
-  // 1. Audio Ducking
-  useEffect(() => {
-    if (isPlaying) {
-      audioManager.pause(); 
-    } else {
-      if (settings.soundEnabled && !showEndScreen && !isExiting) {
-        audioManager.play('theme');
-      }
-    }
-  }, [isPlaying, settings.soundEnabled, showEndScreen, isExiting]);
-
-  useEffect(() => {
-    if (settings.customGiftBackground) {
-      setBgImage(settings.customGiftBackground);
-    }
-  }, [settings.customGiftBackground]);
-
+  
   // 2. Initial Animation & Floating
   useEffect(() => {
     if (!settings.reducedMotion) {
