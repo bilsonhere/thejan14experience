@@ -9,7 +9,7 @@ import gsap from 'gsap';
 import Confetti from 'react-confetti';
 import { 
   Play, Pause, X, ExternalLink, Maximize2, Music, Loader2, 
-  ChevronLeft, ChevronRight, Lock, RotateCcw
+  ChevronLeft, ChevronRight, Lock, RotateCcw, LogOut
 } from 'lucide-react';
 
 // --- Types & Constants ---
@@ -148,7 +148,8 @@ export function GiftsScene() {
   const [openedGifts, setOpenedGifts] = useState<number[]>([]);
   const [selectedGift, setSelectedGift] = useState<Gift | null>(null);
   const [showFinale, setShowFinale] = useState(false);
-  const [showEndScreen, setShowEndScreen] = useState(false); // New state for exit
+  const [showEndScreen, setShowEndScreen] = useState(false);
+  const [isExiting, setIsExiting] = useState(false); // State for exit black screen
   
   // Audio State
   const [isPlaying, setIsPlaying] = useState(false);
@@ -164,7 +165,7 @@ export function GiftsScene() {
   const [bgImage, setBgImage] = useState<string>(settings.customGiftBackground || '/assets/gifts/background.jpg');
 
   // Refs
-  const giftsRefs = useRef<(HTMLDivElement | null)[]>([]); // Changed to Div for better hover tracking
+  const giftsRefs = useRef<(HTMLDivElement | null)[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -175,15 +176,13 @@ export function GiftsScene() {
   // 1. Audio Ducking
   useEffect(() => {
     if (isPlaying) {
-      // Pause main bg music when gift music plays
       audioManager.pause(); 
     } else {
-      // Resume main bg music when gift music stops
-      if (settings.soundEnabled && !showEndScreen) {
-        audioManager.play('theme'); // Assuming 'theme' is your main track key
+      if (settings.soundEnabled && !showEndScreen && !isExiting) {
+        audioManager.play('theme');
       }
     }
-  }, [isPlaying, settings.soundEnabled, showEndScreen]);
+  }, [isPlaying, settings.soundEnabled, showEndScreen, isExiting]);
 
   useEffect(() => {
     if (settings.customGiftBackground) {
@@ -231,11 +230,8 @@ export function GiftsScene() {
 
   // 3. Handle End Screen Transition
   const handleDialogClose = () => {
-    // If we just closed the FINAL gift (id 5)
     if (selectedGift?.id === 5) {
       setSelectedGift(null);
-      
-      // Smoothly transition to End Screen
       if (gridRef.current) {
         gsap.to(gridRef.current, {
           opacity: 0,
@@ -257,12 +253,24 @@ export function GiftsScene() {
     setShowFinale(false);
     setOpenedGifts([]);
     updateProgress({ giftsOpened: [] });
-    
-    // Reset Grid Animation
     if (gridRef.current) {
       gsap.set(gridRef.current, { opacity: 0, scale: 0.95 });
       gsap.to(gridRef.current, { opacity: 1, scale: 1, duration: 1, delay: 0.2 });
     }
+  };
+
+  const handleExit = () => {
+    setIsExiting(true);
+    audioManager.stop(); // Stop all sound
+    
+    // Attempt to close window (Note: this often fails in modern browsers if not opened by script)
+    setTimeout(() => {
+      try {
+        window.close();
+      } catch (e) {
+        console.log("Cannot close window via script");
+      }
+    }, 1000);
   };
 
   // --- Logic Functions ---
@@ -271,8 +279,7 @@ export function GiftsScene() {
     // Sequential Locking Logic
     const isLocked = index > 0 && !openedGifts.includes(GIFTS[index - 1].id);
     if (isLocked) {
-      if (settings.soundEnabled) audioManager.play('error'); // Optional error sound
-      // Shake animation for locked item
+      if (settings.soundEnabled) audioManager.play('error');
       const el = giftsRefs.current[index];
       if (el) {
         gsap.to(el, { x: 5, duration: 0.1, yoyo: true, repeat: 3 });
@@ -285,7 +292,6 @@ export function GiftsScene() {
       return;
     }
 
-    // Kill floating animation
     if (animationRefs.current[index]) {
       animationRefs.current[index].kill();
     }
@@ -329,7 +335,6 @@ export function GiftsScene() {
     }
   };
 
-  // Magnetic Effect Logic
   const handleMouseMove = (e: React.MouseEvent, index: number) => {
     if (settings.reducedMotion || openedGifts.includes(index + 1)) return;
     
@@ -341,7 +346,7 @@ export function GiftsScene() {
     const y = e.clientY - rect.top - rect.height / 2;
 
     gsap.to(el, {
-      x: x * 0.2, // Magnetic strength
+      x: x * 0.2, 
       y: y * 0.2,
       rotation: x * 0.05,
       duration: 0.5,
@@ -355,7 +360,7 @@ export function GiftsScene() {
     
     gsap.to(el, {
       x: 0,
-      y: 0, // Will be overridden by floating animation eventually
+      y: 0,
       rotation: 0,
       duration: 0.5,
       ease: 'elastic.out(1, 0.5)'
@@ -388,7 +393,6 @@ export function GiftsScene() {
     }
   };
 
-  // Audio Logic (Same as before but refined)
   const loadAudio = async () => {
     if (audioRef.current) return;
     setIsAudioLoading(true);
@@ -533,10 +537,7 @@ export function GiftsScene() {
             <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-orange-500/10 blur-3xl rounded-full pointer-events-none" />
             <div className="relative font-elegant text-base sm:text-lg leading-loose text-amber-50/90 p-8 sm:p-10 bg-gradient-to-b from-black/40 to-black/60 rounded-xl border border-amber-500/10 backdrop-blur-xl text-center shadow-2xl">
               <div className="mb-6 opacity-80">✨</div>
-              
-              {/* Typewriter Effect here */}
               <TypewriterText text={LETTER_CONTENT_FINAL} />
-
               <div className="mt-6 opacity-80">💖</div>
             </div>
           </div>
@@ -609,25 +610,33 @@ export function GiftsScene() {
     );
   };
 
+  // --- Main Exit "Blackout" Screen ---
+  if (isExiting) {
+    return (
+      <div className="fixed inset-0 z-[99999] bg-black animate-in fade-in duration-1000 flex items-center justify-center">
+        <div className="text-white/20 font-light tracking-[0.5em] text-sm animate-pulse">GOODBYE</div>
+      </div>
+    );
+  }
+
   return (
     <div ref={containerRef} className="relative w-full h-full overflow-hidden bg-[#0a0510]">
       <div className="absolute inset-0 z-0 pointer-events-none" style={{ background: 'radial-gradient(circle at 50% 40%, rgba(60, 30, 80, 0.4) 0%, rgba(10, 5, 16, 0.9) 70%, rgba(0,0,0,1) 100%)' }} />
       
-      {/* Dynamic Background Opacity based on progress */}
       <div 
         className="absolute inset-0 transition-all duration-1000 z-0" 
         style={{ 
           backgroundImage: `url(${bgImage})`, 
           backgroundSize: 'cover', 
           backgroundPosition: 'center', 
-          opacity: 0.15 + (openedGifts.length * 0.05), // Increases opacity as gifts are opened
+          opacity: 0.15 + (openedGifts.length * 0.05),
           filter: `blur(${Math.max(0, 2 - openedGifts.length * 0.4)}px) saturate(${0.8 + openedGifts.length * 0.1})` 
         }} 
       />
       
       <div className="absolute inset-0 pointer-events-none z-[1] opacity-[0.03] mix-blend-overlay bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjY1IiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiBmaWx0ZXI9InVybCgjYSkiIG9wYWNpdHk9IjAuNSIvPjwvc3ZnPg==')]"></div>
 
-      {showFinale && (
+      {showFinale && !showEndScreen && (
         <div className="absolute inset-0 pointer-events-none z-20">
           <Confetti recycle={true} numberOfPieces={150} gravity={0.03} colors={['#fbbf24', '#f472b6', '#a855f7', '#fff']} wind={0.005} opacity={0.6} />
           <AdaptiveParticleSystem count={150} color="#fbbf24" speed={0.4} size={2} />
@@ -650,7 +659,6 @@ export function GiftsScene() {
             {GIFTS.map((gift, index) => {
               const isOpened = openedGifts.includes(gift.id);
               const isHovered = hoveredGift === gift.id;
-              // Check if locked: Gift is locked if index > 0 and previous gift ID is NOT in opened list
               const isLocked = index > 0 && !openedGifts.includes(GIFTS[index - 1].id);
 
               return (
@@ -707,9 +715,14 @@ export function GiftsScene() {
              <h1 className="text-4xl sm:text-6xl font-cursive text-amber-100 drop-shadow-lg">Happy Birthday</h1>
              <p className="text-white/60 font-light tracking-widest uppercase text-sm">Hope you liked it</p>
              
-             <Button onClick={handleReplay} variant="outline" className="mt-8 border-white/20 text-white hover:bg-white/10 gap-2">
-                <RotateCcw className="w-4 h-4" /> Replay
-             </Button>
+             <div className="flex gap-4 items-center justify-center mt-8">
+               <Button onClick={handleReplay} variant="outline" className="border-white/20 text-white hover:bg-white/10 gap-2 min-w-[120px]">
+                  <RotateCcw className="w-4 h-4" /> Replay
+               </Button>
+               <Button onClick={handleExit} variant="destructive" className="bg-red-500/10 hover:bg-red-500/20 text-red-200 border border-red-500/20 gap-2 min-w-[120px]">
+                  <LogOut className="w-4 h-4" /> Exit
+               </Button>
+             </div>
            </div>
         </div>
       )}
