@@ -137,7 +137,7 @@ const TypewriterText = ({ text, onComplete }: { text: string; onComplete?: () =>
         clearInterval(interval);
         onComplete?.();
       }
-    }, 40); // Typing speed
+    }, 30); // Typing speed
     return () => clearInterval(interval);
   }, [text]);
 
@@ -599,7 +599,7 @@ export function GiftsScene() {
   if (isExiting) {
     return (
       <div className="fixed inset-0 z-[99999] bg-black animate-in fade-in duration-1000 flex items-center justify-center">
-        <div className="text-white/20 font-light tracking-[0.5em] text-sm animate-pulse">GOODBYE</div>
+        <div className="text-white/20 font-light tracking-[0.5em] text-sm animate-pulse">^_^</div>
       </div>
     );
   }
@@ -697,8 +697,8 @@ export function GiftsScene() {
         <div className="relative z-10 w-full h-full flex flex-col items-center justify-center animate-in fade-in duration-1000">
            <div className="text-center space-y-8 p-6">
              <div className="text-6xl sm:text-8xl animate-bounce duration-[3000ms]">🎂</div>
-             <h1 className="text-4xl sm:text-6xl font-cursive text-amber-100 drop-shadow-lg">Happy Birthday</h1>
-             <p className="text-white/60 font-light tracking-widest uppercase text-sm">Hope you liked it</p>
+             <h1 className="text-4xl sm:text-6xl font-cursive text-amber-100 drop-shadow-lg">Wishing You To Have A Great Day!</h1>
+             <p className="text-white/60 font-light tracking-widest uppercase text-sm">الحمد لله</p>
              
              <div className="flex gap-4 items-center justify-center mt-8">
                <Button onClick={handleReplay} variant="outline" className="border-white/20 text-white hover:bg-white/10 gap-2 min-w-[120px]">
