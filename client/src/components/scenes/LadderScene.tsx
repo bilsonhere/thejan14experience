@@ -105,7 +105,7 @@ const LIFE_EVENTS_DB: LifeEvent[] = [
   {
     id: 'jebel-jais-trip',
     type: 'MEMORY',
-    title: "Jebel Jais Road Trip",
+    title: "Jebel Jais Trek",
     description: "Freezing at the top of UAE's highest peak! 🏔️",
     buttonText: "Mountain Lover 🌄",
     icon: Mountain,
@@ -246,6 +246,18 @@ const LIFE_EVENTS_DB: LifeEvent[] = [
     color: "bg-cyan-500",
     age: 19,
     priority: 4,
+    tags: ['friends', 'social']
+  },
+   {
+    id: 'first-flight',
+    type: 'MEMORY',
+    title: "FIRST SOLO FLIGHT",
+    description: "WE ARE SO UPPPP",
+    buttonText: "PROUD OF MYSELF🎉",
+    icon: Plane,
+    color: "bg-cyan-500",
+    age: 19,
+    priority: 1,
     tags: ['friends', 'social']
   }
 ];
