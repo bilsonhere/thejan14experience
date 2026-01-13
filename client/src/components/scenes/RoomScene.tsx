@@ -44,7 +44,9 @@ export function RoomScene() {
   const auroraRef = useRef<HTMLDivElement>(null);
   
   // State
-  const [daysUntilBirthday, setDaysUntilBirthday] = useState(0);
+  const [daysUntilBirthday, setDaysUntilBirthday] = useState(0); // For progress circle calculation
+  const [countdownDisplay, setCountdownDisplay] = useState(''); // Text to show (days or HH:MM:SS)
+  const [isLastDay, setIsLastDay] = useState(false); // Toggle for formatting
   const [currentTime, setCurrentTime] = useState('');
   const [isBirthday, setIsBirthday] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
@@ -98,7 +100,7 @@ export function RoomScene() {
     });
   }, [mousePos, settings.reducedMotion]);
 
-  // Logic: Birthday Calculation
+  // Logic: Birthday Calculation (Updated for 24h countdown)
   useEffect(() => {
     const calculateDaysUntilBirthday = () => {
       const now = new Date();
@@ -112,17 +114,43 @@ export function RoomScene() {
       
       setIsBirthday(isTodayBirthday);
       
+      // If birthday passed this year, look at next year
       if (now > birthday) {
         birthday.setFullYear(currentYear + 1);
       }
       
+      // Don't calculate if it is today
+      if (isTodayBirthday) return;
+
       const diffTime = birthday.getTime() - now.getTime();
+      
+      // Calculate days purely for the Progress Circle logic
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       setDaysUntilBirthday(diffDays);
+
+      // --- NEW LOGIC START ---
+      // Check if within the last 24 hours (86400000 milliseconds)
+      if (diffTime <= 86400000 && diffTime > 0) {
+        const hours = Math.floor((diffTime / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((diffTime / (1000 * 60)) % 60);
+        const seconds = Math.floor((diffTime / 1000) % 60);
+        
+        // Format to HH:MM:SS
+        const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        setCountdownDisplay(formattedTime);
+        setIsLastDay(true);
+      } else {
+        // More than 24 hours, show Days
+        setCountdownDisplay(diffDays.toString());
+        setIsLastDay(false);
+      }
+      // --- NEW LOGIC END ---
     };
 
     calculateDaysUntilBirthday();
-    const interval = setInterval(calculateDaysUntilBirthday, 3600000);
+    // Update every second to catch the seconds ticking in the last 24h
+    const interval = setInterval(calculateDaysUntilBirthday, 1000); 
     return () => clearInterval(interval);
   }, []);
 
@@ -518,9 +546,11 @@ export function RoomScene() {
                     <span className="text-[10px] sm:text-xs font-medium text-white/90 uppercase tracking-wide">Countdown</span>
                   </div>
                   
-                  <div className="text-3xl sm:text-4xl font-bold text-white font-mono tracking-tighter drop-shadow-xl text-shadow-glow">
-                    {daysUntilBirthday}
-                    <span className="text-xs sm:text-sm font-normal text-white/70 ml-2 font-sans tracking-normal">days left</span>
+                  <div className={`${isLastDay ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl'} font-bold text-white font-mono tracking-tighter drop-shadow-xl text-shadow-glow`}>
+                    {countdownDisplay}
+                    <span className="text-xs sm:text-sm font-normal text-white/70 ml-2 font-sans tracking-normal">
+                        {isLastDay ? 'until party' : 'days left'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -556,7 +586,7 @@ export function RoomScene() {
               <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-3 sm:h-3 bg-red-500 rounded-full border border-[#1a1a2e] animate-bounce" />
             </div>
             <span className="absolute right-full top-1/2 -translate-y-1/2 mr-3 px-2 py-1 bg-black/40 backdrop-blur-md rounded-md text-[10px] text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity border border-white/10">
-               Read Messages
+                Read Messages
             </span>
           </button>
 
