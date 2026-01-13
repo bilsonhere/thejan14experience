@@ -99,8 +99,8 @@ const GIFTS: Gift[] = [
   },
 ];
 
-const LETTER_CONTENT_1 = ' (midnight wish)
-  Happy birthday Afrah. I hope today treats you with comfort and gives you moments you can cherish for ages. May this decade brings you all the happiness,peace,prosperity and success in your and your loved ones lives. You are a wonderful human being. Keep being yourself. May Allah grant you with the guidance and wisdom you will need in every paths. Ameen.`;
+const LETTER_CONTENT_1 = `(midnight wish)
+Happy birthday Afrah. I hope today treats you with comfort and gives you moments you can cherish for ages. May this decade brings you all the happiness, peace, prosperity and success in your and your loved ones lives. You are a wonderful human being. Keep being yourself. May Allah grant you with the guidance and wisdom you will need in every path. Ameen.`;
 const LETTER_CONTENT_FINAL = `Dear Afrah,
 
 Thanks a lot for giving this your time.
