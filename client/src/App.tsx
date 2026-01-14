@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/react';
 import { useEffect } from "react";
 import { useSceneStore } from "./lib/stores/useSceneStore";
 import { SceneRouter } from "./components/SceneRouter";
@@ -48,6 +49,9 @@ function App() {
     <div className="w-screen h-screen relative overflow-hidden">
       <SceneRouter />
       <FloatingUI />
+      
+      {/* Vercel Analytics tracking component */}
+      <Analytics />
     </div>
   );
 }
